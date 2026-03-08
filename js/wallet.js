@@ -102,16 +102,41 @@ var Wallet = (function() {
     if (state.wallet.transactions.length === 0) {
       list.innerHTML = '<p class="empty-msg">No transactions yet.</p>';
     } else {
-      list.innerHTML = state.wallet.transactions.map(function(t) {
+      list.innerHTML = state.wallet.transactions.map(function(t, idx) {
         var sign = t.type === 'deposit' ? '+' : '-';
         var cls = t.type === 'deposit' ? 'tx-deposit' : 'tx-withdraw';
-        var catLabel = t.category ? '<span class="tx-category">[' + t.category + ']</span> ' : '';
+        var catText = t.category || 'Uncategorized';
         return '<div class="transaction ' + cls + '">' +
-          '<span class="tx-desc">' + catLabel + t.desc + '</span>' +
+          '<span class="tx-desc"><span class="tx-category" data-tx-index="' + idx + '">[' + catText + ']</span> ' + t.desc + '</span>' +
           '<span class="tx-amount">' + sign + formatMoney(t.amount) + '</span>' +
           '<span class="tx-date">' + t.date + '</span>' +
           '</div>';
       }).join('');
+
+      // Tap category label to edit
+      list.querySelectorAll('.tx-category').forEach(function(el) {
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var idx = parseInt(el.dataset.txIndex);
+          var st = Storage.load();
+          var tx = st.wallet.transactions[idx];
+          if (!tx) return;
+          var options = getCategoryOptions(tx.type);
+          var current = tx.category || '';
+          var choice = prompt('Choose category for "' + tx.desc + '":\n\n' + options.map(function(c, i) { return (i+1) + '. ' + c; }).join('\n') + '\n\nEnter number or type a custom category:', current);
+          if (choice === null) return;
+          choice = choice.trim();
+          var num = parseInt(choice);
+          if (num >= 1 && num <= options.length) {
+            tx.category = options[num - 1];
+          } else if (choice) {
+            tx.category = choice;
+          }
+          Storage.save(st);
+          render();
+        });
+      });
     }
 
     // Render summary

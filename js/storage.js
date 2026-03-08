@@ -179,6 +179,20 @@ var Storage = {
     if (state.dailyState.taskRewardsEarned === undefined) state.dailyState.taskRewardsEarned = 0;
     if (state.dailyState.quizRewardEarned === undefined) state.dailyState.quizRewardEarned = false;
 
+    // Auto-categorize old transactions missing categories
+    if (state.wallet && state.wallet.transactions) {
+      state.wallet.transactions.forEach(function(t) {
+        if (t.category) return;
+        var d = (t.desc || '').toLowerCase();
+        if (d.indexOf('sold ') === 0) t.category = 'Sell Animal';
+        else if (d.indexOf('bought baby') !== -1) t.category = 'Buy Animal';
+        else if (d.indexOf('interest') !== -1) t.category = 'Interest Income';
+        else if (d.indexOf('welcome bonus') !== -1) t.category = 'Gift';
+        else if (d.indexOf('task') !== -1) t.category = 'Task Reward';
+        else if (d.indexOf('quiz') !== -1) t.category = 'Quiz Reward';
+      });
+    }
+
     if (state.tasks && state.tasks.chores) {
       var tc = state.dailyState.tasksCompleted;
       var needed = state.tasks.chores.length;
