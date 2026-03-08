@@ -13,6 +13,9 @@ const App = (() => {
       currentScreen = name;
     }
 
+    // Scroll to top on screen change
+    window.scrollTo(0, 0);
+
     // Update nav active state
     document.querySelectorAll('.nav-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.screen === name);
@@ -444,4 +447,10 @@ const App = (() => {
 })();
 
 // Boot
-document.addEventListener('DOMContentLoaded', App.init);
+document.addEventListener('DOMContentLoaded', function() {
+  window.scrollTo(0, 0);
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+  App.init();
+});
