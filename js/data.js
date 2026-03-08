@@ -33,6 +33,9 @@ var DEATH = {
   daysWithoutFood: 3
 };
 
+var DEPOSIT_CATEGORIES = ['Red Pocket', 'Birthday', 'Holiday', 'Piggy Bank Reward', 'Interest Income', 'Other Earnings'];
+var WITHDRAW_CATEGORIES = ['Snack', 'Toys', 'Stationery', 'Books', 'Piggy Bank Spend', 'Others'];
+
 var DEFAULT_CHORES = [
   'Make your bed',
   'Brush your teeth',
@@ -87,7 +90,9 @@ function createDefaultState() {
       buyBabyPrice: 500,     // cents
       sellAdultPrice: 1000,  // cents
       taskFoodReward: 2,
-      taskWaterReward: 2
+      taskWaterReward: 2,
+      customDepositCategories: [],
+      customWithdrawCategories: []
     },
     lastInterestDate: todayString()
   };

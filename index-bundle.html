@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#f8b4c8">
-  <title>Piggy Bank</title>
-    <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Piggy Bank</title>
+<style>
 /* ============================================================
    style.css — Minecraft-inspired UI
    ============================================================ */
@@ -127,12 +125,13 @@ body {
 }
 
 .welcome-mascot {
-  margin-bottom: 12px;
-  height: 120px;
+  margin-bottom: 8px;
+  height: 90px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .game-title {
@@ -162,6 +161,12 @@ body {
   color: var(--stone-light);
   text-shadow: 1px 1px 0 #000;
 }
+#create-account-form .pin-input {
+  width: 100%;
+  margin: 0 auto 8px;
+  display: block;
+}
+
 .login-form input, .login-form select {
   width: 100%;
   padding: 8px 10px;
@@ -171,6 +176,93 @@ body {
   color: var(--text-white);
   font-family: 'Silkscreen', monospace;
   font-size: 0.8rem;
+}
+
+/* ---- Account Cards ---- */
+#account-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.account-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 12px 14px;
+  cursor: pointer;
+  position: relative;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.account-card:active {
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  background: var(--stone-dark);
+}
+
+.account-avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--grass);
+  border: 2px solid var(--grass-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+  flex-shrink: 0;
+}
+
+.account-name {
+  flex: 1;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.account-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: var(--stone);
+  border: 2px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--text-white);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Silkscreen', monospace;
+  padding: 0;
+  line-height: 1;
+}
+.account-delete-btn:hover {
+  background: #8B2020;
+}
+
+/* PIN Modal Content */
+.pin-modal-content {
+  text-align: center;
+  padding: 24px 20px;
+}
+.pin-modal-content h3 {
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.pin-modal-content .pin-input {
+  margin-bottom: 8px;
+}
+.pin-modal-content .error-text {
+  margin-bottom: 8px;
 }
 
 /* ---- Minecraft Buttons ---- */
@@ -292,16 +384,19 @@ body {
   height: 1px;
   image-rendering: pixelated;
   display: block;
-  margin: 0 auto;
   zoom: 9;
+  margin: 0 auto;
+  /* Sprites are ~16px grid drawn via box-shadow.
+     Shift left by half the grid so the art is visually centered. */
+  transform: translateX(-8px);
 }
 
 .sprite-wrap {
+  overflow: hidden;
+  min-height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: visible;
-  min-height: 120px;
 }
 
 .idle-bounce {
@@ -312,10 +407,10 @@ body {
   50% { margin-top: -4px; }
 }
 
-.welcome-mascot .pixel-art { zoom: 12; }
-.animal-card .sprite-wrap { min-height: 120px; }
+.welcome-mascot .pixel-art { zoom: 8; }
+.animal-card .sprite-wrap { min-height: 120px; overflow: hidden; }
 .animal-card .pixel-art { zoom: 8; }
-.market-item .sprite-wrap { min-height: 100px; }
+.market-item .sprite-wrap { min-height: 100px; overflow: hidden; }
 .market-item .pixel-art { zoom: 6; }
 .modal-animal-art .pixel-art { zoom: 10; }
 .breed-slot .pixel-art { zoom: 5; }
@@ -428,12 +523,14 @@ body {
 }
 
 .market-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+  justify-content: center;
 }
-
 .market-item {
+  width: calc(33.33% - 4px);
+  min-width: 110px;
   background: var(--inventory-slot);
   border: 2px solid;
   border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
@@ -441,6 +538,7 @@ body {
   text-align: center;
   color: var(--text-white);
   text-shadow: 1px 1px 0 #000;
+  box-sizing: border-box;
 }
 .market-item-name { font-size: 0.7rem; margin: 4px 0 2px; }
 .market-item-price { color: var(--emerald); font-size: 0.7rem; margin-bottom: 6px; }
@@ -855,12 +953,98 @@ body {
   white-space: nowrap;
 }
 
+/* ---- Category Summary ---- */
+.category-summary {
+  margin: 16px 0;
+  text-align: left;
+}
+.summary-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  justify-content: center;
+}
+.summary-table {
+  margin-bottom: 12px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 8px;
+}
+.summary-title {
+  font-size: 0.75rem;
+  margin-bottom: 6px;
+  text-shadow: 1px 1px 0 #000;
+}
+.summary-income-title { color: var(--emerald); }
+.summary-spending-title { color: var(--red-heart); }
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 6px;
+  font-size: 0.65rem;
+  color: var(--text-white);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-total {
+  border-top: 2px solid var(--stone);
+  font-weight: 700;
+  margin-top: 4px;
+  padding-top: 6px;
+}
+.tx-category {
+  color: var(--diamond);
+  font-size: 0.55rem;
+}
+
+/* ---- Category Select ---- */
+.category-select {
+  flex: 1;
+  padding: 6px 8px;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  background: #000;
+  color: var(--text-white);
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.65rem;
+}
+
+/* ---- Custom Category Editor (Parent) ---- */
+.category-editor label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.custom-category-list {
+  margin-bottom: 6px;
+}
+.custom-cat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--obsidian);
+  border: 1px solid var(--stone-dark);
+  margin-bottom: 3px;
+  font-size: 0.7rem;
+  color: var(--text-white);
+}
+.category-add-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.category-add-row .chore-input {
+  flex: 1;
+}
+
 /* ---- Animations ---- */
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
-
 /* ============================================================
    animals.css — CSS pixel art for 5 animals (baby + adult)
    Each uses box-shadow on a 1px element, 16x16 grid
@@ -1106,12 +1290,177 @@ body {
     13px 8px #27ae60, 14px 7px #1e8449, 15px 7px #e74c3c;
 }
 
+/* ---- AXOLOTL BABY ---- */
+.axolotl-baby {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* gills left */
+    4px 3px #e84080, 3px 4px #e84080, 4px 5px #e84080,
+    /* gills right */
+    11px 3px #e84080, 12px 4px #e84080, 11px 5px #e84080,
+    /* head */
+    6px 2px #f8b0c8, 7px 2px #fcc0d8, 8px 2px #fcc0d8, 9px 2px #f8b0c8,
+    5px 3px #f8b0c8, 6px 3px #fcc0d8, 7px 3px #fcc0d8, 8px 3px #fcc0d8, 9px 3px #fcc0d8, 10px 3px #f8b0c8,
+    5px 4px #f8b0c8, 6px 4px #fcc0d8, 7px 4px #1a1a1a, 8px 4px #fcc0d8, 9px 4px #1a1a1a, 10px 4px #fcc0d8,
+    /* smile */
+    5px 5px #f8b0c8, 6px 5px #fcc0d8, 7px 5px #fcc0d8, 8px 5px #e880a0, 9px 5px #fcc0d8, 10px 5px #f8b0c8,
+    6px 6px #f8b0c8, 7px 6px #fcc0d8, 8px 6px #fcc0d8, 9px 6px #f8b0c8,
+    /* body */
+    5px 7px #f8b0c8, 6px 7px #fcc0d8, 7px 7px #fcc0d8, 8px 7px #fcc0d8, 9px 7px #fcc0d8, 10px 7px #f8b0c8,
+    5px 8px #f8b0c8, 6px 8px #fcc0d8, 7px 8px #fdd8e8, 8px 8px #fdd8e8, 9px 8px #fcc0d8, 10px 8px #f8b0c8,
+    5px 9px #e890b0, 6px 9px #f8b0c8, 7px 9px #f8b0c8, 8px 9px #f8b0c8, 9px 9px #f8b0c8, 10px 9px #e890b0,
+    /* legs + tail */
+    6px 10px #e890b0, 7px 10px #e890b0, 8px 10px #e890b0, 9px 10px #e890b0,
+    11px 8px #e890b0, 12px 8px #e890b0, 13px 9px #e890b0;
+}
+
+/* ---- AXOLOTL ADULT ---- */
+.axolotl-adult {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* gills left */
+    2px 2px #e84080, 3px 2px #e84080, 2px 3px #e84080, 3px 4px #e84080, 2px 5px #e84080,
+    /* gills right */
+    12px 2px #e84080, 13px 2px #e84080, 13px 3px #e84080, 12px 4px #e84080, 13px 5px #e84080,
+    /* head */
+    5px 1px #f8b0c8, 6px 1px #fcc0d8, 7px 1px #fcc0d8, 8px 1px #fcc0d8, 9px 1px #fcc0d8, 10px 1px #f8b0c8,
+    4px 2px #f8b0c8, 5px 2px #fcc0d8, 6px 2px #fcc0d8, 7px 2px #fcc0d8, 8px 2px #fcc0d8, 9px 2px #fcc0d8, 10px 2px #fcc0d8, 11px 2px #f8b0c8,
+    4px 3px #f8b0c8, 5px 3px #fcc0d8, 6px 3px #1a1a1a, 7px 3px #fcc0d8, 8px 3px #fcc0d8, 9px 3px #1a1a1a, 10px 3px #fcc0d8, 11px 3px #f8b0c8,
+    4px 4px #f8b0c8, 5px 4px #fcc0d8, 6px 4px #fcc0d8, 7px 4px #fcc0d8, 8px 4px #e880a0, 9px 4px #fcc0d8, 10px 4px #fcc0d8, 11px 4px #f8b0c8,
+    5px 5px #f8b0c8, 6px 5px #fcc0d8, 7px 5px #fcc0d8, 8px 5px #fcc0d8, 9px 5px #fcc0d8, 10px 5px #f8b0c8,
+    /* body */
+    3px 6px #f8b0c8, 4px 6px #fcc0d8, 5px 6px #fcc0d8, 6px 6px #fcc0d8, 7px 6px #fcc0d8, 8px 6px #fcc0d8, 9px 6px #fcc0d8, 10px 6px #fcc0d8, 11px 6px #fcc0d8, 12px 6px #f8b0c8,
+    3px 7px #f8b0c8, 4px 7px #fcc0d8, 5px 7px #fcc0d8, 6px 7px #fdd8e8, 7px 7px #fdd8e8, 8px 7px #fdd8e8, 9px 7px #fdd8e8, 10px 7px #fcc0d8, 11px 7px #fcc0d8, 12px 7px #f8b0c8,
+    3px 8px #f8b0c8, 4px 8px #fcc0d8, 5px 8px #fcc0d8, 6px 8px #fdd8e8, 7px 8px #fdd8e8, 8px 8px #fdd8e8, 9px 8px #fdd8e8, 10px 8px #fcc0d8, 11px 8px #fcc0d8, 12px 8px #f8b0c8,
+    3px 9px #e890b0, 4px 9px #f8b0c8, 5px 9px #f8b0c8, 6px 9px #f8b0c8, 7px 9px #f8b0c8, 8px 9px #f8b0c8, 9px 9px #f8b0c8, 10px 9px #f8b0c8, 11px 9px #f8b0c8, 12px 9px #e890b0,
+    /* legs */
+    4px 10px #e890b0, 5px 10px #e890b0, 10px 10px #e890b0, 11px 10px #e890b0,
+    4px 11px #d87098, 5px 11px #d87098, 10px 11px #d87098, 11px 11px #d87098,
+    /* tail */
+    13px 8px #e890b0, 14px 7px #e890b0, 15px 7px #d87098;
+}
+
+/* ---- HEDGEHOG BABY ---- */
+/* Round body, pointy spines on top, cute tan face, tiny black nose */
+.hedgehog-baby {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* pointy spines sticking up */
+    5px 0px #4a2e14, 7px 0px #4a2e14, 9px 0px #4a2e14, 11px 0px #4a2e14,
+    4px 1px #5c3a1e, 6px 1px #5c3a1e, 8px 1px #5c3a1e, 10px 1px #5c3a1e,
+    5px 1px #6b4428, 7px 1px #6b4428, 9px 1px #6b4428, 11px 1px #6b4428,
+    /* spine cap — rounded over body */
+    4px 2px #7a5030, 5px 2px #8b6538, 6px 2px #7a5030, 7px 2px #8b6538, 8px 2px #7a5030, 9px 2px #8b6538, 10px 2px #7a5030, 11px 2px #8b6538,
+    4px 3px #8b6538, 5px 3px #7a5030, 6px 3px #8b6538, 7px 3px #7a5030, 8px 3px #8b6538, 9px 3px #7a5030, 10px 3px #8b6538, 11px 3px #7a5030,
+    /* face peeks out below spines */
+    5px 4px #c49458, 6px 4px #d4a868, 7px 4px #d4a868, 8px 4px #d4a868, 9px 4px #d4a868, 10px 4px #c49458,
+    4px 5px #c49458, 5px 5px #d4a868, 6px 5px #1a1a1a, 7px 5px #e0bc78, 8px 5px #e0bc78, 9px 5px #1a1a1a, 10px 5px #d4a868, 11px 5px #c49458,
+    4px 6px #c49458, 5px 6px #e0bc78, 6px 6px #d4a868, 7px 6px #d4a868, 8px 6px #d4a868, 9px 6px #d4a868, 10px 6px #e0bc78, 11px 6px #c49458,
+    /* snout with tiny nose */
+    5px 7px #d4a868, 6px 7px #e0bc78, 7px 7px #1a1a1a, 8px 7px #e0bc78, 9px 7px #e0bc78, 10px 7px #d4a868,
+    /* round cream belly */
+    4px 8px #8b6538, 5px 8px #d4a868, 6px 8px #e8d8b0, 7px 8px #f0e8c8, 8px 8px #f0e8c8, 9px 8px #e8d8b0, 10px 8px #d4a868, 11px 8px #8b6538,
+    4px 9px #7a5030, 5px 9px #c49458, 6px 9px #e8d8b0, 7px 9px #f0e8c8, 8px 9px #f0e8c8, 9px 9px #e8d8b0, 10px 9px #c49458, 11px 9px #7a5030,
+    5px 10px #8b6538, 6px 10px #c49458, 7px 10px #c49458, 8px 10px #c49458, 9px 10px #c49458, 10px 10px #8b6538,
+    /* tiny feet */
+    6px 11px #6b4428, 7px 11px #5c3a1e, 8px 11px #5c3a1e, 9px 11px #6b4428;
+}
+
+/* ---- HEDGEHOG ADULT ---- */
+.hedgehog-adult {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* tall pointy spines */
+    3px 0px #4a2e14, 5px 0px #4a2e14, 7px 0px #4a2e14, 9px 0px #4a2e14, 11px 0px #4a2e14, 13px 0px #4a2e14,
+    4px 0px #5c3a1e, 6px 0px #5c3a1e, 8px 0px #5c3a1e, 10px 0px #5c3a1e, 12px 0px #5c3a1e,
+    3px 1px #6b4428, 4px 1px #5c3a1e, 5px 1px #6b4428, 6px 1px #5c3a1e, 7px 1px #6b4428, 8px 1px #5c3a1e, 9px 1px #6b4428, 10px 1px #5c3a1e, 11px 1px #6b4428, 12px 1px #5c3a1e, 13px 1px #6b4428,
+    /* thick spine coat — 3 rows for big round back */
+    3px 2px #7a5030, 4px 2px #8b6538, 5px 2px #7a5030, 6px 2px #8b6538, 7px 2px #7a5030, 8px 2px #8b6538, 9px 2px #7a5030, 10px 2px #8b6538, 11px 2px #7a5030, 12px 2px #8b6538, 13px 2px #7a5030,
+    3px 3px #8b6538, 4px 3px #7a5030, 5px 3px #8b6538, 6px 3px #7a5030, 7px 3px #8b6538, 8px 3px #7a5030, 9px 3px #8b6538, 10px 3px #7a5030, 11px 3px #8b6538, 12px 3px #7a5030, 13px 3px #8b6538,
+    3px 4px #7a5030, 4px 4px #8b6538, 5px 4px #7a5030, 6px 4px #8b6538, 7px 4px #7a5030, 8px 4px #8b6538, 9px 4px #7a5030, 10px 4px #8b6538, 11px 4px #7a5030, 12px 4px #8b6538, 13px 4px #7a5030,
+    /* face — warm tan, peeks out from spines */
+    4px 5px #c49458, 5px 5px #d4a868, 6px 5px #e0bc78, 7px 5px #e0bc78, 8px 5px #e0bc78, 9px 5px #e0bc78, 10px 5px #e0bc78, 11px 5px #d4a868, 12px 5px #c49458,
+    4px 6px #c49458, 5px 6px #e0bc78, 6px 6px #1a1a1a, 7px 6px #e0bc78, 8px 6px #e0bc78, 9px 6px #1a1a1a, 10px 6px #e0bc78, 11px 6px #e0bc78, 12px 6px #c49458,
+    /* cheeks + snout with nose */
+    4px 7px #d4a868, 5px 7px #e0bc78, 6px 7px #e8cc90, 7px 7px #1a1a1a, 8px 7px #1a1a1a, 9px 7px #e8cc90, 10px 7px #e0bc78, 11px 7px #e0bc78, 12px 7px #d4a868,
+    5px 8px #d4a868, 6px 8px #e0bc78, 7px 8px #e0bc78, 8px 8px #e0bc78, 9px 8px #e0bc78, 10px 8px #e0bc78, 11px 8px #d4a868,
+    /* big round cream belly */
+    3px 8px #7a5030, 4px 8px #8b6538, 12px 8px #8b6538, 13px 8px #7a5030,
+    3px 9px #8b6538, 4px 9px #c49458, 5px 9px #d4a868, 6px 9px #e8d8b0, 7px 9px #f0e8c8, 8px 9px #f0e8c8, 9px 9px #f0e8c8, 10px 9px #e8d8b0, 11px 9px #d4a868, 12px 9px #c49458, 13px 9px #8b6538,
+    3px 10px #7a5030, 4px 10px #a07040, 5px 10px #c49458, 6px 10px #e8d8b0, 7px 10px #f0e8c8, 8px 10px #f0e8c8, 9px 10px #f0e8c8, 10px 10px #e8d8b0, 11px 10px #c49458, 12px 10px #a07040, 13px 10px #7a5030,
+    4px 11px #8b6538, 5px 11px #c49458, 6px 11px #c49458, 7px 11px #d4a868, 8px 11px #d4a868, 9px 11px #d4a868, 10px 11px #c49458, 11px 11px #c49458, 12px 11px #8b6538,
+    /* little feet */
+    5px 12px #6b4428, 6px 12px #5c3a1e, 10px 12px #5c3a1e, 11px 12px #6b4428;
+}
+
+/* ---- PLATYPUS BABY ---- */
+/* Squishmallow-style: super round tie-dye blob, lavender bill, cream belly */
+.platypus-baby {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* round top */
+    6px 1px #7dd8c8, 7px 1px #fcc0d8, 8px 1px #b8e8d8, 9px 1px #f0e68c,
+    5px 2px #ff8ca8, 6px 2px #b8e8d8, 7px 2px #f0e68c, 8px 2px #fcc0d8, 9px 2px #7dd8c8, 10px 2px #ff8ca8,
+    /* tie-dye row with blotches */
+    4px 3px #f0e68c, 5px 3px #7dd8c8, 6px 3px #fcc0d8, 7px 3px #ff8ca8, 8px 3px #b8e8d8, 9px 3px #f0e68c, 10px 3px #fcc0d8, 11px 3px #7dd8c8,
+    /* eyes row — lashes are 1px above each eye */
+    7px 3px #1a1a1a, 9px 3px #1a1a1a,
+    4px 4px #fcc0d8, 5px 4px #ff8ca8, 6px 4px #b8e8d8, 7px 4px #1a1a1a, 8px 4px #f0e68c, 9px 4px #1a1a1a, 10px 4px #ff8ca8, 11px 4px #b8e8d8,
+    /* bill row */
+    4px 5px #7dd8c8, 5px 5px #f0e68c, 6px 5px #b0a0c8, 7px 5px #c0b0d8, 8px 5px #c0b0d8, 9px 5px #b0a0c8, 10px 5px #fcc0d8, 11px 5px #f0e68c,
+    6px 6px #fcc0d8, 7px 6px #c0b0d8, 8px 6px #b0a0c8, 9px 6px #7dd8c8,
+    /* wide round body — tie-dye blotches */
+    4px 7px #ff8ca8, 5px 7px #b8e8d8, 6px 7px #f0e68c, 7px 7px #fcc0d8, 8px 7px #7dd8c8, 9px 7px #ff8ca8, 10px 7px #f0e68c, 11px 7px #fcc0d8,
+    4px 8px #b8e8d8, 5px 8px #f0e68c, 6px 8px #f0e0c8, 7px 8px #f5e8d0, 8px 8px #f5e8d0, 9px 8px #f0e0c8, 10px 8px #7dd8c8, 11px 8px #ff8ca8,
+    4px 9px #f0e68c, 5px 9px #fcc0d8, 6px 9px #f0e0c8, 7px 9px #f5e8d0, 8px 9px #f5e8d0, 9px 9px #f0e0c8, 10px 9px #b8e8d8, 11px 9px #f0e68c,
+    5px 10px #7dd8c8, 6px 10px #ff8ca8, 7px 10px #b8e8d8, 8px 10px #fcc0d8, 9px 10px #f0e68c, 10px 10px #ff8ca8,
+    /* little cream feet */
+    6px 11px #f0e0c8, 7px 11px #e8d0b0, 8px 11px #e8d0b0, 9px 11px #f0e0c8,
+    /* flat tail */
+    12px 8px #b8e8d8, 13px 8px #7dd8c8;
+}
+
+/* ---- PLATYPUS ADULT ---- */
+.platypus-adult {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* very round top — blobby Squishmallow shape */
+    5px 0px #7dd8c8, 6px 0px #fcc0d8, 7px 0px #f0e68c, 8px 0px #ff8ca8, 9px 0px #b8e8d8, 10px 0px #f0e68c,
+    4px 1px #ff8ca8, 5px 1px #b8e8d8, 6px 1px #f0e68c, 7px 1px #fcc0d8, 8px 1px #7dd8c8, 9px 1px #ff8ca8, 10px 1px #fcc0d8, 11px 1px #b8e8d8,
+    /* tie-dye blotch row */
+    3px 2px #f0e68c, 4px 2px #7dd8c8, 5px 2px #fcc0d8, 6px 2px #ff8ca8, 7px 2px #b8e8d8, 8px 2px #f0e68c, 9px 2px #fcc0d8, 10px 2px #7dd8c8, 11px 2px #ff8ca8, 12px 2px #f0e68c,
+    /* eyelash pixels */
+    6px 2px #1a1a1a, 9px 2px #1a1a1a,
+    /* eyes row */
+    3px 3px #fcc0d8, 4px 3px #ff8ca8, 5px 3px #b8e8d8, 6px 3px #1a1a1a, 7px 3px #f0e68c, 8px 3px #fcc0d8, 9px 3px #1a1a1a, 10px 3px #ff8ca8, 11px 3px #b8e8d8, 12px 3px #7dd8c8,
+    /* cheeks — rosy pink blotch near eyes */
+    3px 4px #b8e8d8, 4px 4px #f0e68c, 5px 4px #fcc0d8, 6px 4px #ff8ca8, 7px 4px #7dd8c8, 8px 4px #b8e8d8, 9px 4px #ff8ca8, 10px 4px #fcc0d8, 11px 4px #f0e68c, 12px 4px #fcc0d8,
+    /* wide duck bill — lavender, rounded */
+    4px 5px #7dd8c8, 5px 5px #b0a0c8, 6px 5px #c0b0d8, 7px 5px #c0b0d8, 8px 5px #c0b0d8, 9px 5px #c0b0d8, 10px 5px #b0a0c8, 11px 5px #ff8ca8,
+    5px 6px #f0e68c, 6px 6px #c0b0d8, 7px 6px #b0a0c8, 8px 6px #b0a0c8, 9px 6px #c0b0d8, 10px 6px #b8e8d8,
+    /* big round body — full tie-dye blotches */
+    2px 7px #ff8ca8, 3px 7px #b8e8d8, 4px 7px #f0e68c, 5px 7px #fcc0d8, 6px 7px #7dd8c8, 7px 7px #ff8ca8, 8px 7px #b8e8d8, 9px 7px #f0e68c, 10px 7px #fcc0d8, 11px 7px #7dd8c8, 12px 7px #ff8ca8, 13px 7px #b8e8d8,
+    2px 8px #7dd8c8, 3px 8px #f0e68c, 4px 8px #fcc0d8, 5px 8px #f0e0c8, 6px 8px #f5e8d0, 7px 8px #f5e8d0, 8px 8px #f5e8d0, 9px 8px #f5e8d0, 10px 8px #f0e0c8, 11px 8px #ff8ca8, 12px 8px #b8e8d8, 13px 8px #f0e68c,
+    2px 9px #fcc0d8, 3px 9px #ff8ca8, 4px 9px #b8e8d8, 5px 9px #f0e0c8, 6px 9px #f5e8d0, 7px 9px #f5e8d0, 8px 9px #f5e8d0, 9px 9px #f5e8d0, 10px 9px #f0e0c8, 11px 9px #f0e68c, 12px 9px #7dd8c8, 13px 9px #fcc0d8,
+    3px 10px #f0e68c, 4px 10px #7dd8c8, 5px 10px #ff8ca8, 6px 10px #fcc0d8, 7px 10px #b8e8d8, 8px 10px #f0e68c, 9px 10px #ff8ca8, 10px 10px #7dd8c8, 11px 10px #fcc0d8, 12px 10px #ff8ca8,
+    4px 11px #fcc0d8, 5px 11px #b8e8d8, 6px 11px #f0e68c, 7px 11px #ff8ca8, 8px 11px #7dd8c8, 9px 11px #fcc0d8, 10px 11px #b8e8d8, 11px 11px #f0e68c,
+    /* cream feet */
+    5px 12px #f0e0c8, 6px 12px #e8d0b0, 10px 12px #e8d0b0, 11px 12px #f0e0c8,
+    /* flat beaver-like tail */
+    14px 8px #b8e8d8, 15px 8px #7dd8c8, 14px 9px #7dd8c8;
+}
 </style>
 </head>
 <body>
   <div id="app">
 
-    <!-- Welcome / Login Screen -->
+    <!-- Welcome / Account Screen -->
     <div id="screen-welcome" class="screen active">
       <div class="welcome-content">
         <div class="welcome-mascot">
@@ -1119,7 +1468,15 @@ body {
         </div>
         <h1 class="game-title">Piggy Bank</h1>
         <p class="game-subtitle">Raise animals, earn coins, have fun!</p>
-        <div id="login-form" class="login-form">
+
+        <!-- Account list (shown when accounts exist) -->
+        <div id="account-list" style="display:none">
+          <div id="account-cards"></div>
+          <button id="btn-new-account" class="btn btn-accent btn-large">+ New Account</button>
+        </div>
+
+        <!-- Create account form -->
+        <div id="create-account-form" class="login-form" style="display:none">
           <label for="player-name">Your Name</label>
           <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
           <label for="player-age">Your Age</label>
@@ -1132,9 +1489,22 @@ body {
             <option value="11">11 years old</option>
             <option value="12">12 years old</option>
           </select>
+          <label for="new-account-pin">4-Digit PIN</label>
+          <input type="password" id="new-account-pin" placeholder="1234" maxlength="4" inputmode="numeric" class="pin-input">
+          <button id="btn-create-account" class="btn btn-primary btn-large">Create Account</button>
+          <button id="btn-cancel-create" class="btn btn-secondary btn-large" style="display:none">Cancel</button>
         </div>
-        <button id="btn-start" class="btn btn-primary btn-large">Start Playing</button>
-        <button id="btn-continue" class="btn btn-secondary btn-large" style="display:none">Continue</button>
+      </div>
+    </div>
+
+    <!-- PIN Entry Modal -->
+    <div id="pin-modal" class="modal" style="display:none">
+      <div class="modal-content pin-modal-content">
+        <button class="modal-close" id="pin-modal-close">&times;</button>
+        <h3 id="pin-modal-title">Enter PIN</h3>
+        <input type="password" id="account-pin-input" class="pin-input" placeholder="PIN" maxlength="4" inputmode="numeric">
+        <p id="account-pin-error" class="error-text" style="display:none">Wrong PIN!</p>
+        <button id="btn-pin-ok" class="btn btn-primary btn-large">OK</button>
       </div>
     </div>
 
@@ -1227,10 +1597,25 @@ body {
         <div id="wallet-form" style="display:none">
           <div class="wallet-input-row">
             <input type="number" id="wallet-amount" class="amount-input" placeholder="$" min="0.01" step="0.01">
-            <input type="text" id="wallet-desc" placeholder="What for?" maxlength="30">
+            <select id="wallet-category" class="category-select"></select>
+          </div>
+          <div class="wallet-input-row">
+            <input type="text" id="wallet-desc" placeholder="Note (optional)" maxlength="30">
             <button class="btn btn-primary btn-small" id="btn-wallet-confirm">OK</button>
             <button class="btn btn-secondary btn-small" id="btn-wallet-cancel">X</button>
           </div>
+        </div>
+        <div class="wallet-actions" style="margin-top:12px">
+          <button class="btn btn-primary btn-small" id="btn-export">Export</button>
+          <button class="btn btn-primary btn-small" id="btn-import">Import</button>
+          <input type="file" id="import-file" accept=".json" style="display:none">
+        </div>
+        <div id="category-summary" class="category-summary">
+          <div class="summary-toggle">
+            <button class="btn btn-small btn-accent summary-period-btn active" data-period="month">This Month</button>
+            <button class="btn btn-small btn-secondary summary-period-btn" data-period="year">This Year</button>
+          </div>
+          <div id="summary-tables"></div>
         </div>
         <h3>Transaction History</h3>
         <div id="transaction-list" class="transaction-list">
@@ -1294,6 +1679,23 @@ body {
           </div>
         </div>
         <div class="parent-section">
+          <h3>Transaction Categories</h3>
+          <div class="category-editor">
+            <label>Custom Deposit Categories:</label>
+            <div id="custom-deposit-list" class="custom-category-list"></div>
+            <div class="category-add-row">
+              <input type="text" id="new-deposit-cat" placeholder="New category" maxlength="30" class="chore-input">
+              <button class="btn btn-small btn-accent" id="btn-add-deposit-cat">Add</button>
+            </div>
+            <label style="margin-top:10px">Custom Withdraw Categories:</label>
+            <div id="custom-withdraw-list" class="custom-category-list"></div>
+            <div class="category-add-row">
+              <input type="text" id="new-withdraw-cat" placeholder="New category" maxlength="30" class="chore-input">
+              <button class="btn btn-small btn-accent" id="btn-add-withdraw-cat">Add</button>
+            </div>
+          </div>
+        </div>
+        <div class="parent-section">
           <h3>Happy Hearts</h3>
           <div id="parent-animals"></div>
         </div>
@@ -1329,6 +1731,10 @@ body {
           <span class="more-icon">&#x1F512;</span>
           <span>Parent Mode</span>
         </button>
+        <button class="more-item" id="btn-logout">
+          <span class="more-icon">&#x1F6AA;</span>
+          <span>Log Out</span>
+        </button>
       </div>
     </div>
 
@@ -1356,6 +1762,10 @@ body {
 
     <!-- Bottom Navigation: 5 tabs -->
     <nav id="bottom-nav" class="bottom-nav" style="display:none">
+      <button class="nav-btn" data-screen="wallet">
+        <span class="nav-icon">&#x1F4B0;</span>
+        <span class="nav-label">Bank</span>
+      </button>
       <button class="nav-btn" data-screen="stable">
         <span class="nav-icon">&#x1F3E0;</span>
         <span class="nav-label">Stable</span>
@@ -1363,10 +1773,6 @@ body {
       <button class="nav-btn" data-screen="market">
         <span class="nav-icon">&#x1F3EA;</span>
         <span class="nav-label">Market</span>
-      </button>
-      <button class="nav-btn" data-screen="wallet">
-        <span class="nav-icon">&#x1F4B0;</span>
-        <span class="nav-label">Bank</span>
       </button>
       <button class="nav-btn" data-screen="tasks">
         <span class="nav-icon">&#x2705;</span>
@@ -1379,19 +1785,23 @@ body {
     </nav>
   </div>
 
-                      <script>
+
+<script>
 // ============================================================
 // data.js — Constants, default state, Animal class
 // ============================================================
 
-var ANIMAL_TYPES = ['pig', 'sheep', 'cat', 'dog', 'dragon'];
+var ANIMAL_TYPES = ['pig', 'sheep', 'cat', 'dog', 'dragon', 'axolotl', 'hedgehog', 'platypus'];
 
 var ANIMAL_NAMES = {
-  pig:    { singular: 'Pig' },
-  sheep:  { singular: 'Sheep' },
-  cat:    { singular: 'Cat' },
-  dog:    { singular: 'Dog' },
-  dragon: { singular: 'Dragon' }
+  pig:       { singular: 'Pig' },
+  sheep:     { singular: 'Sheep' },
+  cat:       { singular: 'Cat' },
+  dog:       { singular: 'Dog' },
+  dragon:    { singular: 'Dragon' },
+  axolotl:   { singular: 'Axolotl' },
+  hedgehog:  { singular: 'Hedgehog' },
+  platypus:  { singular: 'Platypus' }
 };
 
 // Default prices (can be overridden by parent)
@@ -1411,6 +1821,9 @@ var DEATH = {
   daysWithoutWater: 2,
   daysWithoutFood: 3
 };
+
+var DEPOSIT_CATEGORIES = ['Red Pocket', 'Birthday', 'Holiday', 'Piggy Bank Reward', 'Interest Income', 'Other Earnings'];
+var WITHDRAW_CATEGORIES = ['Snack', 'Toys', 'Stationery', 'Books', 'Piggy Bank Spend', 'Others'];
 
 var DEFAULT_CHORES = [
   'Make your bed',
@@ -1466,7 +1879,9 @@ function createDefaultState() {
       buyBabyPrice: 500,     // cents
       sellAdultPrice: 1000,  // cents
       taskFoodReward: 2,
-      taskWaterReward: 2
+      taskWaterReward: 2,
+      customDepositCategories: [],
+      customWithdrawCategories: []
     },
     lastInterestDate: todayString()
   };
@@ -1515,15 +1930,95 @@ function getMonthYear(dateStr) {
 }
 
 // ============================================================
-// storage.js — localStorage save/load/reset
+// storage.js — localStorage save/load/reset + multi-account
 // ============================================================
 
-var SAVE_KEY = 'piggybank_save';
+var ACCOUNTS_KEY = 'piggybank_accounts';
+var currentAccountId = null;
+
+function getSaveKey() {
+  return 'piggybank_save_' + currentAccountId;
+}
 
 var Storage = {
+  // ---- Account Management ----
+
+  loadAccounts: function() {
+    try {
+      var raw = localStorage.getItem(ACCOUNTS_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      console.error('Failed to load accounts:', e);
+    }
+    return [];
+  },
+
+  saveAccounts: function(accounts) {
+    try {
+      localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+    } catch (e) {
+      console.error('Failed to save accounts:', e);
+    }
+  },
+
+  createAccount: function(name, pin) {
+    var accounts = this.loadAccounts();
+    var maxId = 0;
+    accounts.forEach(function(a) {
+      var num = parseInt(a.id.replace('acc_', ''));
+      if (num > maxId) maxId = num;
+    });
+    var newAccount = {
+      id: 'acc_' + (maxId + 1),
+      name: name,
+      pin: pin
+    };
+    accounts.push(newAccount);
+    this.saveAccounts(accounts);
+    return newAccount;
+  },
+
+  deleteAccount: function(id) {
+    var accounts = this.loadAccounts();
+    accounts = accounts.filter(function(a) { return a.id !== id; });
+    this.saveAccounts(accounts);
+    localStorage.removeItem('piggybank_save_' + id);
+  },
+
+  setCurrentAccount: function(id) {
+    currentAccountId = id;
+  },
+
+  migrateOldSave: function() {
+    var oldRaw = localStorage.getItem('piggybank_save');
+    if (!oldRaw) return;
+
+    var accounts = this.loadAccounts();
+    // Only migrate if no accounts exist yet
+    if (accounts.length > 0) return;
+
+    try {
+      var oldState = JSON.parse(oldRaw);
+      var name = oldState.playerName || 'Player';
+      var account = {
+        id: 'acc_1',
+        name: name,
+        pin: '1234'
+      };
+      accounts.push(account);
+      this.saveAccounts(accounts);
+      localStorage.setItem('piggybank_save_acc_1', oldRaw);
+      localStorage.removeItem('piggybank_save');
+    } catch (e) {
+      console.error('Migration failed:', e);
+    }
+  },
+
+  // ---- Per-account game state ----
+
   load: function() {
     try {
-      var raw = localStorage.getItem(SAVE_KEY);
+      var raw = localStorage.getItem(getSaveKey());
       if (raw) {
         var state = JSON.parse(raw);
         var defaults = createDefaultState();
@@ -1548,18 +2043,18 @@ var Storage = {
 
   save: function(state) {
     try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+      localStorage.setItem(getSaveKey(), JSON.stringify(state));
     } catch (e) {
       console.error('Failed to save:', e);
     }
   },
 
   hasSave: function() {
-    return localStorage.getItem(SAVE_KEY) !== null;
+    return localStorage.getItem(getSaveKey()) !== null;
   },
 
   reset: function() {
-    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(getSaveKey());
   },
 
   init: function() {
@@ -1655,14 +2150,15 @@ const Sound = (() => {
 
 // ============================================================
 // wallet.js — Bank with balance, deposit/withdraw (PIN gated),
-//             interest calculation, transaction history
+//             interest calculation, transaction history,
+//             categories, summary, import/export
 // ============================================================
 
 var Wallet = (function() {
   var currentAction = null; // 'deposit' or 'withdraw'
-  var pinVerified = false;
+  var summaryPeriod = 'month';
 
-  function addTransaction(type, amount, desc) {
+  function addTransaction(type, amount, desc, category) {
     var state = Storage.load();
     if (type === 'deposit') {
       state.wallet.balance += amount;
@@ -1671,7 +2167,7 @@ var Wallet = (function() {
       state.wallet.balance -= amount;
     }
     state.wallet.transactions.unshift({
-      type: type, amount: amount, desc: desc, date: todayString()
+      type: type, amount: amount, desc: desc, date: todayString(), category: category || ''
     });
     if (state.wallet.transactions.length > 100) {
       state.wallet.transactions = state.wallet.transactions.slice(0, 100);
@@ -1691,9 +2187,8 @@ var Wallet = (function() {
     var lastMonth = getMonthYear(state.lastInterestDate);
     var thisMonth = getMonthYear(today);
 
-    if (lastMonth === thisMonth) return; // Same month, no interest
+    if (lastMonth === thisMonth) return;
 
-    // Calculate months passed
     var lastParts = state.lastInterestDate.split('-');
     var todayParts = today.split('-');
     var monthsPassed = (parseInt(todayParts[0]) - parseInt(lastParts[0])) * 12 +
@@ -1712,13 +2207,31 @@ var Wallet = (function() {
           type: 'deposit',
           amount: interest,
           desc: 'Monthly interest (' + annualRate + '% annual)',
-          date: today
+          date: today,
+          category: 'Interest Income'
         });
       }
     }
 
     state.lastInterestDate = today;
     Storage.save(state);
+  }
+
+  function getCategoryOptions(type) {
+    var state = Storage.load();
+    var defaults = type === 'deposit' ? DEPOSIT_CATEGORIES : WITHDRAW_CATEGORIES;
+    var custom = type === 'deposit'
+      ? (state.settings.customDepositCategories || [])
+      : (state.settings.customWithdrawCategories || []);
+    return defaults.concat(custom);
+  }
+
+  function populateCategorySelect(type) {
+    var sel = document.getElementById('wallet-category');
+    var options = getCategoryOptions(type);
+    sel.innerHTML = options.map(function(c) {
+      return '<option value="' + c + '">' + c + '</option>';
+    }).join('');
   }
 
   function render() {
@@ -1729,7 +2242,6 @@ var Wallet = (function() {
     document.getElementById('bank-greeting').textContent = name + "'s Bank";
     document.getElementById('wallet-balance').textContent = formatMoney(balance);
 
-    // Interest info
     var rateInfo = document.getElementById('interest-info');
     if (rateInfo) {
       rateInfo.textContent = 'Interest: ' + state.settings.interestRate + '% / year';
@@ -1743,21 +2255,27 @@ var Wallet = (function() {
       list.innerHTML = state.wallet.transactions.map(function(t) {
         var sign = t.type === 'deposit' ? '+' : '-';
         var cls = t.type === 'deposit' ? 'tx-deposit' : 'tx-withdraw';
+        var catLabel = t.category ? '<span class="tx-category">[' + t.category + ']</span> ' : '';
         return '<div class="transaction ' + cls + '">' +
-          '<span class="tx-desc">' + t.desc + '</span>' +
+          '<span class="tx-desc">' + catLabel + t.desc + '</span>' +
           '<span class="tx-amount">' + sign + formatMoney(t.amount) + '</span>' +
           '<span class="tx-date">' + t.date + '</span>' +
           '</div>';
       }).join('');
     }
 
+    // Render summary
+    renderSummary(state);
+
     // Wire up buttons
     document.getElementById('btn-deposit').onclick = function() {
       currentAction = 'deposit';
+      populateCategorySelect('deposit');
       showPinGate();
     };
     document.getElementById('btn-withdraw').onclick = function() {
       currentAction = 'withdraw';
+      populateCategorySelect('withdraw');
       showPinGate();
     };
     document.getElementById('btn-wallet-cancel').onclick = function() {
@@ -1766,6 +2284,88 @@ var Wallet = (function() {
     document.getElementById('btn-wallet-confirm').onclick = function() {
       confirmTransaction();
     };
+
+    // Summary period toggle
+    document.querySelectorAll('.summary-period-btn').forEach(function(btn) {
+      btn.onclick = function() {
+        summaryPeriod = btn.dataset.period;
+        document.querySelectorAll('.summary-period-btn').forEach(function(b) {
+          b.classList.remove('active', 'btn-accent');
+          b.classList.add('btn-secondary');
+        });
+        btn.classList.add('active', 'btn-accent');
+        btn.classList.remove('btn-secondary');
+        renderSummary(Storage.load());
+      };
+    });
+
+    // Import/Export
+    document.getElementById('btn-export').onclick = exportState;
+    document.getElementById('btn-import').onclick = function() {
+      document.getElementById('import-file').click();
+    };
+    document.getElementById('import-file').onchange = importState;
+  }
+
+  function renderSummary(state) {
+    var today = todayString();
+    var todayParts = today.split('-');
+    var year = todayParts[0];
+    var month = todayParts[1];
+
+    var filtered = state.wallet.transactions.filter(function(t) {
+      if (!t.date) return false;
+      var parts = t.date.split('-');
+      if (summaryPeriod === 'month') {
+        return parts[0] === year && parts[1] === month;
+      } else {
+        return parts[0] === year;
+      }
+    });
+
+    var income = {};
+    var spending = {};
+    var incomeTotal = 0;
+    var spendingTotal = 0;
+
+    filtered.forEach(function(t) {
+      var cat = t.category || 'Uncategorized';
+      if (t.type === 'deposit') {
+        income[cat] = (income[cat] || 0) + t.amount;
+        incomeTotal += t.amount;
+      } else {
+        spending[cat] = (spending[cat] || 0) + t.amount;
+        spendingTotal += t.amount;
+      }
+    });
+
+    var html = '';
+
+    html += '<div class="summary-table"><h4 class="summary-title summary-income-title">Income</h4>';
+    var incomeKeys = Object.keys(income);
+    if (incomeKeys.length === 0) {
+      html += '<p class="empty-msg">No income this period.</p>';
+    } else {
+      incomeKeys.forEach(function(k) {
+        html += '<div class="summary-row"><span>' + k + '</span><span class="tx-deposit">' + formatMoney(income[k]) + '</span></div>';
+      });
+      html += '<div class="summary-row summary-total"><span>Total</span><span class="tx-deposit">' + formatMoney(incomeTotal) + '</span></div>';
+    }
+    html += '</div>';
+
+    html += '<div class="summary-table"><h4 class="summary-title summary-spending-title">Spending</h4>';
+    var spendingKeys = Object.keys(spending);
+    if (spendingKeys.length === 0) {
+      html += '<p class="empty-msg">No spending this period.</p>';
+    } else {
+      spendingKeys.forEach(function(k) {
+        html += '<div class="summary-row"><span>' + k + '</span><span class="tx-withdraw">' + formatMoney(spending[k]) + '</span></div>';
+      });
+      html += '<div class="summary-row summary-total"><span>Total</span><span class="tx-withdraw">' + formatMoney(spendingTotal) + '</span></div>';
+    }
+    html += '</div>';
+
+    document.getElementById('summary-tables').innerHTML = html;
   }
 
   function showPinGate() {
@@ -1800,6 +2400,7 @@ var Wallet = (function() {
   function confirmTransaction() {
     var amountStr = document.getElementById('wallet-amount').value;
     var desc = document.getElementById('wallet-desc').value.trim();
+    var category = document.getElementById('wallet-category').value;
     if (!desc) desc = currentAction === 'deposit' ? 'Deposit' : 'Spending';
     var amount = Math.round(parseFloat(amountStr) * 100);
 
@@ -1812,7 +2413,7 @@ var Wallet = (function() {
       return;
     }
 
-    addTransaction(currentAction, amount, desc);
+    addTransaction(currentAction, amount, desc, category);
     Sound.coin();
     App.showToast(currentAction === 'deposit' ? 'Deposited!' : 'Spent!');
     hideWalletForm();
@@ -1823,6 +2424,45 @@ var Wallet = (function() {
     document.getElementById('wallet-form').style.display = 'none';
     document.getElementById('wallet-pin-area').style.display = 'none';
     currentAction = null;
+  }
+
+  function exportState() {
+    var state = Storage.load();
+    var json = JSON.stringify(state, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'piggybank_backup.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    App.showToast('Backup exported!');
+  }
+
+  function importState(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var data = JSON.parse(ev.target.result);
+        // Basic validation
+        if (!data.wallet || !data.animals || !data.settings) {
+          App.showToast('Invalid backup file!');
+          return;
+        }
+        Storage.save(data);
+        App.showToast('Backup restored! Reloading...');
+        setTimeout(function() { location.reload(); }, 1000);
+      } catch (err) {
+        App.showToast('Could not read file!');
+      }
+    };
+    reader.readAsText(file);
+    // Reset input so same file can be re-imported
+    e.target.value = '';
   }
 
   return {
@@ -2709,6 +3349,7 @@ var Parent = (function() {
 
     renderChoreEditor();
     renderSettingsEditor();
+    renderCategoryEditor();
     renderAnimalHearts();
     renderProgressDashboard();
     setupParentButtons();
@@ -2758,6 +3399,63 @@ var Parent = (function() {
       Sound.click();
       App.showToast('Settings saved!');
     };
+  }
+
+  function renderCategoryEditor() {
+    var state = Storage.load();
+    var depCats = state.settings.customDepositCategories || [];
+    var witCats = state.settings.customWithdrawCategories || [];
+
+    renderCatList('custom-deposit-list', depCats, 'customDepositCategories');
+    renderCatList('custom-withdraw-list', witCats, 'customWithdrawCategories');
+
+    document.getElementById('btn-add-deposit-cat').onclick = function() {
+      addCustomCat('new-deposit-cat', 'customDepositCategories');
+    };
+    document.getElementById('btn-add-withdraw-cat').onclick = function() {
+      addCustomCat('new-withdraw-cat', 'customWithdrawCategories');
+    };
+  }
+
+  function renderCatList(containerId, cats, stateKey) {
+    var container = document.getElementById(containerId);
+    if (cats.length === 0) {
+      container.innerHTML = '<p class="empty-msg">None yet.</p>';
+      return;
+    }
+    container.innerHTML = cats.map(function(c, i) {
+      return '<div class="custom-cat-item">' +
+        '<span>' + c + '</span>' +
+        '<button class="btn btn-small btn-danger cat-delete-btn" data-key="' + stateKey + '" data-index="' + i + '">X</button>' +
+        '</div>';
+    }).join('');
+
+    container.querySelectorAll('.cat-delete-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var s = Storage.load();
+        var key = btn.dataset.key;
+        var idx = parseInt(btn.dataset.index);
+        s.settings[key].splice(idx, 1);
+        Storage.save(s);
+        Sound.click();
+        renderCategoryEditor();
+      });
+    });
+  }
+
+  function addCustomCat(inputId, stateKey) {
+    var input = document.getElementById(inputId);
+    var val = input.value.trim();
+    if (!val) { App.showToast('Enter a category name.'); return; }
+    var s = Storage.load();
+    if (!s.settings[stateKey]) s.settings[stateKey] = [];
+    if (s.settings[stateKey].indexOf(val) !== -1) { App.showToast('Already exists!'); return; }
+    s.settings[stateKey].push(val);
+    Storage.save(s);
+    input.value = '';
+    Sound.click();
+    App.showToast('Category added!');
+    renderCategoryEditor();
   }
 
   function renderAnimalHearts() {
@@ -2832,14 +3530,13 @@ var Parent = (function() {
     };
 
     document.getElementById('btn-reset-game').onclick = function() {
-      if (confirm('Reset the entire game? This cannot be undone!')) {
+      if (confirm('Reset this account? This cannot be undone!')) {
         Storage.reset();
         Storage.init();
         authenticated = false;
         Sound.click();
         App.showToast('Game reset!');
-        App.showScreen('welcome');
-        document.getElementById('bottom-nav').style.display = 'none';
+        App.logout();
       }
     };
 
@@ -2985,32 +3682,168 @@ const App = (() => {
     return 5;
   }
 
-  function init() {
-    // Check for existing save
-    if (Storage.hasSave()) {
-      document.getElementById('btn-continue').style.display = '';
-      document.getElementById('btn-start').textContent = 'New Game';
-      document.getElementById('login-form').style.display = 'none';
+  // ---- Account UI ----
+
+  function renderAccountPicker() {
+    var accounts = Storage.loadAccounts();
+    var accountList = document.getElementById('account-list');
+    var createForm = document.getElementById('create-account-form');
+    var cancelBtn = document.getElementById('btn-cancel-create');
+
+    if (accounts.length === 0) {
+      // No accounts — show create form only
+      accountList.style.display = 'none';
+      createForm.style.display = '';
+      cancelBtn.style.display = 'none';
+    } else {
+      // Show account cards
+      accountList.style.display = '';
+      createForm.style.display = 'none';
+      renderAccountCards(accounts);
+    }
+  }
+
+  function renderAccountCards(accounts) {
+    var container = document.getElementById('account-cards');
+    container.innerHTML = accounts.map(function(acc) {
+      return '<div class="account-card" data-id="' + acc.id + '">' +
+        '<button class="account-delete-btn" data-id="' + acc.id + '" title="Delete">&times;</button>' +
+        '<div class="account-avatar">' + acc.name.charAt(0).toUpperCase() + '</div>' +
+        '<div class="account-name">' + acc.name + '</div>' +
+        '</div>';
+    }).join('');
+
+    // Card tap → PIN prompt
+    container.querySelectorAll('.account-card').forEach(function(card) {
+      card.addEventListener('click', function(e) {
+        if (e.target.classList.contains('account-delete-btn')) return;
+        Sound.click();
+        var id = card.dataset.id;
+        showPinModal(id, 'login');
+      });
+    });
+
+    // Delete button → parent PIN required
+    container.querySelectorAll('.account-delete-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        Sound.click();
+        var id = btn.dataset.id;
+        showPinModal(id, 'delete');
+      });
+    });
+  }
+
+  // PIN modal for login or delete
+  var pinModalAction = null;
+  var pinModalAccountId = null;
+
+  function showPinModal(accountId, action) {
+    pinModalAccountId = accountId;
+    pinModalAction = action;
+
+    var modal = document.getElementById('pin-modal');
+    var title = document.getElementById('pin-modal-title');
+    var input = document.getElementById('account-pin-input');
+    var error = document.getElementById('account-pin-error');
+
+    if (action === 'delete') {
+      title.textContent = 'Parent PIN to Delete';
+    } else {
+      var accounts = Storage.loadAccounts();
+      var acc = accounts.find(function(a) { return a.id === accountId; });
+      title.textContent = 'PIN for ' + (acc ? acc.name : '');
     }
 
-    // Start button — new game with name/age
-    document.getElementById('btn-start').addEventListener('click', function() {
-      Sound.click();
-      if (Storage.hasSave()) {
-        if (confirm('Start a new game? This will erase your current save.')) {
-          Storage.reset();
-        } else {
-          return;
-        }
-      }
+    input.value = '';
+    error.style.display = 'none';
+    modal.style.display = 'flex';
+    input.focus();
+  }
 
+  function hidePinModal() {
+    document.getElementById('pin-modal').style.display = 'none';
+    pinModalAction = null;
+    pinModalAccountId = null;
+  }
+
+  function handlePinSubmit() {
+    var pin = document.getElementById('account-pin-input').value;
+    var error = document.getElementById('account-pin-error');
+
+    if (pinModalAction === 'login') {
+      var accounts = Storage.loadAccounts();
+      var acc = accounts.find(function(a) { return a.id === pinModalAccountId; });
+      if (acc && pin === acc.pin) {
+        Sound.click();
+        hidePinModal();
+        Storage.setCurrentAccount(acc.id);
+        Storage.init();
+        startGame();
+      } else {
+        error.style.display = '';
+        Sound.wrong();
+      }
+    } else if (pinModalAction === 'delete') {
+      // Need parent PIN — check from any account's save, or use default '1234'
+      var parentPin = getParentPin();
+      if (pin === parentPin) {
+        Sound.click();
+        var accName = '';
+        var accounts = Storage.loadAccounts();
+        var acc = accounts.find(function(a) { return a.id === pinModalAccountId; });
+        if (acc) accName = acc.name;
+        Storage.deleteAccount(pinModalAccountId);
+        hidePinModal();
+        showToast(accName + "'s account deleted.");
+        renderAccountPicker();
+      } else {
+        error.style.display = '';
+        Sound.wrong();
+      }
+    }
+  }
+
+  // Get parent PIN from any existing account save, fallback to '1234'
+  function getParentPin() {
+    var accounts = Storage.loadAccounts();
+    for (var i = 0; i < accounts.length; i++) {
+      try {
+        var raw = localStorage.getItem('piggybank_save_' + accounts[i].id);
+        if (raw) {
+          var state = JSON.parse(raw);
+          if (state.parentPassword) return state.parentPassword;
+        }
+      } catch (e) {}
+    }
+    return '1234';
+  }
+
+  function init() {
+    // Migrate old single-save if needed
+    Storage.migrateOldSave();
+
+    // Render account picker or create form
+    renderAccountPicker();
+
+    // Create account button
+    document.getElementById('btn-create-account').addEventListener('click', function() {
+      Sound.click();
       var name = document.getElementById('player-name').value.trim();
       var age = parseInt(document.getElementById('player-age').value) || 8;
+      var pin = document.getElementById('new-account-pin').value.trim();
 
       if (!name) {
-        App.showToast('Please enter your name!');
+        showToast('Please enter your name!');
         return;
       }
+      if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+        showToast('PIN must be 4 digits!');
+        return;
+      }
+
+      var account = Storage.createAccount(name, pin);
+      Storage.setCurrentAccount(account.id);
 
       var state = Storage.init();
       state.playerName = name;
@@ -3018,13 +3851,40 @@ const App = (() => {
       state.quizDifficulty = ageToDifficulty(age);
       Storage.save(state);
 
+      // Clear form
+      document.getElementById('player-name').value = '';
+      document.getElementById('new-account-pin').value = '';
+
       startGame();
     });
 
-    // Continue button
-    document.getElementById('btn-continue').addEventListener('click', function() {
+    // "+ New Account" button
+    document.getElementById('btn-new-account').addEventListener('click', function() {
       Sound.click();
-      startGame();
+      document.getElementById('account-list').style.display = 'none';
+      document.getElementById('create-account-form').style.display = '';
+      document.getElementById('btn-cancel-create').style.display = '';
+    });
+
+    // Cancel create → back to picker
+    document.getElementById('btn-cancel-create').addEventListener('click', function() {
+      Sound.click();
+      renderAccountPicker();
+    });
+
+    // PIN modal buttons
+    document.getElementById('btn-pin-ok').addEventListener('click', function() {
+      handlePinSubmit();
+    });
+    document.getElementById('pin-modal-close').addEventListener('click', function() {
+      hidePinModal();
+    });
+    document.getElementById('pin-modal').addEventListener('click', function(e) {
+      if (e.target.id === 'pin-modal') hidePinModal();
+    });
+    // Enter key in PIN input
+    document.getElementById('account-pin-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handlePinSubmit();
     });
 
     // Nav bar
@@ -3035,12 +3895,19 @@ const App = (() => {
       });
     });
 
-    // More menu items
+    // More menu items (skip logout, it has its own handler)
     document.querySelectorAll('.more-item').forEach(function(btn) {
+      if (btn.id === 'btn-logout') return;
       btn.addEventListener('click', function() {
         Sound.click();
         showScreen(btn.dataset.screen);
       });
+    });
+
+    // Log out button
+    document.getElementById('btn-logout').addEventListener('click', function() {
+      Sound.click();
+      logout();
     });
 
     // Modal close — X button, tap outside, Done button
@@ -3064,12 +3931,18 @@ const App = (() => {
     showScreen('stable');
   }
 
-  return { init: init, showScreen: showScreen, showToast: showToast, dailyCycle: dailyCycle };
+  function logout() {
+    currentAccountId = null;
+    document.getElementById('bottom-nav').style.display = 'none';
+    showScreen('welcome');
+    renderAccountPicker();
+  }
+
+  return { init: init, showScreen: showScreen, showToast: showToast, dailyCycle: dailyCycle, logout: logout };
 })();
 
 // Boot
 document.addEventListener('DOMContentLoaded', App.init);
 
 </script>
-</body>
-</html>
+</body></html>

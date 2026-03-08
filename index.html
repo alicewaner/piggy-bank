@@ -149,10 +149,25 @@
         <div id="wallet-form" style="display:none">
           <div class="wallet-input-row">
             <input type="number" id="wallet-amount" class="amount-input" placeholder="$" min="0.01" step="0.01">
-            <input type="text" id="wallet-desc" placeholder="What for?" maxlength="30">
+            <select id="wallet-category" class="category-select"></select>
+          </div>
+          <div class="wallet-input-row">
+            <input type="text" id="wallet-desc" placeholder="Note (optional)" maxlength="30">
             <button class="btn btn-primary btn-small" id="btn-wallet-confirm">OK</button>
             <button class="btn btn-secondary btn-small" id="btn-wallet-cancel">X</button>
           </div>
+        </div>
+        <div class="wallet-actions" style="margin-top:12px">
+          <button class="btn btn-primary btn-small" id="btn-export">Export</button>
+          <button class="btn btn-primary btn-small" id="btn-import">Import</button>
+          <input type="file" id="import-file" accept=".json" style="display:none">
+        </div>
+        <div id="category-summary" class="category-summary">
+          <div class="summary-toggle">
+            <button class="btn btn-small btn-accent summary-period-btn active" data-period="month">This Month</button>
+            <button class="btn btn-small btn-secondary summary-period-btn" data-period="year">This Year</button>
+          </div>
+          <div id="summary-tables"></div>
         </div>
         <h3>Transaction History</h3>
         <div id="transaction-list" class="transaction-list">
@@ -213,6 +228,23 @@
             <label>Task Water Reward:</label>
             <input type="number" id="setting-water-reward" class="setting-input" min="0" max="20">
             <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
+          </div>
+        </div>
+        <div class="parent-section">
+          <h3>Transaction Categories</h3>
+          <div class="category-editor">
+            <label>Custom Deposit Categories:</label>
+            <div id="custom-deposit-list" class="custom-category-list"></div>
+            <div class="category-add-row">
+              <input type="text" id="new-deposit-cat" placeholder="New category" maxlength="30" class="chore-input">
+              <button class="btn btn-small btn-accent" id="btn-add-deposit-cat">Add</button>
+            </div>
+            <label style="margin-top:10px">Custom Withdraw Categories:</label>
+            <div id="custom-withdraw-list" class="custom-category-list"></div>
+            <div class="category-add-row">
+              <input type="text" id="new-withdraw-cat" placeholder="New category" maxlength="30" class="chore-input">
+              <button class="btn btn-small btn-accent" id="btn-add-withdraw-cat">Add</button>
+            </div>
           </div>
         </div>
         <div class="parent-section">
@@ -282,6 +314,10 @@
 
     <!-- Bottom Navigation: 5 tabs -->
     <nav id="bottom-nav" class="bottom-nav" style="display:none">
+      <button class="nav-btn" data-screen="wallet">
+        <span class="nav-icon">&#x1F4B0;</span>
+        <span class="nav-label">Bank</span>
+      </button>
       <button class="nav-btn" data-screen="stable">
         <span class="nav-icon">&#x1F3E0;</span>
         <span class="nav-label">Stable</span>
@@ -289,10 +325,6 @@
       <button class="nav-btn" data-screen="market">
         <span class="nav-icon">&#x1F3EA;</span>
         <span class="nav-label">Market</span>
-      </button>
-      <button class="nav-btn" data-screen="wallet">
-        <span class="nav-icon">&#x1F4B0;</span>
-        <span class="nav-label">Bank</span>
       </button>
       <button class="nav-btn" data-screen="tasks">
         <span class="nav-icon">&#x2705;</span>

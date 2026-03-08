@@ -946,6 +946,93 @@ body {
   white-space: nowrap;
 }
 
+/* ---- Category Summary ---- */
+.category-summary {
+  margin: 16px 0;
+  text-align: left;
+}
+.summary-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  justify-content: center;
+}
+.summary-table {
+  margin-bottom: 12px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 8px;
+}
+.summary-title {
+  font-size: 0.75rem;
+  margin-bottom: 6px;
+  text-shadow: 1px 1px 0 #000;
+}
+.summary-income-title { color: var(--emerald); }
+.summary-spending-title { color: var(--red-heart); }
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 6px;
+  font-size: 0.65rem;
+  color: var(--text-white);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-total {
+  border-top: 2px solid var(--stone);
+  font-weight: 700;
+  margin-top: 4px;
+  padding-top: 6px;
+}
+.tx-category {
+  color: var(--diamond);
+  font-size: 0.55rem;
+}
+
+/* ---- Category Select ---- */
+.category-select {
+  flex: 1;
+  padding: 6px 8px;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  background: #000;
+  color: var(--text-white);
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.65rem;
+}
+
+/* ---- Custom Category Editor (Parent) ---- */
+.category-editor label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.custom-category-list {
+  margin-bottom: 6px;
+}
+.custom-cat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--obsidian);
+  border: 1px solid var(--stone-dark);
+  margin-bottom: 3px;
+  font-size: 0.7rem;
+  color: var(--text-white);
+}
+.category-add-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.category-add-row .chore-input {
+  flex: 1;
+}
+
 /* ---- Animations ---- */
 @keyframes pulse {
   0%, 100% { opacity: 1; }

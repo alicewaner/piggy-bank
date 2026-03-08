@@ -36,6 +36,7 @@ var Parent = (function() {
 
     renderChoreEditor();
     renderSettingsEditor();
+    renderCategoryEditor();
     renderAnimalHearts();
     renderProgressDashboard();
     setupParentButtons();
@@ -85,6 +86,63 @@ var Parent = (function() {
       Sound.click();
       App.showToast('Settings saved!');
     };
+  }
+
+  function renderCategoryEditor() {
+    var state = Storage.load();
+    var depCats = state.settings.customDepositCategories || [];
+    var witCats = state.settings.customWithdrawCategories || [];
+
+    renderCatList('custom-deposit-list', depCats, 'customDepositCategories');
+    renderCatList('custom-withdraw-list', witCats, 'customWithdrawCategories');
+
+    document.getElementById('btn-add-deposit-cat').onclick = function() {
+      addCustomCat('new-deposit-cat', 'customDepositCategories');
+    };
+    document.getElementById('btn-add-withdraw-cat').onclick = function() {
+      addCustomCat('new-withdraw-cat', 'customWithdrawCategories');
+    };
+  }
+
+  function renderCatList(containerId, cats, stateKey) {
+    var container = document.getElementById(containerId);
+    if (cats.length === 0) {
+      container.innerHTML = '<p class="empty-msg">None yet.</p>';
+      return;
+    }
+    container.innerHTML = cats.map(function(c, i) {
+      return '<div class="custom-cat-item">' +
+        '<span>' + c + '</span>' +
+        '<button class="btn btn-small btn-danger cat-delete-btn" data-key="' + stateKey + '" data-index="' + i + '">X</button>' +
+        '</div>';
+    }).join('');
+
+    container.querySelectorAll('.cat-delete-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var s = Storage.load();
+        var key = btn.dataset.key;
+        var idx = parseInt(btn.dataset.index);
+        s.settings[key].splice(idx, 1);
+        Storage.save(s);
+        Sound.click();
+        renderCategoryEditor();
+      });
+    });
+  }
+
+  function addCustomCat(inputId, stateKey) {
+    var input = document.getElementById(inputId);
+    var val = input.value.trim();
+    if (!val) { App.showToast('Enter a category name.'); return; }
+    var s = Storage.load();
+    if (!s.settings[stateKey]) s.settings[stateKey] = [];
+    if (s.settings[stateKey].indexOf(val) !== -1) { App.showToast('Already exists!'); return; }
+    s.settings[stateKey].push(val);
+    Storage.save(s);
+    input.value = '';
+    Sound.click();
+    App.showToast('Category added!');
+    renderCategoryEditor();
   }
 
   function renderAnimalHearts() {
