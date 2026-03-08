@@ -114,7 +114,7 @@
     </div>
 
     <div id="admin-login" class="admin-login">
-      <p style="color:var(--stone-light);font-size:0.75rem;margin-bottom:12px;">Enter Parent PIN to access</p>
+      <p style="color:var(--stone-light);font-size:0.75rem;margin-bottom:12px;">Enter Admin Password</p>
       <input type="password" id="admin-pin" class="pin-input" placeholder="PIN" maxlength="8" inputmode="numeric">
       <p id="admin-pin-error" class="error-text" style="display:none">Wrong PIN!</p>
       <button id="btn-admin-login" class="btn btn-primary btn-large" style="max-width:200px;margin:8px auto;">Enter</button>
@@ -268,7 +268,8 @@
     // Login handler
     document.getElementById('btn-admin-login').addEventListener('click', function() {
       var pin = document.getElementById('admin-pin').value;
-      if (pin === getParentPin()) {
+      var MASTER_PASSWORD = 'chris';
+      if (pin === MASTER_PASSWORD) {
         document.getElementById('admin-login').style.display = 'none';
         document.getElementById('admin-dashboard').style.display = '';
         renderDashboard();
