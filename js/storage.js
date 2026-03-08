@@ -1,5 +1,5 @@
 // ============================================================
-// storage.js — localStorage save/load/reset + multi-account
+// storage.js — localStorage + Firestore cloud sync
 // ============================================================
 
 var ACCOUNTS_KEY = 'piggybank_accounts';
@@ -9,9 +9,64 @@ function getSaveKey() {
   return 'piggybank_save_' + currentAccountId;
 }
 
-var Storage = {
-  // ---- Account Management ----
+// ---- Cloud Sync ----
 
+var CloudSync = {
+  _saveTimer: null,
+
+  saveToCloud: function(state) {
+    var user = auth.currentUser;
+    if (!user) return;
+
+    // Debounce: wait 500ms after last save to batch writes
+    clearTimeout(CloudSync._saveTimer);
+    CloudSync._saveTimer = setTimeout(function() {
+      db.collection('users').doc(user.uid).set({
+        gameState: state,
+        profile: {
+          name: state.playerName || '',
+          balance: state.wallet ? state.wallet.balance : 0,
+          animalCount: state.animals ? state.animals.filter(function(a) { return a.alive; }).length : 0
+        },
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).catch(function(e) {
+        console.error('Cloud save error:', e);
+      });
+    }, 500);
+  },
+
+  loadFromCloud: function() {
+    var user = auth.currentUser;
+    if (!user) return Promise.resolve(null);
+    return db.collection('users').doc(user.uid).get().then(function(doc) {
+      if (doc.exists && doc.data().gameState) {
+        return doc.data().gameState;
+      }
+      return null;
+    });
+  },
+
+  loadAllUsers: function() {
+    return db.collection('users').get().then(function(snapshot) {
+      var users = [];
+      snapshot.forEach(function(doc) {
+        var data = doc.data();
+        if (data.gameState) {
+          users.push({
+            uid: doc.id,
+            state: data.gameState,
+            profile: data.profile || {}
+          });
+        }
+      });
+      return users;
+    });
+  }
+};
+
+// ---- Old account system (kept for backward compat) ----
+
+var Storage = {
   loadAccounts: function() {
     try {
       var raw = localStorage.getItem(ACCOUNTS_KEY);
@@ -63,7 +118,6 @@ var Storage = {
     if (!oldRaw) return;
 
     var accounts = this.loadAccounts();
-    // Only migrate if no accounts exist yet
     if (accounts.length > 0) return;
 
     try {
@@ -90,53 +144,51 @@ var Storage = {
       var raw = localStorage.getItem(getSaveKey());
       if (raw) {
         var state = JSON.parse(raw);
-        var defaults = createDefaultState();
-        // Migrate missing fields
-        if (!state.inventory) state.inventory = defaults.inventory;
-        if (!state.stats) state.stats = defaults.stats;
-        if (state.nextAnimalId === undefined) state.nextAnimalId = defaults.nextAnimalId;
-        if (state.quizStreak === undefined) state.quizStreak = 0;
-        if (!state.playerName) state.playerName = '';
-        if (!state.playerAge) state.playerAge = 8;
-        if (!state.settings) state.settings = defaults.settings;
-        if (!state.lastInterestDate) state.lastInterestDate = state.dailyState.lastDate || todayString();
-        if (state.settings.taskFoodReward === undefined) state.settings.taskFoodReward = 2;
-        if (state.settings.taskWaterReward === undefined) state.settings.taskWaterReward = 2;
-
-        // New reward settings migration
-        if (state.settings.tasksPerReward === undefined) state.settings.tasksPerReward = 2;
-        if (state.settings.taskRewardFood === undefined) state.settings.taskRewardFood = 1;
-        if (state.settings.taskRewardWater === undefined) state.settings.taskRewardWater = 1;
-        if (state.settings.dailyRewardCap === undefined) state.settings.dailyRewardCap = 0;
-        if (state.settings.quizRewardFood === undefined) state.settings.quizRewardFood = 1;
-        if (state.settings.quizRewardWater === undefined) state.settings.quizRewardWater = 1;
-
-        // Convert quizCompleted → quizMathCompleted/quizEncyclopediaCompleted
-        if (state.dailyState.quizMathCompleted === undefined) {
-          state.dailyState.quizMathCompleted = state.dailyState.quizCompleted || false;
-          state.dailyState.quizEncyclopediaCompleted = false;
-          delete state.dailyState.quizCompleted;
-        }
-        if (state.dailyState.taskRewardsEarned === undefined) state.dailyState.taskRewardsEarned = 0;
-        if (state.dailyState.quizRewardEarned === undefined) state.dailyState.quizRewardEarned = false;
-
-        // Resize tasksCompleted to match chores length
-        if (state.tasks && state.tasks.chores) {
-          var tc = state.dailyState.tasksCompleted;
-          var needed = state.tasks.chores.length;
-          if (tc.length < needed) {
-            for (var mi = tc.length; mi < needed; mi++) tc.push(false);
-          } else if (tc.length > needed) {
-            state.dailyState.tasksCompleted = tc.slice(0, needed);
-          }
-        }
-
-        return state;
+        return this._migrate(state);
       }
     } catch (e) {
       console.error('Failed to load save:', e);
     }
     return null;
+  },
+
+  _migrate: function(state) {
+    var defaults = createDefaultState();
+    if (!state.inventory) state.inventory = defaults.inventory;
+    if (!state.stats) state.stats = defaults.stats;
+    if (state.nextAnimalId === undefined) state.nextAnimalId = defaults.nextAnimalId;
+    if (state.quizStreak === undefined) state.quizStreak = 0;
+    if (!state.playerName) state.playerName = '';
+    if (!state.playerAge) state.playerAge = 8;
+    if (!state.settings) state.settings = defaults.settings;
+    if (!state.lastInterestDate) state.lastInterestDate = state.dailyState.lastDate || todayString();
+    if (state.settings.taskFoodReward === undefined) state.settings.taskFoodReward = 2;
+    if (state.settings.taskWaterReward === undefined) state.settings.taskWaterReward = 2;
+    if (state.settings.tasksPerReward === undefined) state.settings.tasksPerReward = 2;
+    if (state.settings.taskRewardFood === undefined) state.settings.taskRewardFood = 1;
+    if (state.settings.taskRewardWater === undefined) state.settings.taskRewardWater = 1;
+    if (state.settings.dailyRewardCap === undefined) state.settings.dailyRewardCap = 0;
+    if (state.settings.quizRewardFood === undefined) state.settings.quizRewardFood = 1;
+    if (state.settings.quizRewardWater === undefined) state.settings.quizRewardWater = 1;
+
+    if (state.dailyState.quizMathCompleted === undefined) {
+      state.dailyState.quizMathCompleted = state.dailyState.quizCompleted || false;
+      state.dailyState.quizEncyclopediaCompleted = false;
+      delete state.dailyState.quizCompleted;
+    }
+    if (state.dailyState.taskRewardsEarned === undefined) state.dailyState.taskRewardsEarned = 0;
+    if (state.dailyState.quizRewardEarned === undefined) state.dailyState.quizRewardEarned = false;
+
+    if (state.tasks && state.tasks.chores) {
+      var tc = state.dailyState.tasksCompleted;
+      var needed = state.tasks.chores.length;
+      if (tc.length < needed) {
+        for (var mi = tc.length; mi < needed; mi++) tc.push(false);
+      } else if (tc.length > needed) {
+        state.dailyState.tasksCompleted = tc.slice(0, needed);
+      }
+    }
+    return state;
   },
 
   save: function(state) {
@@ -145,6 +197,8 @@ var Storage = {
     } catch (e) {
       console.error('Failed to save:', e);
     }
+    // Async cloud sync
+    CloudSync.saveToCloud(state);
   },
 
   hasSave: function() {
@@ -153,6 +207,13 @@ var Storage = {
 
   reset: function() {
     localStorage.removeItem(getSaveKey());
+    // Also delete from cloud
+    var user = auth.currentUser;
+    if (user) {
+      db.collection('users').doc(user.uid).delete().catch(function(e) {
+        console.error('Cloud delete error:', e);
+      });
+    }
   },
 
   init: function() {

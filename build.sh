@@ -21,17 +21,16 @@ cat >> "$OUT" << 'MID'
 </head>
 MID
 
-# Extract body from index.html (skip head, skip external script/css refs)
-# Just grab from <body> to </body>
+# Extract body from index.html (skip head, skip local script/css refs but keep CDN)
 sed -n '/<body>/,/<\/body>/p' index.html | \
-  grep -v '<script src=' | \
+  grep -v '<script src="js/' | \
   grep -v '<link rel="stylesheet"' >> "$OUT"
 
 # Now add all JS inline before </body>
 sed -i '' 's|</body>||' "$OUT"
 
 echo '<script>' >> "$OUT"
-for f in js/data.js js/storage.js js/sound.js js/wallet.js js/stable.js js/market.js js/tasks.js js/quiz.js js/breeding.js js/parent.js js/app.js; do
+for f in js/data.js js/firebase-config.js js/storage.js js/sound.js js/wallet.js js/stable.js js/market.js js/tasks.js js/quiz.js js/breeding.js js/parent.js js/app.js; do
   cat "$f" >> "$OUT"
   echo "" >> "$OUT"
 done

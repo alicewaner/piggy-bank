@@ -1,5 +1,5 @@
 // ============================================================
-// app.js — Screen router, daily cycle, entry point
+// app.js — Screen router, daily cycle, Firebase auth entry point
 // ============================================================
 
 const App = (() => {
@@ -123,7 +123,6 @@ const App = (() => {
     setTimeout(function() { toast.classList.remove('show'); }, duration);
   }
 
-  // Map age to starting quiz difficulty
   function ageToDifficulty(age) {
     if (age <= 6) return 1;
     if (age <= 7) return 1;
@@ -134,256 +133,104 @@ const App = (() => {
     return 5;
   }
 
-  // ---- Account UI ----
+  // ---- Firebase Auth UI ----
 
-  function renderAccountPicker() {
-    var accounts = Storage.loadAccounts();
-    var accountList = document.getElementById('account-list');
-    var createForm = document.getElementById('create-account-form');
-    var cancelBtn = document.getElementById('btn-cancel-create');
+  function showLoginForm() {
+    document.getElementById('auth-loading').style.display = 'none';
+    document.getElementById('login-form').style.display = '';
+    document.getElementById('register-form').style.display = 'none';
+  }
 
-    if (accounts.length === 0) {
-      // No accounts — show create form only
-      accountList.style.display = 'none';
-      createForm.style.display = '';
-      cancelBtn.style.display = 'none';
-    } else {
-      // Show account cards
-      accountList.style.display = '';
-      createForm.style.display = 'none';
-      renderAccountCards(accounts);
+  function showRegisterForm() {
+    document.getElementById('auth-loading').style.display = 'none';
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('register-form').style.display = '';
+  }
+
+  function setAuthError(formId, msg) {
+    var el = document.getElementById(formId);
+    el.textContent = msg;
+    el.style.display = msg ? '' : 'none';
+  }
+
+  function firebaseErrorMsg(code) {
+    switch (code) {
+      case 'auth/invalid-email': return 'Invalid email address.';
+      case 'auth/user-not-found': return 'No account with this email.';
+      case 'auth/wrong-password': return 'Wrong password.';
+      case 'auth/invalid-credential': return 'Wrong email or password.';
+      case 'auth/email-already-in-use': return 'Email already registered.';
+      case 'auth/weak-password': return 'Password must be 6+ characters.';
+      case 'auth/too-many-requests': return 'Too many attempts. Try later.';
+      default: return 'Login failed. Please try again.';
     }
   }
 
-  function renderAccountCards(accounts) {
-    var container = document.getElementById('account-cards');
-    container.innerHTML = accounts.map(function(acc) {
-      return '<div class="account-card" data-id="' + acc.id + '">' +
-        '<button class="account-delete-btn" data-id="' + acc.id + '" title="Delete">&times;</button>' +
-        '<div class="account-avatar">' + acc.name.charAt(0).toUpperCase() + '</div>' +
-        '<div class="account-name">' + acc.name + '</div>' +
-        '</div>';
-    }).join('');
+  function handleLogin() {
+    var email = document.getElementById('login-email').value.trim();
+    var password = document.getElementById('login-password').value;
+    setAuthError('login-error', '');
 
-    // Card tap → PIN prompt
-    container.querySelectorAll('.account-card').forEach(function(card) {
-      card.addEventListener('click', function(e) {
-        if (e.target.classList.contains('account-delete-btn')) return;
-        Sound.click();
-        var id = card.dataset.id;
-        showPinModal(id, 'login');
-      });
-    });
-
-    // Delete button → parent PIN required
-    container.querySelectorAll('.account-delete-btn').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        Sound.click();
-        var id = btn.dataset.id;
-        showPinModal(id, 'delete');
-      });
-    });
-  }
-
-  // PIN modal for login or delete
-  var pinModalAction = null;
-  var pinModalAccountId = null;
-
-  function showPinModal(accountId, action) {
-    pinModalAccountId = accountId;
-    pinModalAction = action;
-
-    var modal = document.getElementById('pin-modal');
-    var title = document.getElementById('pin-modal-title');
-    var input = document.getElementById('account-pin-input');
-    var error = document.getElementById('account-pin-error');
-
-    if (action === 'delete') {
-      title.textContent = 'Parent PIN to Delete';
-    } else {
-      var accounts = Storage.loadAccounts();
-      var acc = accounts.find(function(a) { return a.id === accountId; });
-      title.textContent = 'PIN for ' + (acc ? acc.name : '');
+    if (!email || !password) {
+      setAuthError('login-error', 'Please enter email and password.');
+      return;
     }
 
-    input.value = '';
-    error.style.display = 'none';
-    modal.style.display = 'flex';
-    input.focus();
-  }
-
-  function hidePinModal() {
-    document.getElementById('pin-modal').style.display = 'none';
-    pinModalAction = null;
-    pinModalAccountId = null;
-  }
-
-  function handlePinSubmit() {
-    var pin = document.getElementById('account-pin-input').value;
-    var error = document.getElementById('account-pin-error');
-
-    if (pinModalAction === 'login') {
-      var accounts = Storage.loadAccounts();
-      var acc = accounts.find(function(a) { return a.id === pinModalAccountId; });
-      if (acc && pin === acc.pin) {
-        Sound.click();
-        hidePinModal();
-        Storage.setCurrentAccount(acc.id);
-        Storage.init();
-        startGame();
-      } else {
-        error.style.display = '';
+    auth.signInWithEmailAndPassword(email, password)
+      .then(function() {
+        // onAuthStateChanged will handle the rest
+      })
+      .catch(function(error) {
+        setAuthError('login-error', firebaseErrorMsg(error.code));
         Sound.wrong();
-      }
-    } else if (pinModalAction === 'delete') {
-      // Need parent PIN — check from any account's save, or use default '1234'
-      var parentPin = getParentPin();
-      if (pin === parentPin) {
-        Sound.click();
-        var accName = '';
-        var accounts = Storage.loadAccounts();
-        var acc = accounts.find(function(a) { return a.id === pinModalAccountId; });
-        if (acc) accName = acc.name;
-        Storage.deleteAccount(pinModalAccountId);
-        hidePinModal();
-        showToast(accName + "'s account deleted.");
-        renderAccountPicker();
-      } else {
-        error.style.display = '';
+      });
+  }
+
+  function handleRegister() {
+    var name = document.getElementById('register-name').value.trim();
+    var age = parseInt(document.getElementById('register-age').value) || 8;
+    var email = document.getElementById('register-email').value.trim();
+    var password = document.getElementById('register-password').value;
+    setAuthError('register-error', '');
+
+    if (!name) {
+      setAuthError('register-error', 'Please enter your name.');
+      return;
+    }
+    if (!email || !password) {
+      setAuthError('register-error', 'Please enter email and password.');
+      return;
+    }
+
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(function(cred) {
+        // Set display name
+        return cred.user.updateProfile({ displayName: name }).then(function() {
+          // Set up account
+          Storage.setCurrentAccount(cred.user.uid);
+          var state = createDefaultState();
+          state.playerName = name;
+          state.playerAge = age;
+          state.quizDifficulty = ageToDifficulty(age);
+          Storage.save(state);
+          // onAuthStateChanged will start the game
+        });
+      })
+      .catch(function(error) {
+        setAuthError('register-error', firebaseErrorMsg(error.code));
         Sound.wrong();
-      }
-    }
-  }
-
-  // Get parent PIN from any existing account save, fallback to '1234'
-  function getParentPin() {
-    var accounts = Storage.loadAccounts();
-    for (var i = 0; i < accounts.length; i++) {
-      try {
-        var raw = localStorage.getItem('piggybank_save_' + accounts[i].id);
-        if (raw) {
-          var state = JSON.parse(raw);
-          if (state.parentPassword) return state.parentPassword;
-        }
-      } catch (e) {}
-    }
-    return '1234';
-  }
-
-  function init() {
-    // Migrate old single-save if needed
-    Storage.migrateOldSave();
-
-    // Render account picker or create form
-    renderAccountPicker();
-
-    // Create account button
-    document.getElementById('btn-create-account').addEventListener('click', function() {
-      Sound.click();
-      var name = document.getElementById('player-name').value.trim();
-      var age = parseInt(document.getElementById('player-age').value) || 8;
-      var pin = document.getElementById('new-account-pin').value.trim();
-
-      if (!name) {
-        showToast('Please enter your name!');
-        return;
-      }
-      if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
-        showToast('PIN must be 4 digits!');
-        return;
-      }
-
-      var account = Storage.createAccount(name, pin);
-      Storage.setCurrentAccount(account.id);
-
-      var state = Storage.init();
-      state.playerName = name;
-      state.playerAge = age;
-      state.quizDifficulty = ageToDifficulty(age);
-      Storage.save(state);
-
-      // Clear form
-      document.getElementById('player-name').value = '';
-      document.getElementById('new-account-pin').value = '';
-
-      startGame();
-    });
-
-    // "+ New Account" button
-    document.getElementById('btn-new-account').addEventListener('click', function() {
-      Sound.click();
-      document.getElementById('account-list').style.display = 'none';
-      document.getElementById('create-account-form').style.display = '';
-      document.getElementById('btn-cancel-create').style.display = '';
-    });
-
-    // Cancel create → back to picker
-    document.getElementById('btn-cancel-create').addEventListener('click', function() {
-      Sound.click();
-      renderAccountPicker();
-    });
-
-    // PIN modal buttons
-    document.getElementById('btn-pin-ok').addEventListener('click', function() {
-      handlePinSubmit();
-    });
-    document.getElementById('pin-modal-close').addEventListener('click', function() {
-      hidePinModal();
-    });
-    document.getElementById('pin-modal').addEventListener('click', function(e) {
-      if (e.target.id === 'pin-modal') hidePinModal();
-    });
-    // Enter key in PIN input
-    document.getElementById('account-pin-input').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') handlePinSubmit();
-    });
-
-    // Nav bar
-    document.querySelectorAll('.nav-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        Sound.click();
-        showScreen(btn.dataset.screen);
       });
-    });
-
-    // More menu items (skip logout, it has its own handler)
-    document.querySelectorAll('.more-item').forEach(function(btn) {
-      if (btn.id === 'btn-logout') return;
-      btn.addEventListener('click', function() {
-        Sound.click();
-        showScreen(btn.dataset.screen);
-      });
-    });
-
-    // Log out button
-    document.getElementById('btn-logout').addEventListener('click', function() {
-      Sound.click();
-      logout();
-    });
-
-    // Modal close — X button, tap outside, Done button
-    document.getElementById('modal-close').addEventListener('click', function() {
-      document.getElementById('animal-modal').style.display = 'none';
-    });
-    document.getElementById('animal-modal').addEventListener('click', function(e) {
-      if (e.target.id === 'animal-modal') {
-        document.getElementById('animal-modal').style.display = 'none';
-      }
-    });
-    document.getElementById('btn-modal-done').addEventListener('click', function() {
-      document.getElementById('animal-modal').style.display = 'none';
-    });
   }
+
+  // ---- Usage tracking ----
 
   function trackLogin() {
     try {
       var usage = JSON.parse(localStorage.getItem('piggybank_usage') || '{}');
       var accId = currentAccountId;
       if (!accId) return;
-      var accounts = Storage.loadAccounts();
-      var acc = accounts.find(function(a) { return a.id === accId; });
-      var name = acc ? acc.name : accId;
+      var user = auth.currentUser;
+      var name = user && user.displayName ? user.displayName : accId;
       var now = new Date().toISOString();
       var today = todayString();
 
@@ -403,21 +250,26 @@ const App = (() => {
     }
   }
 
+  // ---- Leaderboard (reads from Firestore) ----
+
   function renderLeaderboard(sortBy) {
     sortBy = sortBy || 'total';
-    var accounts = Storage.loadAccounts();
-    var entries = [];
+    var container = document.getElementById('leaderboard-list');
+    if (!container) return;
 
-    accounts.forEach(function(acc) {
-      try {
-        var raw = localStorage.getItem('piggybank_save_' + acc.id);
-        if (!raw) return;
-        var state = JSON.parse(raw);
+    container.innerHTML = '<p class="empty-msg">Loading...</p>';
+
+    CloudSync.loadAllUsers().then(function(users) {
+      var entries = [];
+      users.forEach(function(u) {
+        var state = u.state;
         var bank = state.wallet ? state.wallet.balance : 0;
         var animalValue = 0;
+        var animalCount = 0;
         if (state.animals) {
           state.animals.forEach(function(a) {
             if (!a.alive) return;
+            animalCount++;
             var buyPrice = (state.settings && state.settings.buyBabyPrice) || 500;
             var sellPrice = (state.settings && state.settings.sellAdultPrice) || 1000;
             var maxH = HEARTS.maxHearts;
@@ -426,53 +278,54 @@ const App = (() => {
           });
         }
         entries.push({
-          name: acc.name,
+          name: state.playerName || u.profile.name || 'Player',
           bank: bank,
           animals: animalValue,
           total: bank + animalValue,
-          animalCount: state.animals ? state.animals.filter(function(a) { return a.alive; }).length : 0
+          animalCount: animalCount
         });
-      } catch (e) {}
-    });
-
-    entries.sort(function(a, b) { return b[sortBy] - a[sortBy]; });
-
-    var container = document.getElementById('leaderboard-list');
-    if (!container) return;
-
-    // Sort toggle buttons
-    var toggleHtml = '<div class="leaderboard-sort">' +
-      '<button class="btn btn-small ' + (sortBy === 'total' ? 'btn-accent' : 'btn-secondary') + '" data-sort="total">Total</button>' +
-      '<button class="btn btn-small ' + (sortBy === 'bank' ? 'btn-accent' : 'btn-secondary') + '" data-sort="bank">Bank</button>' +
-      '<button class="btn btn-small ' + (sortBy === 'animals' ? 'btn-accent' : 'btn-secondary') + '" data-sort="animals">Animals</button>' +
-      '</div>';
-
-    var rowsHtml = entries.map(function(e, i) {
-      var rankClass = i === 0 ? 'rank-gold' : (i === 1 ? 'rank-silver' : (i === 2 ? 'rank-bronze' : ''));
-      return '<div class="leaderboard-row ' + rankClass + '">' +
-        '<span class="lb-rank">#' + (i + 1) + '</span>' +
-        '<span class="lb-name">' + e.name + '</span>' +
-        '<span class="lb-stats">' +
-          '<span class="lb-total">' + formatMoney(e.total) + '</span>' +
-          '<span class="lb-detail">Bank: ' + formatMoney(e.bank) + '</span>' +
-          '<span class="lb-detail">Animals: ' + formatMoney(e.animals) + ' (' + e.animalCount + ')</span>' +
-        '</span>' +
-      '</div>';
-    }).join('');
-
-    if (entries.length === 0) {
-      rowsHtml = '<p class="empty-msg">No players yet.</p>';
-    }
-
-    container.innerHTML = toggleHtml + rowsHtml;
-
-    container.querySelectorAll('.leaderboard-sort button').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        Sound.click();
-        renderLeaderboard(btn.dataset.sort);
       });
+
+      entries.sort(function(a, b) { return b[sortBy] - a[sortBy]; });
+
+      var toggleHtml = '<div class="leaderboard-sort">' +
+        '<button class="btn btn-small ' + (sortBy === 'total' ? 'btn-accent' : 'btn-secondary') + '" data-sort="total">Total</button>' +
+        '<button class="btn btn-small ' + (sortBy === 'bank' ? 'btn-accent' : 'btn-secondary') + '" data-sort="bank">Bank</button>' +
+        '<button class="btn btn-small ' + (sortBy === 'animals' ? 'btn-accent' : 'btn-secondary') + '" data-sort="animals">Animals</button>' +
+        '</div>';
+
+      var rowsHtml = entries.map(function(e, i) {
+        var rankClass = i === 0 ? 'rank-gold' : (i === 1 ? 'rank-silver' : (i === 2 ? 'rank-bronze' : ''));
+        return '<div class="leaderboard-row ' + rankClass + '">' +
+          '<span class="lb-rank">#' + (i + 1) + '</span>' +
+          '<span class="lb-name">' + e.name + '</span>' +
+          '<span class="lb-stats">' +
+            '<span class="lb-total">' + formatMoney(e.total) + '</span>' +
+            '<span class="lb-detail">Bank: ' + formatMoney(e.bank) + '</span>' +
+            '<span class="lb-detail">Animals: ' + formatMoney(e.animals) + ' (' + e.animalCount + ')</span>' +
+          '</span>' +
+        '</div>';
+      }).join('');
+
+      if (entries.length === 0) {
+        rowsHtml = '<p class="empty-msg">No players yet.</p>';
+      }
+
+      container.innerHTML = toggleHtml + rowsHtml;
+
+      container.querySelectorAll('.leaderboard-sort button').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          Sound.click();
+          renderLeaderboard(btn.dataset.sort);
+        });
+      });
+    }).catch(function(err) {
+      console.error('Leaderboard error:', err);
+      container.innerHTML = '<p class="empty-msg">Could not load leaderboard.</p>';
     });
   }
+
+  // ---- Game lifecycle ----
 
   function startGame() {
     dailyCycle();
@@ -483,10 +336,97 @@ const App = (() => {
   }
 
   function logout() {
-    currentAccountId = null;
-    document.getElementById('bottom-nav').style.display = 'none';
-    showScreen('welcome');
-    renderAccountPicker();
+    auth.signOut().then(function() {
+      currentAccountId = null;
+      document.getElementById('bottom-nav').style.display = 'none';
+      showScreen('welcome');
+      showLoginForm();
+    });
+  }
+
+  // ---- Init ----
+
+  function init() {
+    // Nav bar
+    document.querySelectorAll('.nav-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        Sound.click();
+        showScreen(btn.dataset.screen);
+      });
+    });
+
+    // More menu items (skip logout)
+    document.querySelectorAll('.more-item').forEach(function(btn) {
+      if (btn.id === 'btn-logout') return;
+      btn.addEventListener('click', function() {
+        Sound.click();
+        showScreen(btn.dataset.screen);
+      });
+    });
+
+    // Log out button
+    document.getElementById('btn-logout').addEventListener('click', function() {
+      Sound.click();
+      logout();
+    });
+
+    // Modal close
+    document.getElementById('modal-close').addEventListener('click', function() {
+      document.getElementById('animal-modal').style.display = 'none';
+    });
+    document.getElementById('animal-modal').addEventListener('click', function(e) {
+      if (e.target.id === 'animal-modal') {
+        document.getElementById('animal-modal').style.display = 'none';
+      }
+    });
+    document.getElementById('btn-modal-done').addEventListener('click', function() {
+      document.getElementById('animal-modal').style.display = 'none';
+    });
+
+    // ---- Firebase Auth buttons ----
+    document.getElementById('btn-login').addEventListener('click', handleLogin);
+    document.getElementById('btn-show-register').addEventListener('click', function() {
+      Sound.click();
+      showRegisterForm();
+    });
+    document.getElementById('btn-register').addEventListener('click', handleRegister);
+    document.getElementById('btn-show-login').addEventListener('click', function() {
+      Sound.click();
+      showLoginForm();
+    });
+
+    // Enter key on login/register forms
+    document.getElementById('login-password').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleLogin();
+    });
+    document.getElementById('register-password').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleRegister();
+    });
+
+    // ---- Firebase Auth state listener ----
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        // User is signed in — load cloud data and start game
+        Storage.setCurrentAccount(user.uid);
+        CloudSync.loadFromCloud().then(function(cloudState) {
+          if (cloudState) {
+            // Cloud data exists — use it (apply migrations)
+            var migrated = Storage._migrate(cloudState);
+            localStorage.setItem(getSaveKey(), JSON.stringify(migrated));
+          }
+          // Init from localStorage (either cloud-synced or fresh)
+          Storage.init();
+          startGame();
+        }).catch(function(err) {
+          console.error('Cloud load error, using local:', err);
+          Storage.init();
+          startGame();
+        });
+      } else {
+        // Not signed in — show login form
+        showLoginForm();
+      }
+    });
   }
 
   return { init: init, showScreen: showScreen, showToast: showToast, dailyCycle: dailyCycle, logout: logout };

@@ -21,18 +21,28 @@
         <h1 class="game-title">Piggy Bank</h1>
         <p class="game-subtitle">Manage your money, complete your tasks!</p>
 
-        <!-- Account list (shown when accounts exist) -->
-        <div id="account-list" style="display:none">
-          <div id="account-cards"></div>
-          <button id="btn-new-account" class="btn btn-accent btn-large">+ New Account</button>
+        <!-- Loading state while checking auth -->
+        <div id="auth-loading" style="text-align:center;padding:20px;">
+          <p style="color:var(--stone-light);font-size:0.7rem;">Loading...</p>
         </div>
 
-        <!-- Create account form -->
-        <div id="create-account-form" class="login-form" style="display:none">
-          <label for="player-name">Your Name</label>
-          <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
-          <label for="player-age">Your Age</label>
-          <select id="player-age">
+        <!-- Sign In form -->
+        <div id="login-form" class="login-form" style="display:none">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" placeholder="Enter your email">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="Enter your password">
+          <p id="login-error" class="error-text" style="display:none"></p>
+          <button id="btn-login" class="btn btn-primary btn-large">Sign In</button>
+          <button id="btn-show-register" class="btn btn-accent btn-large">Create Account</button>
+        </div>
+
+        <!-- Register form -->
+        <div id="register-form" class="login-form" style="display:none">
+          <label for="register-name">Your Name</label>
+          <input type="text" id="register-name" placeholder="Enter your name" maxlength="20">
+          <label for="register-age">Your Age</label>
+          <select id="register-age">
             <option value="6">6 years old</option>
             <option value="7">7 years old</option>
             <option value="8" selected>8 years old</option>
@@ -41,22 +51,14 @@
             <option value="11">11 years old</option>
             <option value="12">12 years old</option>
           </select>
-          <label for="new-account-pin">4-Digit PIN</label>
-          <input type="password" id="new-account-pin" placeholder="1234" maxlength="4" inputmode="numeric" class="pin-input">
-          <button id="btn-create-account" class="btn btn-primary btn-large">Create Account</button>
-          <button id="btn-cancel-create" class="btn btn-secondary btn-large" style="display:none">Cancel</button>
+          <label for="register-email">Email</label>
+          <input type="email" id="register-email" placeholder="Enter your email">
+          <label for="register-password">Password</label>
+          <input type="password" id="register-password" placeholder="Create a password (6+ chars)">
+          <p id="register-error" class="error-text" style="display:none"></p>
+          <button id="btn-register" class="btn btn-primary btn-large">Create Account</button>
+          <button id="btn-show-login" class="btn btn-secondary btn-large">Back to Sign In</button>
         </div>
-      </div>
-    </div>
-
-    <!-- PIN Entry Modal -->
-    <div id="pin-modal" class="modal" style="display:none">
-      <div class="modal-content pin-modal-content">
-        <button class="modal-close" id="pin-modal-close">&times;</button>
-        <h3 id="pin-modal-title">Enter PIN</h3>
-        <input type="password" id="account-pin-input" class="pin-input" placeholder="PIN" maxlength="4" inputmode="numeric">
-        <p id="account-pin-error" class="error-text" style="display:none">Wrong PIN!</p>
-        <button id="btn-pin-ok" class="btn btn-primary btn-large">OK</button>
       </div>
     </div>
 
@@ -360,7 +362,11 @@
     </nav>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/firebase-config.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/sound.js"></script>
   <script src="js/wallet.js"></script>

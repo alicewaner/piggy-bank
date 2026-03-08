@@ -151,30 +151,19 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
   <script>
-    var ACCOUNTS_KEY = 'piggybank_accounts';
-
-    function loadAccounts() {
-      try {
-        var raw = localStorage.getItem(ACCOUNTS_KEY);
-        if (raw) return JSON.parse(raw);
-      } catch (e) {}
-      return [];
-    }
-
-    function getParentPin() {
-      var accounts = loadAccounts();
-      for (var i = 0; i < accounts.length; i++) {
-        try {
-          var raw = localStorage.getItem('piggybank_save_' + accounts[i].id);
-          if (raw) {
-            var state = JSON.parse(raw);
-            if (state.parentPassword) return state.parentPassword;
-          }
-        } catch (e) {}
-      }
-      return '1234';
-    }
+    firebase.initializeApp({
+      apiKey: "AIzaSyBiXJvgiU556WYe77Cl8Yb5zO9Bw3GJKJs",
+      authDomain: "piggy-bank-17a7c.firebaseapp.com",
+      projectId: "piggy-bank-17a7c",
+      storageBucket: "piggy-bank-17a7c.firebasestorage.app",
+      messagingSenderId: "1012332227997",
+      appId: "1:1012332227997:web:2788d48e43ff48b28ad374"
+    });
+    var db = firebase.firestore();
 
     function formatMoney(cents) {
       return '$' + (cents / 100).toFixed(2);
@@ -187,82 +176,63 @@
     }
 
     function renderDashboard() {
-      var accounts = loadAccounts();
-      var usage = {};
-      try { usage = JSON.parse(localStorage.getItem('piggybank_usage') || '{}'); } catch(e) {}
+      // Load all users from Firestore
+      db.collection('users').get().then(function(snapshot) {
+        var totalUsers = 0;
+        var totalAnimals = 0;
+        var totalBalance = 0;
+        var userRows = [];
 
-      var totalUsers = accounts.length;
-      var totalAnimals = 0;
-      var totalBalance = 0;
-      var userRows = [];
+        snapshot.forEach(function(doc) {
+          var data = doc.data();
+          var state = data.gameState;
+          if (!state) return;
+          totalUsers++;
 
-      accounts.forEach(function(acc) {
-        try {
-          var raw = localStorage.getItem('piggybank_save_' + acc.id);
-          if (!raw) return;
-          var state = JSON.parse(raw);
           var balance = state.wallet ? state.wallet.balance : 0;
           var aliveAnimals = state.animals ? state.animals.filter(function(a) { return a.alive; }).length : 0;
           totalBalance += balance;
           totalAnimals += aliveAnimals;
 
-          var u = usage[acc.id] || {};
           userRows.push({
-            name: acc.name,
+            name: state.playerName || (data.profile && data.profile.name) || 'Player',
             balance: balance,
             animals: aliveAnimals,
             days: state.stats ? state.stats.daysPlayed : 0,
-            logins: u.totalLogins || 0,
-            activeDays: u.daysActive ? u.daysActive.length : 0,
-            lastLogin: u.lastLogin || null
+            logins: 0,
+            activeDays: 0,
+            lastLogin: data.updatedAt ? data.updatedAt.toDate().toISOString() : null
           });
-        } catch (e) {}
-      });
+        });
 
-      // Summary cards
-      document.getElementById('summary-cards').innerHTML =
-        '<div class="summary-card"><div class="card-value">' + totalUsers + '</div><div class="card-label">Total Users</div></div>' +
-        '<div class="summary-card"><div class="card-value">' + totalAnimals + '</div><div class="card-label">Total Animals</div></div>' +
-        '<div class="summary-card"><div class="card-value">' + formatMoney(totalBalance) + '</div><div class="card-label">Total Balance</div></div>';
+        // Summary cards
+        document.getElementById('summary-cards').innerHTML =
+          '<div class="summary-card"><div class="card-value">' + totalUsers + '</div><div class="card-label">Total Users</div></div>' +
+          '<div class="summary-card"><div class="card-value">' + totalAnimals + '</div><div class="card-label">Total Animals</div></div>' +
+          '<div class="summary-card"><div class="card-value">' + formatMoney(totalBalance) + '</div><div class="card-label">Total Balance</div></div>';
 
-      // User table
-      var tbody = document.getElementById('user-table-body');
-      tbody.innerHTML = userRows.map(function(r) {
-        return '<tr>' +
-          '<td>' + r.name + '</td>' +
-          '<td>' + formatMoney(r.balance) + '</td>' +
-          '<td>' + r.animals + '</td>' +
-          '<td>' + r.days + '</td>' +
-          '<td>' + r.logins + '</td>' +
-          '<td>' + r.activeDays + '</td>' +
-          '<td>' + formatDate(r.lastLogin) + '</td>' +
-        '</tr>';
-      }).join('');
-
-      // Recent logins (last 20 across all users)
-      var allLogins = [];
-      Object.keys(usage).forEach(function(accId) {
-        var u = usage[accId];
-        if (u.loginTimestamps) {
-          u.loginTimestamps.forEach(function(ts) {
-            allLogins.push({ name: u.name, time: ts });
-          });
-        }
-      });
-      allLogins.sort(function(a, b) { return b.time.localeCompare(a.time); });
-      allLogins = allLogins.slice(0, 20);
-
-      var recentDiv = document.getElementById('recent-logins');
-      if (allLogins.length === 0) {
-        recentDiv.innerHTML = '<p class="empty-msg">No login data yet.</p>';
-      } else {
-        recentDiv.innerHTML = allLogins.map(function(l) {
-          return '<div class="recent-login-item">' +
-            '<span class="recent-login-name">' + l.name + '</span>' +
-            '<span class="recent-login-time">' + formatDate(l.time) + '</span>' +
-          '</div>';
+        // User table
+        var tbody = document.getElementById('user-table-body');
+        tbody.innerHTML = userRows.map(function(r) {
+          return '<tr>' +
+            '<td>' + r.name + '</td>' +
+            '<td>' + formatMoney(r.balance) + '</td>' +
+            '<td>' + r.animals + '</td>' +
+            '<td>' + r.days + '</td>' +
+            '<td>-</td>' +
+            '<td>-</td>' +
+            '<td>' + formatDate(r.lastLogin) + '</td>' +
+          '</tr>';
         }).join('');
-      }
+
+        // Recent logins placeholder
+        var recentDiv = document.getElementById('recent-logins');
+        recentDiv.innerHTML = '<p class="empty-msg">Login tracking available via local admin.</p>';
+      }).catch(function(err) {
+        console.error('Failed to load users:', err);
+        document.getElementById('summary-cards').innerHTML =
+          '<p class="empty-msg">Failed to load data. Check Firestore rules.</p>';
+      });
     }
 
     // Login handler
