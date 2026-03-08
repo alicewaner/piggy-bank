@@ -1996,8 +1996,8 @@ var DEATH = {
   daysWithoutFood: 3
 };
 
-var DEPOSIT_CATEGORIES = ['Red Pocket', 'Birthday', 'Holiday', 'Piggy Bank Reward', 'Interest Income', 'Other Earnings'];
-var WITHDRAW_CATEGORIES = ['Snack', 'Toys', 'Stationery', 'Books', 'Piggy Bank Spend', 'Others'];
+var DEPOSIT_CATEGORIES = ['Red Pocket', 'Birthday', 'Holiday', 'Allowance', 'Task Reward', 'Quiz Reward', 'Sell Animal', 'Interest Income', 'Gift', 'Other Earnings'];
+var WITHDRAW_CATEGORIES = ['Snack', 'Toys', 'Stationery', 'Books', 'Buy Animal', 'Donation', 'Others'];
 
 var DEFAULT_CHORES = [
   'Make your bed',
@@ -2011,7 +2011,7 @@ function createDefaultState() {
     wallet: {
       balance: 1000, // $10.00 in cents
       transactions: [
-        { type: 'deposit', amount: 1000, desc: 'Welcome bonus!', date: todayString() }
+        { type: 'deposit', amount: 1000, desc: 'Welcome bonus!', date: todayString(), category: 'Gift' }
       ]
     },
     animals: [],
@@ -3206,7 +3206,7 @@ var Market = (function() {
       return;
     }
 
-    Wallet.addTransaction('withdraw', price, 'Bought baby ' + ANIMAL_NAMES[type].singular);
+    Wallet.addTransaction('withdraw', price, 'Bought baby ' + ANIMAL_NAMES[type].singular, 'Buy Animal');
     createAnimal(type, false);
     Sound.buy();
     App.showToast('You got a baby ' + ANIMAL_NAMES[type].singular + '!');
@@ -3227,7 +3227,7 @@ var Market = (function() {
     state.stats.totalMoneyEarned += price;
     Storage.save(state);
 
-    Wallet.addTransaction('deposit', price, 'Sold ' + name);
+    Wallet.addTransaction('deposit', price, 'Sold ' + name, 'Sell Animal');
     Sound.sell();
     App.showToast('Sold ' + name + ' for ' + formatMoney(price) + '!');
     render();

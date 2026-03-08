@@ -33,8 +33,8 @@ var DEATH = {
   daysWithoutFood: 3
 };
 
-var DEPOSIT_CATEGORIES = ['Red Pocket', 'Birthday', 'Holiday', 'Piggy Bank Reward', 'Interest Income', 'Other Earnings'];
-var WITHDRAW_CATEGORIES = ['Snack', 'Toys', 'Stationery', 'Books', 'Piggy Bank Spend', 'Others'];
+var DEPOSIT_CATEGORIES = ['Red Pocket', 'Birthday', 'Holiday', 'Allowance', 'Task Reward', 'Quiz Reward', 'Sell Animal', 'Interest Income', 'Gift', 'Other Earnings'];
+var WITHDRAW_CATEGORIES = ['Snack', 'Toys', 'Stationery', 'Books', 'Buy Animal', 'Donation', 'Others'];
 
 var DEFAULT_CHORES = [
   'Make your bed',
@@ -48,7 +48,7 @@ function createDefaultState() {
     wallet: {
       balance: 1000, // $10.00 in cents
       transactions: [
-        { type: 'deposit', amount: 1000, desc: 'Welcome bonus!', date: todayString() }
+        { type: 'deposit', amount: 1000, desc: 'Welcome bonus!', date: todayString(), category: 'Gift' }
       ]
     },
     animals: [],

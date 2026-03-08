@@ -60,7 +60,7 @@ var Market = (function() {
       return;
     }
 
-    Wallet.addTransaction('withdraw', price, 'Bought baby ' + ANIMAL_NAMES[type].singular);
+    Wallet.addTransaction('withdraw', price, 'Bought baby ' + ANIMAL_NAMES[type].singular, 'Buy Animal');
     createAnimal(type, false);
     Sound.buy();
     App.showToast('You got a baby ' + ANIMAL_NAMES[type].singular + '!');
@@ -81,7 +81,7 @@ var Market = (function() {
     state.stats.totalMoneyEarned += price;
     Storage.save(state);
 
-    Wallet.addTransaction('deposit', price, 'Sold ' + name);
+    Wallet.addTransaction('deposit', price, 'Sold ' + name, 'Sell Animal');
     Sound.sell();
     App.showToast('Sold ' + name + ' for ' + formatMoney(price) + '!');
     render();
