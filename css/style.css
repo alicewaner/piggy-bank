@@ -1,0 +1,952 @@
+/* ============================================================
+   style.css — Minecraft-inspired UI
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
+
+:root {
+  --dirt: #8B6914;
+  --dirt-dark: #6B4F0E;
+  --grass: #5B8C2A;
+  --grass-dark: #3D6B1C;
+  --stone: #7F7F7F;
+  --stone-light: #A0A0A0;
+  --stone-dark: #555;
+  --wood: #BC8F5A;
+  --wood-dark: #8B6B3E;
+  --obsidian: #1A1A2E;
+  --inventory-bg: #C6C6C6;
+  --inventory-slot: #8B8B8B;
+  --slot-border-light: #FFF;
+  --slot-border-dark: #373737;
+  --text: #3F3F3F;
+  --text-white: #FCFCFC;
+  --text-shadow: #3F3F3F;
+  --red-heart: #E24B4B;
+  --gold: #FCDB05;
+  --emerald: #41CD34;
+  --diamond: #5CDBD5;
+  --xp-green: #80FF20;
+  --bg: #2C2C2C;
+  --radius: 0px; /* Minecraft = no rounded corners */
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Silkscreen', monospace, sans-serif;
+  background: var(--bg);
+  color: var(--text-white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Dirt background pattern */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0px, transparent 2px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0px, transparent 2px);
+  background-size: 8px 8px;
+  background-color: #3B3B3B;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ---- Minecraft Panel Style ---- */
+.mc-panel {
+  background: var(--inventory-bg);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  padding: 8px;
+  color: var(--text);
+}
+
+.mc-slot {
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 8px;
+}
+
+/* ---- Screens ---- */
+.screen {
+  display: none;
+  padding: 12px;
+  padding-bottom: 90px;
+  min-height: 100vh;
+}
+.screen.active { display: block; }
+
+.screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: var(--obsidian);
+  border: 2px solid var(--stone);
+  color: var(--text-white);
+  text-shadow: 2px 2px 0 #000;
+}
+.screen-header h2 {
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+/* ---- Welcome / Login ---- */
+#screen-welcome.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background:
+    linear-gradient(180deg, #78B9E2 0%, #78B9E2 55%, #5B8C2A 55%, #5B8C2A 58%, #8B6914 58%, #6B4F0E 100%);
+}
+
+.welcome-content {
+  padding: 16px;
+  width: 100%;
+  max-width: 360px;
+  background: rgba(0,0,0,0.7);
+  border: 3px solid var(--stone);
+  padding: 24px 20px;
+}
+
+.welcome-mascot {
+  margin-bottom: 12px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.game-title {
+  font-size: 2rem;
+  color: var(--gold);
+  text-shadow: 3px 3px 0 #3F3F00, -1px -1px 0 #3F3F00;
+  margin-bottom: 4px;
+  letter-spacing: 2px;
+}
+
+.game-subtitle {
+  font-size: 0.75rem;
+  color: var(--stone-light);
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+
+.login-form {
+  margin-bottom: 16px;
+  text-align: left;
+}
+.login-form label {
+  display: block;
+  font-size: 0.7rem;
+  margin-bottom: 4px;
+  margin-top: 8px;
+  color: var(--stone-light);
+  text-shadow: 1px 1px 0 #000;
+}
+#create-account-form .pin-input {
+  width: 100%;
+  margin: 0 auto 8px;
+  display: block;
+}
+
+.login-form input, .login-form select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  background: #000;
+  color: var(--text-white);
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.8rem;
+}
+
+/* ---- Account Cards ---- */
+#account-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.account-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 12px 14px;
+  cursor: pointer;
+  position: relative;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.account-card:active {
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  background: var(--stone-dark);
+}
+
+.account-avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--grass);
+  border: 2px solid var(--grass-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+  flex-shrink: 0;
+}
+
+.account-name {
+  flex: 1;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.account-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: var(--stone);
+  border: 2px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--text-white);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Silkscreen', monospace;
+  padding: 0;
+  line-height: 1;
+}
+.account-delete-btn:hover {
+  background: #8B2020;
+}
+
+/* PIN Modal Content */
+.pin-modal-content {
+  text-align: center;
+  padding: 24px 20px;
+}
+.pin-modal-content h3 {
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.pin-modal-content .pin-input {
+  margin-bottom: 8px;
+}
+.pin-modal-content .error-text {
+  margin-bottom: 8px;
+}
+
+/* ---- Minecraft Buttons ---- */
+.btn {
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Silkscreen', monospace;
+  display: inline-block;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+  letter-spacing: 1px;
+  transition: none;
+  image-rendering: pixelated;
+}
+.btn:active {
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--stone);
+  color: var(--text-white);
+}
+.btn-primary:hover { background: #9A9A9A; }
+.btn-secondary {
+  background: var(--inventory-slot);
+  color: var(--text-white);
+}
+.btn-accent {
+  background: var(--grass);
+  color: var(--text-white);
+}
+.btn-accent:hover { background: #6BA030; }
+.btn-danger {
+  background: #8B2020;
+  color: var(--text-white);
+}
+.btn-action {
+  background: #2D5A9E;
+  color: var(--text-white);
+}
+
+.btn-large {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  display: block;
+  width: 100%;
+  margin: 6px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-small {
+  padding: 4px 10px;
+  font-size: 0.7rem;
+}
+
+/* ---- Bottom Nav (Minecraft Hotbar) ---- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  background: var(--inventory-bg);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  border-bottom: none;
+  z-index: 100;
+  padding: 4px;
+  gap: 4px;
+  padding-bottom: env(safe-area-inset-bottom, 4px);
+}
+
+.nav-btn {
+  flex: 1;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 6px 2px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  font-family: 'Silkscreen', monospace;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.nav-btn.active {
+  background: var(--stone-dark);
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  color: var(--gold);
+}
+.nav-icon { font-size: 1.6rem; margin-bottom: 1px; }
+.nav-label { font-size: 0.55rem; font-weight: 700; letter-spacing: 0.5px; }
+
+/* ---- Resource Bar ---- */
+.resource-bar {
+  display: flex;
+  gap: 8px;
+}
+.resource {
+  background: var(--obsidian);
+  color: var(--xp-green);
+  padding: 3px 8px;
+  border: 1px solid var(--stone);
+  font-size: 0.65rem;
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* ---- Pixel Art ---- */
+.pixel-art {
+  width: 1px;
+  height: 1px;
+  image-rendering: pixelated;
+  display: block;
+  zoom: 9;
+  margin: 0 auto;
+  /* Sprites are ~16px grid drawn via box-shadow.
+     Shift left by half the grid so the art is visually centered. */
+  transform: translateX(-8px);
+}
+
+.sprite-wrap {
+  overflow: hidden;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.idle-bounce {
+  animation: bounce 2s ease-in-out infinite;
+}
+@keyframes bounce {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -4px; }
+}
+
+.welcome-mascot .pixel-art { zoom: 12; }
+.animal-card .sprite-wrap { min-height: 120px; overflow: hidden; }
+.animal-card .pixel-art { zoom: 8; }
+.market-item .sprite-wrap { min-height: 100px; overflow: hidden; }
+.market-item .pixel-art { zoom: 6; }
+.modal-animal-art .pixel-art { zoom: 10; }
+.breed-slot .pixel-art { zoom: 5; }
+.breed-option .pixel-art { zoom: 4; }
+.parent-animal-row .pixel-art { zoom: 3; }
+
+/* ---- Animal Grid (Inventory Style) ---- */
+.animal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 6px;
+}
+
+.animal-card {
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.animal-card:active {
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  background: var(--stone-dark);
+}
+.adult-card {
+  border-color: #B8860B #8B6508 #8B6508 #B8860B;
+  box-shadow: inset 0 0 8px rgba(252,219,5,0.2);
+}
+
+.animal-info { margin-top: 6px; }
+.animal-name {
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+  color: var(--gold);
+}
+
+/* Minecraft-style heart bar */
+.heart-bar {
+  background: #222;
+  border: 1px solid #000;
+  height: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.heart-fill {
+  background: linear-gradient(180deg, var(--red-heart) 0%, #B03030 100%);
+  height: 100%;
+  transition: width 0.4s ease;
+}
+.heart-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.5rem;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+
+.animal-status {
+  margin-top: 4px;
+  font-size: 0.55rem;
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+}
+.status-fed, .status-watered {
+  background: var(--grass-dark);
+  color: var(--text-white);
+  padding: 1px 5px;
+  border: 1px solid var(--grass);
+  font-size: 0.5rem;
+}
+.bred-badge {
+  background: #6A2CA0;
+  color: var(--text-white);
+  padding: 1px 5px;
+  border: 1px solid #9B59B6;
+  font-size: 0.5rem;
+}
+
+.empty-stable {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--stone-light);
+  grid-column: 1 / -1;
+  font-size: 0.8rem;
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* ---- Market ---- */
+.balance-display {
+  background: var(--obsidian);
+  color: var(--emerald);
+  padding: 4px 10px;
+  border: 1px solid var(--emerald);
+  font-size: 0.75rem;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.market-section { margin-bottom: 16px; }
+.market-section h3 {
+  margin-bottom: 8px;
+  font-size: 0.75rem;
+  color: var(--gold);
+  text-shadow: 1px 1px 0 #000;
+}
+
+.market-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+.market-item {
+  width: calc(33.33% - 4px);
+  min-width: 110px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 8px;
+  text-align: center;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+  box-sizing: border-box;
+}
+.market-item-name { font-size: 0.7rem; margin: 4px 0 2px; }
+.market-item-price { color: var(--emerald); font-size: 0.7rem; margin-bottom: 6px; }
+
+.empty-msg {
+  color: var(--stone-light);
+  font-style: normal;
+  padding: 12px;
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 0.7rem;
+}
+
+/* ---- Tasks ---- */
+.tasks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.task-done { opacity: 0.5; }
+.task-done .task-text { text-decoration: line-through; color: var(--stone-light); }
+
+.task-check { width: 20px; height: 20px; accent-color: var(--emerald); }
+.task-text { font-size: 0.75rem; flex: 1; }
+.task-footer { text-align: center; }
+.task-rewards { font-size: 0.65rem; color: var(--xp-green); text-shadow: 1px 1px 0 #000; }
+.progress-text { margin-top: 8px; font-size: 0.65rem; color: var(--stone-light); text-shadow: 1px 1px 0 #000; }
+
+/* ---- Quiz ---- */
+.quiz-info { display: flex; gap: 12px; font-size: 0.7rem; color: var(--gold); }
+.quiz-container { max-width: 400px; margin: 0 auto; text-align: center; }
+.quiz-question {
+  font-size: 0.9rem;
+  margin: 20px 0;
+  min-height: 50px;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.quiz-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+
+.quiz-btn {
+  padding: 10px 8px;
+  background: var(--stone);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  font-size: 0.75rem;
+  font-family: 'Silkscreen', monospace;
+  cursor: pointer;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.quiz-btn:active {
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+}
+.quiz-btn:disabled { cursor: not-allowed; }
+.correct-answer {
+  background: var(--grass) !important;
+  color: var(--text-white) !important;
+}
+.wrong-answer {
+  background: #8B2020 !important;
+  color: var(--text-white) !important;
+}
+
+.quiz-feedback { font-size: 0.85rem; min-height: 24px; text-shadow: 1px 1px 0 #000; }
+.feedback-correct { color: var(--emerald); }
+.feedback-wrong { color: var(--red-heart); }
+
+/* ---- Breeding ---- */
+.breeding-container { text-align: center; }
+.breeding-slots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.breed-slot {
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 16px;
+  width: 130px;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+  font-size: 0.7rem;
+}
+.breed-heart { font-size: 1.5rem; color: var(--red-heart); }
+.breeding-status { margin: 12px 0; font-size: 0.7rem; color: var(--stone-light); text-shadow: 1px 1px 0 #000; }
+.breeding-active { color: var(--diamond); animation: pulse 1.5s infinite; }
+.breed-select-list { margin-top: 12px; text-align: left; }
+.breed-select-list h4 { margin-bottom: 6px; font-size: 0.75rem; color: var(--gold); text-shadow: 1px 1px 0 #000; }
+.breed-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  margin-bottom: 4px;
+  cursor: pointer;
+  color: var(--text-white);
+  font-size: 0.7rem;
+  min-height: 44px;
+}
+
+/* ---- Wallet / Bank ---- */
+.wallet-container { text-align: center; }
+.wallet-balance {
+  font-size: 2rem;
+  color: var(--emerald);
+  text-shadow: 3px 3px 0 #1A5C10;
+  margin: 12px 0;
+  letter-spacing: 2px;
+}
+.wallet-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.wallet-input-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+.wallet-input-row input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  background: #000;
+  color: var(--text-white);
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.7rem;
+}
+.wallet-input-row .amount-input { max-width: 80px; }
+
+.transaction-list { text-align: left; max-height: 50vh; overflow-y: auto; }
+.transaction {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--inventory-slot);
+  border: 1px solid var(--slot-border-dark);
+  margin-bottom: 3px;
+  color: var(--text-white);
+  font-size: 0.65rem;
+}
+.tx-desc { flex: 1; }
+.tx-amount { margin-left: 6px; }
+.tx-date { width: 100%; font-size: 0.5rem; color: var(--stone-light); margin-top: 2px; }
+.tx-deposit .tx-amount { color: var(--emerald); }
+.tx-withdraw .tx-amount { color: var(--red-heart); }
+
+/* ---- Parent Mode ---- */
+.parent-section {
+  background: var(--inventory-bg);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  padding: 12px;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.parent-section h3 { margin-bottom: 8px; font-size: 0.8rem; color: var(--dirt-dark); }
+
+.pin-input {
+  padding: 8px;
+  font-size: 1rem;
+  text-align: center;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  background: #000;
+  color: var(--text-white);
+  font-family: 'Silkscreen', monospace;
+  width: 140px;
+  display: block;
+  margin: 0 auto 8px;
+  letter-spacing: 6px;
+}
+.error-text { color: var(--red-heart); text-align: center; font-size: 0.7rem; }
+.chore-edit-row { margin-bottom: 6px; }
+.chore-edit-row label { display: block; font-size: 0.6rem; color: var(--stone-dark); margin-bottom: 2px; }
+.chore-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  background: #000;
+  color: var(--text-white);
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.7rem;
+}
+
+.parent-animal-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--inventory-slot);
+  min-height: 40px;
+  font-size: 0.7rem;
+}
+.parent-animal-row span { flex: 1; }
+
+.progress-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.progress-stat {
+  text-align: center;
+  padding: 8px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+}
+.stat-value { font-size: 1rem; color: var(--gold); }
+.stat-label { font-size: 0.5rem; color: var(--stone-dark); }
+
+/* ---- More Menu ---- */
+.more-menu { display: flex; flex-direction: column; gap: 6px; }
+.more-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--stone);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: 'Silkscreen', monospace;
+  color: var(--text-white);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+  text-align: left;
+  width: 100%;
+}
+.more-item:active {
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+}
+.more-icon { font-size: 1.8rem; }
+
+/* ---- Modal (Crafting Table Style) ---- */
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: var(--inventory-bg);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  padding: 16px;
+  width: 92%;
+  max-width: 360px;
+  text-align: center;
+  position: relative;
+  max-height: 85vh;
+  overflow-y: auto;
+  color: var(--text);
+}
+
+.modal-close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: var(--stone);
+  border: 2px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-white);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Silkscreen', monospace;
+}
+
+.modal-animal-art {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+}
+
+.modal-animal-name { font-size: 1rem; color: var(--dirt-dark); margin-bottom: 6px; }
+.name-input {
+  padding: 6px 10px;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.7rem;
+  width: 70%;
+  text-align: center;
+  margin-bottom: 4px;
+  background: #000;
+  color: var(--text-white);
+}
+
+.modal-hearts { margin: 8px 0; }
+.heart { font-size: 1rem; display: inline-block; margin: 1px; }
+.heart-full { color: var(--red-heart); }
+.heart-empty { color: var(--inventory-slot); }
+.hearts-today { font-size: 0.55rem; color: var(--stone-dark); margin-top: 4px; }
+.modal-stage { font-size: 0.65rem; color: var(--stone-dark); margin-bottom: 8px; }
+.modal-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 6px; }
+.modal-status { margin-top: 6px; }
+.warning { color: #C84040; font-size: 0.7rem; }
+
+/* ---- Toast (Advancement Style) ---- */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-60px);
+  background: #21003D;
+  border: 2px solid #A020F0;
+  color: var(--gold);
+  padding: 8px 16px;
+  font-size: 0.7rem;
+  font-family: 'Silkscreen', monospace;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 300;
+  pointer-events: none;
+  text-align: center;
+  max-width: 90%;
+  text-shadow: 1px 1px 0 #000;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---- Settings Editor ---- */
+.settings-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.settings-editor label {
+  font-size: 0.75rem;
+  color: var(--gold);
+  margin-top: 4px;
+}
+.setting-input {
+  width: 100%;
+  padding: 8px;
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.85rem;
+  background: var(--obsidian);
+  color: #fff;
+  border: 2px solid var(--stone-dark);
+  box-sizing: border-box;
+}
+
+/* ---- Interest Info ---- */
+.interest-info {
+  font-size: 0.75rem;
+  color: var(--emerald);
+  text-align: center;
+  margin: 4px 0 8px;
+}
+
+/* ---- Parent Animal Hearts ---- */
+.parent-animal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--obsidian);
+  border: 2px solid var(--stone-dark);
+  margin-bottom: 6px;
+}
+.parent-animal-row span {
+  flex: 1;
+  font-size: 0.75rem;
+}
+.parent-animal-row .btn {
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
+/* ---- Animations ---- */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

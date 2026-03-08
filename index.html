@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f8b4c8">
+  <title>Piggy Bank</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animals.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Welcome / Account Screen -->
+    <div id="screen-welcome" class="screen active">
+      <div class="welcome-content">
+        <div class="welcome-mascot">
+          <div class="pixel-art pig-adult idle-bounce"></div>
+        </div>
+        <h1 class="game-title">Piggy Bank</h1>
+        <p class="game-subtitle">Raise animals, earn coins, have fun!</p>
+
+        <!-- Account list (shown when accounts exist) -->
+        <div id="account-list" style="display:none">
+          <div id="account-cards"></div>
+          <button id="btn-new-account" class="btn btn-accent btn-large">+ New Account</button>
+        </div>
+
+        <!-- Create account form -->
+        <div id="create-account-form" class="login-form" style="display:none">
+          <label for="player-name">Your Name</label>
+          <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+          <label for="player-age">Your Age</label>
+          <select id="player-age">
+            <option value="6">6 years old</option>
+            <option value="7">7 years old</option>
+            <option value="8" selected>8 years old</option>
+            <option value="9">9 years old</option>
+            <option value="10">10 years old</option>
+            <option value="11">11 years old</option>
+            <option value="12">12 years old</option>
+          </select>
+          <label for="new-account-pin">4-Digit PIN</label>
+          <input type="password" id="new-account-pin" placeholder="1234" maxlength="4" inputmode="numeric" class="pin-input">
+          <button id="btn-create-account" class="btn btn-primary btn-large">Create Account</button>
+          <button id="btn-cancel-create" class="btn btn-secondary btn-large" style="display:none">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIN Entry Modal -->
+    <div id="pin-modal" class="modal" style="display:none">
+      <div class="modal-content pin-modal-content">
+        <button class="modal-close" id="pin-modal-close">&times;</button>
+        <h3 id="pin-modal-title">Enter PIN</h3>
+        <input type="password" id="account-pin-input" class="pin-input" placeholder="PIN" maxlength="4" inputmode="numeric">
+        <p id="account-pin-error" class="error-text" style="display:none">Wrong PIN!</p>
+        <button id="btn-pin-ok" class="btn btn-primary btn-large">OK</button>
+      </div>
+    </div>
+
+    <!-- My Stable Screen -->
+    <div id="screen-stable" class="screen">
+      <div class="screen-header">
+        <h2>My Stable</h2>
+        <div class="resource-bar">
+          <span class="resource" id="food-count">Food: 0</span>
+          <span class="resource" id="water-count">Water: 0</span>
+        </div>
+      </div>
+      <div id="stable-grid" class="animal-grid">
+        <div class="empty-stable">
+          <p>No animals yet!</p>
+          <p>Visit the Market to buy your first baby animal.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Screen -->
+    <div id="screen-market" class="screen">
+      <div class="screen-header">
+        <h2>Market</h2>
+        <div class="balance-display" id="market-balance">$0.00</div>
+      </div>
+      <div class="market-section">
+        <h3 id="buy-price-label">Buy a Baby Animal - $5.00</h3>
+        <div id="market-buy-grid" class="market-grid"></div>
+      </div>
+      <div class="market-section">
+        <h3 id="sell-price-label">Sell an Adult Animal - $10.00</h3>
+        <div id="market-sell-grid" class="market-grid">
+          <p class="empty-msg">No adult animals to sell.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Tasks Screen -->
+    <div id="screen-tasks" class="screen">
+      <div class="screen-header">
+        <h2>Daily Tasks</h2>
+        <div class="task-rewards">
+          <span id="task-reward-text">Earn: 2 Food + 2 Water</span>
+        </div>
+      </div>
+      <div id="tasks-list" class="tasks-container"></div>
+      <div class="task-footer">
+        <button id="btn-take-quiz" class="btn btn-accent">Take Quiz (counts as a task!)</button>
+        <div id="tasks-progress" class="progress-text"></div>
+      </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="screen-quiz" class="screen">
+      <div class="screen-header">
+        <h2>Quiz Time!</h2>
+        <div class="quiz-info">
+          <span id="quiz-progress">Question 1/5</span>
+          <span id="quiz-score">Score: 0</span>
+        </div>
+      </div>
+      <div class="quiz-container">
+        <div id="quiz-question" class="quiz-question"></div>
+        <div id="quiz-answers" class="quiz-answers"></div>
+        <div id="quiz-feedback" class="quiz-feedback"></div>
+      </div>
+    </div>
+
+    <!-- Bank / Wallet Screen -->
+    <div id="screen-wallet" class="screen">
+      <div class="screen-header">
+        <h2 id="bank-greeting">My Bank</h2>
+      </div>
+      <div class="wallet-container">
+        <div class="wallet-balance" id="wallet-balance">$0.00</div>
+        <div id="interest-info" class="interest-info">Interest: 5% / year</div>
+        <div class="wallet-actions">
+          <button class="btn btn-accent" id="btn-deposit">+ Deposit</button>
+          <button class="btn btn-danger" id="btn-withdraw">- Spend</button>
+        </div>
+        <div id="wallet-pin-area" style="display:none">
+          <div class="wallet-input-row">
+            <input type="password" id="wallet-pin" class="pin-input" placeholder="Parent PIN" maxlength="8">
+            <button class="btn btn-primary btn-small" id="btn-wallet-pin-ok">OK</button>
+            <button class="btn btn-secondary btn-small" id="btn-wallet-pin-cancel">Cancel</button>
+          </div>
+          <p id="wallet-pin-error" class="error-text" style="display:none">Wrong PIN.</p>
+        </div>
+        <div id="wallet-form" style="display:none">
+          <div class="wallet-input-row">
+            <input type="number" id="wallet-amount" class="amount-input" placeholder="$" min="0.01" step="0.01">
+            <input type="text" id="wallet-desc" placeholder="What for?" maxlength="30">
+            <button class="btn btn-primary btn-small" id="btn-wallet-confirm">OK</button>
+            <button class="btn btn-secondary btn-small" id="btn-wallet-cancel">X</button>
+          </div>
+        </div>
+        <h3>Transaction History</h3>
+        <div id="transaction-list" class="transaction-list">
+          <p class="empty-msg">No transactions yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Breeding Pen Screen -->
+    <div id="screen-breeding" class="screen">
+      <div class="screen-header">
+        <h2>Breeding Pen</h2>
+      </div>
+      <div class="breeding-container">
+        <div class="breeding-slots">
+          <div class="breed-slot" id="breed-slot-1">
+            <p>Select Parent 1</p>
+          </div>
+          <div class="breed-heart">+</div>
+          <div class="breed-slot" id="breed-slot-2">
+            <p>Select Parent 2</p>
+          </div>
+        </div>
+        <div id="breeding-status" class="breeding-status"></div>
+        <button id="btn-breed" class="btn btn-primary" style="display:none">Start Breeding!</button>
+        <div id="breed-select-list" class="breed-select-list"></div>
+      </div>
+    </div>
+
+    <!-- Parent Mode Screen -->
+    <div id="screen-parent" class="screen">
+      <div class="screen-header">
+        <h2>Parent Mode</h2>
+      </div>
+      <div id="parent-pin" class="parent-section">
+        <h3>Enter PIN</h3>
+        <input type="password" id="pin-input" maxlength="8" placeholder="PIN" class="pin-input">
+        <button id="btn-pin-submit" class="btn btn-primary">Enter</button>
+        <p id="pin-error" class="error-text" style="display:none">Wrong PIN. Try again.</p>
+      </div>
+      <div id="parent-dashboard" style="display:none">
+        <div class="parent-section">
+          <h3>Edit Daily Chores</h3>
+          <div id="chore-editor"></div>
+          <button id="btn-save-chores" class="btn btn-primary">Save Chores</button>
+        </div>
+        <div class="parent-section">
+          <h3>Game Settings</h3>
+          <div class="settings-editor">
+            <label>Interest Rate (% / year):</label>
+            <input type="number" id="setting-interest" class="setting-input" min="0" max="100" step="0.5">
+            <label>Buy Baby Price ($):</label>
+            <input type="number" id="setting-buy-price" class="setting-input" min="0.01" step="0.01">
+            <label>Sell Adult Price ($):</label>
+            <input type="number" id="setting-sell-price" class="setting-input" min="0.01" step="0.01">
+            <label>Task Food Reward:</label>
+            <input type="number" id="setting-food-reward" class="setting-input" min="0" max="20">
+            <label>Task Water Reward:</label>
+            <input type="number" id="setting-water-reward" class="setting-input" min="0" max="20">
+            <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
+          </div>
+        </div>
+        <div class="parent-section">
+          <h3>Happy Hearts</h3>
+          <div id="parent-animals"></div>
+        </div>
+        <div class="parent-section">
+          <h3>Child Progress</h3>
+          <div id="progress-dashboard"></div>
+        </div>
+        <div class="parent-section">
+          <h3>Change PIN</h3>
+          <input type="password" id="new-pin" maxlength="8" placeholder="New PIN" class="pin-input">
+          <button id="btn-change-pin" class="btn btn-secondary">Change PIN</button>
+        </div>
+        <div class="parent-section">
+          <button id="btn-reset-game" class="btn btn-danger">Reset Game</button>
+        </div>
+        <div class="parent-section">
+          <button id="btn-parent-logout" class="btn btn-secondary">Lock Parent Mode</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- More Menu Screen -->
+    <div id="screen-more" class="screen">
+      <div class="screen-header">
+        <h2>More</h2>
+      </div>
+      <div class="more-menu">
+        <button class="more-item" data-screen="breeding">
+          <span class="more-icon">&#x1F423;</span>
+          <span>Breeding Pen</span>
+        </button>
+        <button class="more-item" data-screen="parent">
+          <span class="more-icon">&#x1F512;</span>
+          <span>Parent Mode</span>
+        </button>
+        <button class="more-item" id="btn-logout">
+          <span class="more-icon">&#x1F6AA;</span>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Animal Detail Modal -->
+    <div id="animal-modal" class="modal" style="display:none">
+      <div class="modal-content">
+        <button class="modal-close" id="modal-close">&times;</button>
+        <div id="modal-animal-art" class="modal-animal-art"></div>
+        <div id="modal-animal-name" class="modal-animal-name"></div>
+        <input type="text" id="modal-name-input" class="name-input" placeholder="Name your animal" maxlength="16">
+        <button id="btn-save-name" class="btn btn-small">Save Name</button>
+        <div id="modal-hearts" class="modal-hearts"></div>
+        <div id="modal-stage" class="modal-stage"></div>
+        <div class="modal-actions">
+          <button id="btn-feed" class="btn btn-action">Feed</button>
+          <button id="btn-water" class="btn btn-action">Water</button>
+        </div>
+        <div id="modal-status" class="modal-status"></div>
+        <button id="btn-modal-done" class="btn btn-primary" style="margin-top:12px;width:100%">Done</button>
+      </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Bottom Navigation: 5 tabs -->
+    <nav id="bottom-nav" class="bottom-nav" style="display:none">
+      <button class="nav-btn" data-screen="stable">
+        <span class="nav-icon">&#x1F3E0;</span>
+        <span class="nav-label">Stable</span>
+      </button>
+      <button class="nav-btn" data-screen="market">
+        <span class="nav-icon">&#x1F3EA;</span>
+        <span class="nav-label">Market</span>
+      </button>
+      <button class="nav-btn" data-screen="wallet">
+        <span class="nav-icon">&#x1F4B0;</span>
+        <span class="nav-label">Bank</span>
+      </button>
+      <button class="nav-btn" data-screen="tasks">
+        <span class="nav-icon">&#x2705;</span>
+        <span class="nav-label">Tasks</span>
+      </button>
+      <button class="nav-btn" data-screen="more">
+        <span class="nav-icon">&#x2699;</span>
+        <span class="nav-label">More</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/wallet.js"></script>
+  <script src="js/stable.js"></script>
+  <script src="js/market.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/breeding.js"></script>
+  <script src="js/parent.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
