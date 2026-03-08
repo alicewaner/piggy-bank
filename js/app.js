@@ -296,13 +296,24 @@ const App = (() => {
 
       var rowsHtml = entries.map(function(e, i) {
         var rankClass = i === 0 ? 'rank-gold' : (i === 1 ? 'rank-silver' : (i === 2 ? 'rank-bronze' : ''));
+        var mainValue = sortBy === 'bank' ? e.bank : (sortBy === 'animals' ? e.animals : e.total);
+        var details = '';
+        if (sortBy === 'total') {
+          details = '<span class="lb-detail">Bank: ' + formatMoney(e.bank) + '</span>' +
+            '<span class="lb-detail">Animals: ' + formatMoney(e.animals) + ' (' + e.animalCount + ')</span>';
+        } else if (sortBy === 'bank') {
+          details = '<span class="lb-detail">Total: ' + formatMoney(e.total) + '</span>' +
+            '<span class="lb-detail">Animals: ' + formatMoney(e.animals) + ' (' + e.animalCount + ')</span>';
+        } else {
+          details = '<span class="lb-detail">Total: ' + formatMoney(e.total) + '</span>' +
+            '<span class="lb-detail">Bank: ' + formatMoney(e.bank) + '</span>';
+        }
         return '<div class="leaderboard-row ' + rankClass + '">' +
           '<span class="lb-rank">#' + (i + 1) + '</span>' +
           '<span class="lb-name">' + e.name + '</span>' +
           '<span class="lb-stats">' +
-            '<span class="lb-total">' + formatMoney(e.total) + '</span>' +
-            '<span class="lb-detail">Bank: ' + formatMoney(e.bank) + '</span>' +
-            '<span class="lb-detail">Animals: ' + formatMoney(e.animals) + ' (' + e.animalCount + ')</span>' +
+            '<span class="lb-total">' + formatMoney(mainValue) + '</span>' +
+            details +
           '</span>' +
         '</div>';
       }).join('');
