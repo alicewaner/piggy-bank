@@ -26,6 +26,7 @@ const App = (() => {
       case 'wallet': Wallet.render(); break;
       case 'breeding': Breeding.render(); break;
       case 'parent': Parent.render(); break;
+      case 'leaderboard': renderLeaderboard('total'); break;
     }
   }
 
@@ -94,10 +95,13 @@ const App = (() => {
 
     state.dailyState = {
       lastDate: today,
-      tasksCompleted: [false, false, false, false],
-      quizCompleted: false,
+      tasksCompleted: new Array(state.tasks.chores.length).fill(false),
+      quizMathCompleted: false,
+      quizEncyclopediaCompleted: false,
       foodEarned: 0,
       waterEarned: 0,
+      taskRewardsEarned: 0,
+      quizRewardEarned: false,
       parentVoteDone: false
     };
 
@@ -372,8 +376,107 @@ const App = (() => {
     });
   }
 
+  function trackLogin() {
+    try {
+      var usage = JSON.parse(localStorage.getItem('piggybank_usage') || '{}');
+      var accId = currentAccountId;
+      if (!accId) return;
+      var accounts = Storage.loadAccounts();
+      var acc = accounts.find(function(a) { return a.id === accId; });
+      var name = acc ? acc.name : accId;
+      var now = new Date().toISOString();
+      var today = todayString();
+
+      if (!usage[accId]) {
+        usage[accId] = { name: name, totalLogins: 0, loginTimestamps: [], daysActive: [], lastLogin: null };
+      }
+      var u = usage[accId];
+      u.name = name;
+      u.totalLogins++;
+      u.loginTimestamps.push(now);
+      if (u.loginTimestamps.length > 100) u.loginTimestamps = u.loginTimestamps.slice(-100);
+      if (u.daysActive.indexOf(today) === -1) u.daysActive.push(today);
+      u.lastLogin = now;
+      localStorage.setItem('piggybank_usage', JSON.stringify(usage));
+    } catch (e) {
+      console.error('Usage tracking error:', e);
+    }
+  }
+
+  function renderLeaderboard(sortBy) {
+    sortBy = sortBy || 'total';
+    var accounts = Storage.loadAccounts();
+    var entries = [];
+
+    accounts.forEach(function(acc) {
+      try {
+        var raw = localStorage.getItem('piggybank_save_' + acc.id);
+        if (!raw) return;
+        var state = JSON.parse(raw);
+        var bank = state.wallet ? state.wallet.balance : 0;
+        var animalValue = 0;
+        if (state.animals) {
+          state.animals.forEach(function(a) {
+            if (!a.alive) return;
+            var buyPrice = (state.settings && state.settings.buyBabyPrice) || 500;
+            var sellPrice = (state.settings && state.settings.sellAdultPrice) || 1000;
+            var maxH = HEARTS.maxHearts;
+            var val = buyPrice + (sellPrice - buyPrice) * (a.hearts / maxH);
+            animalValue += Math.round(val);
+          });
+        }
+        entries.push({
+          name: acc.name,
+          bank: bank,
+          animals: animalValue,
+          total: bank + animalValue,
+          animalCount: state.animals ? state.animals.filter(function(a) { return a.alive; }).length : 0
+        });
+      } catch (e) {}
+    });
+
+    entries.sort(function(a, b) { return b[sortBy] - a[sortBy]; });
+
+    var container = document.getElementById('leaderboard-list');
+    if (!container) return;
+
+    // Sort toggle buttons
+    var toggleHtml = '<div class="leaderboard-sort">' +
+      '<button class="btn btn-small ' + (sortBy === 'total' ? 'btn-accent' : 'btn-secondary') + '" data-sort="total">Total</button>' +
+      '<button class="btn btn-small ' + (sortBy === 'bank' ? 'btn-accent' : 'btn-secondary') + '" data-sort="bank">Bank</button>' +
+      '<button class="btn btn-small ' + (sortBy === 'animals' ? 'btn-accent' : 'btn-secondary') + '" data-sort="animals">Animals</button>' +
+      '</div>';
+
+    var rowsHtml = entries.map(function(e, i) {
+      var rankClass = i === 0 ? 'rank-gold' : (i === 1 ? 'rank-silver' : (i === 2 ? 'rank-bronze' : ''));
+      return '<div class="leaderboard-row ' + rankClass + '">' +
+        '<span class="lb-rank">#' + (i + 1) + '</span>' +
+        '<span class="lb-name">' + e.name + '</span>' +
+        '<span class="lb-stats">' +
+          '<span class="lb-total">' + formatMoney(e.total) + '</span>' +
+          '<span class="lb-detail">Bank: ' + formatMoney(e.bank) + '</span>' +
+          '<span class="lb-detail">Animals: ' + formatMoney(e.animals) + ' (' + e.animalCount + ')</span>' +
+        '</span>' +
+      '</div>';
+    }).join('');
+
+    if (entries.length === 0) {
+      rowsHtml = '<p class="empty-msg">No players yet.</p>';
+    }
+
+    container.innerHTML = toggleHtml + rowsHtml;
+
+    container.querySelectorAll('.leaderboard-sort button').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        Sound.click();
+        renderLeaderboard(btn.dataset.sort);
+      });
+    });
+  }
+
   function startGame() {
     dailyCycle();
+    trackLogin();
     Wallet.processInterest();
     document.getElementById('bottom-nav').style.display = '';
     showScreen('stable');

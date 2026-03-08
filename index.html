@@ -100,12 +100,15 @@
       <div class="screen-header">
         <h2>Daily Tasks</h2>
         <div class="task-rewards">
-          <span id="task-reward-text">Earn: 2 Food + 2 Water</span>
+          <span id="task-reward-text">Earn rewards!</span>
         </div>
       </div>
       <div id="tasks-list" class="tasks-container"></div>
       <div class="task-footer">
-        <button id="btn-take-quiz" class="btn btn-accent">Take Quiz (counts as a task!)</button>
+        <div class="quiz-buttons">
+          <button id="btn-math-quiz" class="btn btn-accent">Math Quiz</button>
+          <button id="btn-encyclopedia-quiz" class="btn btn-accent">Encyclopedia Quiz</button>
+        </div>
         <div id="tasks-progress" class="progress-text"></div>
       </div>
     </div>
@@ -223,10 +226,18 @@
             <input type="number" id="setting-buy-price" class="setting-input" min="0.01" step="0.01">
             <label>Sell Adult Price ($):</label>
             <input type="number" id="setting-sell-price" class="setting-input" min="0.01" step="0.01">
-            <label>Task Food Reward:</label>
-            <input type="number" id="setting-food-reward" class="setting-input" min="0" max="20">
-            <label>Task Water Reward:</label>
-            <input type="number" id="setting-water-reward" class="setting-input" min="0" max="20">
+            <label>Tasks per Reward Batch:</label>
+            <input type="number" id="setting-tasks-per-reward" class="setting-input" min="1" max="20">
+            <label>Food per Reward Batch:</label>
+            <input type="number" id="setting-reward-food" class="setting-input" min="0" max="20">
+            <label>Water per Reward Batch:</label>
+            <input type="number" id="setting-reward-water" class="setting-input" min="0" max="20">
+            <label>Daily Reward Cap (0 = unlimited):</label>
+            <input type="number" id="setting-daily-cap" class="setting-input" min="0" max="100">
+            <label>Quiz Reward Food:</label>
+            <input type="number" id="setting-quiz-food" class="setting-input" min="0" max="20">
+            <label>Quiz Reward Water:</label>
+            <input type="number" id="setting-quiz-water" class="setting-input" min="0" max="20">
             <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
           </div>
         </div>
@@ -267,6 +278,14 @@
           <button id="btn-parent-logout" class="btn btn-secondary">Lock Parent Mode</button>
         </div>
       </div>
+    </div>
+
+    <!-- Leaderboard Screen -->
+    <div id="screen-leaderboard" class="screen">
+      <div class="screen-header">
+        <h2>Leaderboard</h2>
+      </div>
+      <div id="leaderboard-list"></div>
     </div>
 
     <!-- More Menu Screen -->
@@ -312,7 +331,7 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast"></div>
 
-    <!-- Bottom Navigation: 5 tabs -->
+    <!-- Bottom Navigation: 6 tabs -->
     <nav id="bottom-nav" class="bottom-nav" style="display:none">
       <button class="nav-btn" data-screen="wallet">
         <span class="nav-icon">&#x1F4B0;</span>
@@ -329,6 +348,10 @@
       <button class="nav-btn" data-screen="tasks">
         <span class="nav-icon">&#x2705;</span>
         <span class="nav-label">Tasks</span>
+      </button>
+      <button class="nav-btn" data-screen="leaderboard">
+        <span class="nav-icon">&#x1F3C6;</span>
+        <span class="nav-label">Rank</span>
       </button>
       <button class="nav-btn" data-screen="more">
         <span class="nav-icon">&#x2699;</span>

@@ -47,14 +47,47 @@ var Parent = (function() {
     var editor = document.getElementById('chore-editor');
     editor.innerHTML = state.tasks.chores.map(function(chore, i) {
       return '<div class="chore-edit-row">' +
-        '<label>Chore ' + (i + 1) + ':</label>' +
         '<input type="text" class="chore-input" data-index="' + i + '" value="' + chore + '" maxlength="50">' +
+        '<button class="btn btn-small btn-danger chore-delete-btn" data-index="' + i + '">X</button>' +
         '</div>';
-    }).join('');
+    }).join('') +
+    '<div class="chore-edit-row chore-add-row">' +
+      '<input type="text" id="new-chore-input" class="chore-input" placeholder="Add new task..." maxlength="50">' +
+      '<button class="btn btn-small btn-accent" id="btn-add-chore">+</button>' +
+    '</div>';
+
+    // Delete chore buttons
+    editor.querySelectorAll('.chore-delete-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.dataset.index);
+        var s = Storage.load();
+        s.tasks.chores.splice(idx, 1);
+        s.dailyState.tasksCompleted.splice(idx, 1);
+        Storage.save(s);
+        Sound.click();
+        App.showToast('Task removed!');
+        renderChoreEditor();
+      });
+    });
+
+    // Add chore button
+    document.getElementById('btn-add-chore').onclick = function() {
+      var input = document.getElementById('new-chore-input');
+      var val = input.value.trim();
+      if (!val) { App.showToast('Enter a task name.'); return; }
+      var s = Storage.load();
+      s.tasks.chores.push(val);
+      s.dailyState.tasksCompleted.push(false);
+      Storage.save(s);
+      input.value = '';
+      Sound.click();
+      App.showToast('Task added!');
+      renderChoreEditor();
+    };
 
     document.getElementById('btn-save-chores').onclick = function() {
       var s = Storage.load();
-      document.querySelectorAll('.chore-input').forEach(function(input) {
+      editor.querySelectorAll('.chore-input[data-index]').forEach(function(input) {
         var idx = parseInt(input.dataset.index);
         var val = input.value.trim();
         if (val) s.tasks.chores[idx] = val;
@@ -72,16 +105,24 @@ var Parent = (function() {
     document.getElementById('setting-interest').value = s.interestRate;
     document.getElementById('setting-buy-price').value = (s.buyBabyPrice / 100).toFixed(2);
     document.getElementById('setting-sell-price').value = (s.sellAdultPrice / 100).toFixed(2);
-    document.getElementById('setting-food-reward').value = s.taskFoodReward;
-    document.getElementById('setting-water-reward').value = s.taskWaterReward;
+    document.getElementById('setting-tasks-per-reward').value = s.tasksPerReward;
+    document.getElementById('setting-reward-food').value = s.taskRewardFood;
+    document.getElementById('setting-reward-water').value = s.taskRewardWater;
+    document.getElementById('setting-daily-cap').value = s.dailyRewardCap;
+    document.getElementById('setting-quiz-food').value = s.quizRewardFood;
+    document.getElementById('setting-quiz-water').value = s.quizRewardWater;
 
     document.getElementById('btn-save-settings').onclick = function() {
       var st = Storage.load();
       st.settings.interestRate = parseFloat(document.getElementById('setting-interest').value) || 0;
       st.settings.buyBabyPrice = Math.round(parseFloat(document.getElementById('setting-buy-price').value) * 100) || 500;
       st.settings.sellAdultPrice = Math.round(parseFloat(document.getElementById('setting-sell-price').value) * 100) || 1000;
-      st.settings.taskFoodReward = parseInt(document.getElementById('setting-food-reward').value) || 2;
-      st.settings.taskWaterReward = parseInt(document.getElementById('setting-water-reward').value) || 2;
+      st.settings.tasksPerReward = parseInt(document.getElementById('setting-tasks-per-reward').value) || 2;
+      st.settings.taskRewardFood = parseInt(document.getElementById('setting-reward-food').value) || 1;
+      st.settings.taskRewardWater = parseInt(document.getElementById('setting-reward-water').value) || 1;
+      st.settings.dailyRewardCap = parseInt(document.getElementById('setting-daily-cap').value) || 0;
+      st.settings.quizRewardFood = parseInt(document.getElementById('setting-quiz-food').value) || 1;
+      st.settings.quizRewardWater = parseInt(document.getElementById('setting-quiz-water').value) || 1;
       Storage.save(st);
       Sound.click();
       App.showToast('Settings saved!');
@@ -196,7 +237,7 @@ var Parent = (function() {
       '<div class="progress-stat"><div class="stat-value">' + formatMoney(state.wallet.balance) + '</div><div class="stat-label">Balance</div></div>' +
       '<div class="progress-stat"><div class="stat-value">' + state.stats.totalAnimalsRaised + '</div><div class="stat-label">Raised</div></div>' +
       '<div class="progress-stat"><div class="stat-value">' + state.stats.totalQuizzesTaken + '</div><div class="stat-label">Quizzes</div></div>' +
-      '<div class="progress-stat"><div class="stat-value">' + choresDone + '/4</div><div class="stat-label">Chores Today</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">' + choresDone + '/' + state.tasks.chores.length + '</div><div class="stat-label">Chores Today</div></div>' +
       '<div class="progress-stat"><div class="stat-value">Lvl ' + state.quizDifficulty + '</div><div class="stat-label">Quiz Level</div></div>' +
       '</div>';
   }

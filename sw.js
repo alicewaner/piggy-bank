@@ -1,8 +1,9 @@
 // Service Worker for Piggy Bank PWA
-const CACHE_NAME = 'piggybank-v3';
+const CACHE_NAME = 'piggybank-v4';
 const ASSETS = [
   '/',
   '/index.html',
+  '/admin.html',
   '/css/style.css',
   '/css/animals.css',
   '/js/data.js',

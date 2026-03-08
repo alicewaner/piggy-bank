@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Piggy Bank Admin</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { background: var(--obsidian); }
+    .admin-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 12px;
+      min-height: 100vh;
+    }
+    .admin-header {
+      text-align: center;
+      padding: 16px;
+      margin-bottom: 16px;
+      background: var(--obsidian);
+      border: 2px solid var(--stone);
+    }
+    .admin-header h1 {
+      font-size: 1.2rem;
+      color: var(--gold);
+      text-shadow: 2px 2px 0 #000;
+    }
+    .admin-login {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .admin-login .pin-input {
+      margin: 12px auto;
+    }
+    .summary-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .summary-card {
+      background: var(--inventory-slot);
+      border: 2px solid;
+      border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+      padding: 12px;
+      text-align: center;
+    }
+    .summary-card .card-value {
+      font-size: 1.2rem;
+      color: var(--emerald);
+      font-weight: 700;
+    }
+    .summary-card .card-label {
+      font-size: 0.55rem;
+      color: var(--stone-light);
+      margin-top: 4px;
+    }
+    .admin-section {
+      background: var(--inventory-bg);
+      border: 3px solid;
+      border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+      padding: 12px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .admin-section h3 {
+      font-size: 0.8rem;
+      color: var(--dirt-dark);
+      margin-bottom: 8px;
+    }
+    .user-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.6rem;
+    }
+    .user-table th {
+      background: var(--obsidian);
+      color: var(--gold);
+      padding: 6px 4px;
+      text-align: left;
+      border: 1px solid var(--stone-dark);
+      font-size: 0.55rem;
+    }
+    .user-table td {
+      padding: 6px 4px;
+      border: 1px solid var(--stone-dark);
+      color: var(--text);
+    }
+    .user-table tr:nth-child(even) td {
+      background: rgba(0,0,0,0.05);
+    }
+    .recent-login-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 8px;
+      background: var(--obsidian);
+      border: 1px solid var(--stone-dark);
+      margin-bottom: 3px;
+      font-size: 0.6rem;
+      color: var(--text-white);
+    }
+    .recent-login-name { color: var(--gold); }
+    .recent-login-time { color: var(--stone-light); font-size: 0.55rem; }
+    .admin-back {
+      text-align: center;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>Admin Dashboard</h1>
+    </div>
+
+    <div id="admin-login" class="admin-login">
+      <p style="color:var(--stone-light);font-size:0.75rem;margin-bottom:12px;">Enter Parent PIN to access</p>
+      <input type="password" id="admin-pin" class="pin-input" placeholder="PIN" maxlength="8" inputmode="numeric">
+      <p id="admin-pin-error" class="error-text" style="display:none">Wrong PIN!</p>
+      <button id="btn-admin-login" class="btn btn-primary btn-large" style="max-width:200px;margin:8px auto;">Enter</button>
+    </div>
+
+    <div id="admin-dashboard" style="display:none">
+      <div id="summary-cards" class="summary-cards"></div>
+      <div class="admin-section">
+        <h3>User Details</h3>
+        <div style="overflow-x:auto;">
+          <table class="user-table" id="user-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Balance</th>
+                <th>Animals</th>
+                <th>Days</th>
+                <th>Logins</th>
+                <th>Active</th>
+                <th>Last Login</th>
+              </tr>
+            </thead>
+            <tbody id="user-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="admin-section">
+        <h3>Recent Logins</h3>
+        <div id="recent-logins"></div>
+      </div>
+      <div class="admin-back">
+        <a href="index.html" class="btn btn-secondary">Back to Game</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var ACCOUNTS_KEY = 'piggybank_accounts';
+
+    function loadAccounts() {
+      try {
+        var raw = localStorage.getItem(ACCOUNTS_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return [];
+    }
+
+    function getParentPin() {
+      var accounts = loadAccounts();
+      for (var i = 0; i < accounts.length; i++) {
+        try {
+          var raw = localStorage.getItem('piggybank_save_' + accounts[i].id);
+          if (raw) {
+            var state = JSON.parse(raw);
+            if (state.parentPassword) return state.parentPassword;
+          }
+        } catch (e) {}
+      }
+      return '1234';
+    }
+
+    function formatMoney(cents) {
+      return '$' + (cents / 100).toFixed(2);
+    }
+
+    function formatDate(isoStr) {
+      if (!isoStr) return 'Never';
+      var d = new Date(isoStr);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    }
+
+    function renderDashboard() {
+      var accounts = loadAccounts();
+      var usage = {};
+      try { usage = JSON.parse(localStorage.getItem('piggybank_usage') || '{}'); } catch(e) {}
+
+      var totalUsers = accounts.length;
+      var totalAnimals = 0;
+      var totalBalance = 0;
+      var userRows = [];
+
+      accounts.forEach(function(acc) {
+        try {
+          var raw = localStorage.getItem('piggybank_save_' + acc.id);
+          if (!raw) return;
+          var state = JSON.parse(raw);
+          var balance = state.wallet ? state.wallet.balance : 0;
+          var aliveAnimals = state.animals ? state.animals.filter(function(a) { return a.alive; }).length : 0;
+          totalBalance += balance;
+          totalAnimals += aliveAnimals;
+
+          var u = usage[acc.id] || {};
+          userRows.push({
+            name: acc.name,
+            balance: balance,
+            animals: aliveAnimals,
+            days: state.stats ? state.stats.daysPlayed : 0,
+            logins: u.totalLogins || 0,
+            activeDays: u.daysActive ? u.daysActive.length : 0,
+            lastLogin: u.lastLogin || null
+          });
+        } catch (e) {}
+      });
+
+      // Summary cards
+      document.getElementById('summary-cards').innerHTML =
+        '<div class="summary-card"><div class="card-value">' + totalUsers + '</div><div class="card-label">Total Users</div></div>' +
+        '<div class="summary-card"><div class="card-value">' + totalAnimals + '</div><div class="card-label">Total Animals</div></div>' +
+        '<div class="summary-card"><div class="card-value">' + formatMoney(totalBalance) + '</div><div class="card-label">Total Balance</div></div>';
+
+      // User table
+      var tbody = document.getElementById('user-table-body');
+      tbody.innerHTML = userRows.map(function(r) {
+        return '<tr>' +
+          '<td>' + r.name + '</td>' +
+          '<td>' + formatMoney(r.balance) + '</td>' +
+          '<td>' + r.animals + '</td>' +
+          '<td>' + r.days + '</td>' +
+          '<td>' + r.logins + '</td>' +
+          '<td>' + r.activeDays + '</td>' +
+          '<td>' + formatDate(r.lastLogin) + '</td>' +
+        '</tr>';
+      }).join('');
+
+      // Recent logins (last 20 across all users)
+      var allLogins = [];
+      Object.keys(usage).forEach(function(accId) {
+        var u = usage[accId];
+        if (u.loginTimestamps) {
+          u.loginTimestamps.forEach(function(ts) {
+            allLogins.push({ name: u.name, time: ts });
+          });
+        }
+      });
+      allLogins.sort(function(a, b) { return b.time.localeCompare(a.time); });
+      allLogins = allLogins.slice(0, 20);
+
+      var recentDiv = document.getElementById('recent-logins');
+      if (allLogins.length === 0) {
+        recentDiv.innerHTML = '<p class="empty-msg">No login data yet.</p>';
+      } else {
+        recentDiv.innerHTML = allLogins.map(function(l) {
+          return '<div class="recent-login-item">' +
+            '<span class="recent-login-name">' + l.name + '</span>' +
+            '<span class="recent-login-time">' + formatDate(l.time) + '</span>' +
+          '</div>';
+        }).join('');
+      }
+    }
+
+    // Login handler
+    document.getElementById('btn-admin-login').addEventListener('click', function() {
+      var pin = document.getElementById('admin-pin').value;
+      if (pin === getParentPin()) {
+        document.getElementById('admin-login').style.display = 'none';
+        document.getElementById('admin-dashboard').style.display = '';
+        renderDashboard();
+      } else {
+        document.getElementById('admin-pin-error').style.display = '';
+      }
+    });
+
+    document.getElementById('admin-pin').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') document.getElementById('btn-admin-login').click();
+    });
+  </script>
+</body>
+</html>

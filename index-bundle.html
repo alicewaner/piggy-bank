@@ -580,6 +580,8 @@ body {
 .task-footer { text-align: center; }
 .task-rewards { font-size: 0.65rem; color: var(--xp-green); text-shadow: 1px 1px 0 #000; }
 .progress-text { margin-top: 8px; font-size: 0.65rem; color: var(--stone-light); text-shadow: 1px 1px 0 #000; }
+.quiz-buttons { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+.quiz-buttons .btn { flex: 1; }
 
 /* ---- Quiz ---- */
 .quiz-info { display: flex; gap: 12px; font-size: 0.7rem; color: var(--gold); }
@@ -1039,6 +1041,76 @@ body {
 .category-add-row .chore-input {
   flex: 1;
 }
+
+/* ---- Chore Editor ---- */
+.chore-edit-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.chore-edit-row .chore-input { flex: 1; }
+.chore-add-row { margin-top: 8px; }
+
+/* ---- Leaderboard ---- */
+.leaderboard-sort {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  margin-bottom: 4px;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.lb-rank {
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: center;
+}
+.lb-name {
+  flex: 1;
+  font-size: 0.8rem;
+}
+.lb-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.lb-total {
+  font-size: 0.85rem;
+  color: var(--emerald);
+  font-weight: 700;
+}
+.lb-detail {
+  font-size: 0.55rem;
+  color: var(--stone-light);
+}
+.rank-gold {
+  border-color: #B8860B #8B6508 #8B6508 #B8860B;
+  box-shadow: inset 0 0 10px rgba(252,219,5,0.15);
+}
+.rank-gold .lb-rank { color: var(--gold); }
+.rank-silver {
+  border-color: #A0A0A0 #707070 #707070 #A0A0A0;
+  box-shadow: inset 0 0 10px rgba(192,192,192,0.15);
+}
+.rank-silver .lb-rank { color: #C0C0C0; }
+.rank-bronze {
+  border-color: #CD7F32 #8B5A2B #8B5A2B #CD7F32;
+  box-shadow: inset 0 0 10px rgba(205,127,50,0.15);
+}
+.rank-bronze .lb-rank { color: #CD7F32; }
 
 /* ---- Animations ---- */
 @keyframes pulse {
@@ -1548,12 +1620,15 @@ body {
       <div class="screen-header">
         <h2>Daily Tasks</h2>
         <div class="task-rewards">
-          <span id="task-reward-text">Earn: 2 Food + 2 Water</span>
+          <span id="task-reward-text">Earn rewards!</span>
         </div>
       </div>
       <div id="tasks-list" class="tasks-container"></div>
       <div class="task-footer">
-        <button id="btn-take-quiz" class="btn btn-accent">Take Quiz (counts as a task!)</button>
+        <div class="quiz-buttons">
+          <button id="btn-math-quiz" class="btn btn-accent">Math Quiz</button>
+          <button id="btn-encyclopedia-quiz" class="btn btn-accent">Encyclopedia Quiz</button>
+        </div>
         <div id="tasks-progress" class="progress-text"></div>
       </div>
     </div>
@@ -1671,10 +1746,18 @@ body {
             <input type="number" id="setting-buy-price" class="setting-input" min="0.01" step="0.01">
             <label>Sell Adult Price ($):</label>
             <input type="number" id="setting-sell-price" class="setting-input" min="0.01" step="0.01">
-            <label>Task Food Reward:</label>
-            <input type="number" id="setting-food-reward" class="setting-input" min="0" max="20">
-            <label>Task Water Reward:</label>
-            <input type="number" id="setting-water-reward" class="setting-input" min="0" max="20">
+            <label>Tasks per Reward Batch:</label>
+            <input type="number" id="setting-tasks-per-reward" class="setting-input" min="1" max="20">
+            <label>Food per Reward Batch:</label>
+            <input type="number" id="setting-reward-food" class="setting-input" min="0" max="20">
+            <label>Water per Reward Batch:</label>
+            <input type="number" id="setting-reward-water" class="setting-input" min="0" max="20">
+            <label>Daily Reward Cap (0 = unlimited):</label>
+            <input type="number" id="setting-daily-cap" class="setting-input" min="0" max="100">
+            <label>Quiz Reward Food:</label>
+            <input type="number" id="setting-quiz-food" class="setting-input" min="0" max="20">
+            <label>Quiz Reward Water:</label>
+            <input type="number" id="setting-quiz-water" class="setting-input" min="0" max="20">
             <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
           </div>
         </div>
@@ -1715,6 +1798,14 @@ body {
           <button id="btn-parent-logout" class="btn btn-secondary">Lock Parent Mode</button>
         </div>
       </div>
+    </div>
+
+    <!-- Leaderboard Screen -->
+    <div id="screen-leaderboard" class="screen">
+      <div class="screen-header">
+        <h2>Leaderboard</h2>
+      </div>
+      <div id="leaderboard-list"></div>
     </div>
 
     <!-- More Menu Screen -->
@@ -1760,7 +1851,7 @@ body {
     <!-- Notification Toast -->
     <div id="toast" class="toast"></div>
 
-    <!-- Bottom Navigation: 5 tabs -->
+    <!-- Bottom Navigation: 6 tabs -->
     <nav id="bottom-nav" class="bottom-nav" style="display:none">
       <button class="nav-btn" data-screen="wallet">
         <span class="nav-icon">&#x1F4B0;</span>
@@ -1777,6 +1868,10 @@ body {
       <button class="nav-btn" data-screen="tasks">
         <span class="nav-icon">&#x2705;</span>
         <span class="nav-label">Tasks</span>
+      </button>
+      <button class="nav-btn" data-screen="leaderboard">
+        <span class="nav-icon">&#x1F3C6;</span>
+        <span class="nav-label">Rank</span>
       </button>
       <button class="nav-btn" data-screen="more">
         <span class="nav-icon">&#x2699;</span>
@@ -1844,9 +1939,12 @@ function createDefaultState() {
     dailyState: {
       lastDate: todayString(),
       tasksCompleted: [false, false, false, false],
-      quizCompleted: false,
+      quizMathCompleted: false,
+      quizEncyclopediaCompleted: false,
       foodEarned: 0,
-      waterEarned: 0
+      waterEarned: 0,
+      taskRewardsEarned: 0,
+      quizRewardEarned: false
     },
     tasks: {
       chores: [].concat(DEFAULT_CHORES)
@@ -1880,12 +1978,181 @@ function createDefaultState() {
       sellAdultPrice: 1000,  // cents
       taskFoodReward: 2,
       taskWaterReward: 2,
+      tasksPerReward: 2,     // every N tasks = 1 reward batch
+      taskRewardFood: 1,     // food per batch
+      taskRewardWater: 1,    // water per batch
+      dailyRewardCap: 0,     // 0 = unlimited
+      quizRewardFood: 1,
+      quizRewardWater: 1,
       customDepositCategories: [],
       customWithdrawCategories: []
     },
     lastInterestDate: todayString()
   };
 }
+
+var ENCYCLOPEDIA_QUESTIONS = {
+  1: [ // Easy — Animals & Nature
+    { q: 'What animal is known as man\'s best friend?', a: ['Dog', 'Cat', 'Horse', 'Fish'], c: 0 },
+    { q: 'How many legs does a spider have?', a: ['8', '6', '10', '4'], c: 0 },
+    { q: 'What is the largest animal on Earth?', a: ['Blue whale', 'Elephant', 'Giraffe', 'Shark'], c: 0 },
+    { q: 'What do caterpillars turn into?', a: ['Butterflies', 'Bees', 'Ants', 'Birds'], c: 0 },
+    { q: 'Which animal has a very long neck?', a: ['Giraffe', 'Elephant', 'Horse', 'Bear'], c: 0 },
+    { q: 'What do frogs start life as?', a: ['Tadpoles', 'Eggs', 'Fish', 'Worms'], c: 0 },
+    { q: 'What is the closest star to Earth?', a: ['The Sun', 'The Moon', 'Mars', 'Polaris'], c: 0 },
+    { q: 'How many planets are in our solar system?', a: ['8', '7', '9', '10'], c: 0 },
+    { q: 'What planet is known as the Red Planet?', a: ['Mars', 'Venus', 'Jupiter', 'Saturn'], c: 0 },
+    { q: 'What is water made of?', a: ['Hydrogen and oxygen', 'Salt', 'Air', 'Sugar'], c: 0 },
+    { q: 'Which season do leaves fall from trees?', a: ['Autumn', 'Spring', 'Summer', 'Winter'], c: 0 },
+    { q: 'What do bees make?', a: ['Honey', 'Milk', 'Bread', 'Butter'], c: 0 },
+    { q: 'What is a baby cow called?', a: ['Calf', 'Puppy', 'Kitten', 'Foal'], c: 0 },
+    { q: 'What is the largest continent?', a: ['Asia', 'Africa', 'Europe', 'America'], c: 0 },
+    { q: 'What keeps birds up in the air?', a: ['Wings', 'Tails', 'Beaks', 'Legs'], c: 0 },
+    { q: 'How many colors are in a rainbow?', a: ['7', '5', '6', '8'], c: 0 },
+    { q: 'What gives plants their green color?', a: ['Chlorophyll', 'Sunlight', 'Water', 'Soil'], c: 0 },
+    { q: 'Which animal carries its house on its back?', a: ['Snail', 'Frog', 'Rabbit', 'Mouse'], c: 0 },
+    { q: 'What is the largest ocean?', a: ['Pacific', 'Atlantic', 'Indian', 'Arctic'], c: 0 },
+    { q: 'What body part pumps blood through your body?', a: ['Heart', 'Brain', 'Lungs', 'Stomach'], c: 0 },
+    { q: 'What do plants need to grow?', a: ['Water and sunlight', 'Rocks', 'Sand', 'Ice'], c: 0 },
+    { q: 'How many bones does an adult human have?', a: ['206', '100', '300', '150'], c: 0 },
+    { q: 'What is a group of fish called?', a: ['School', 'Herd', 'Pack', 'Flock'], c: 0 },
+    { q: 'What animal is the tallest in the world?', a: ['Giraffe', 'Elephant', 'Horse', 'Camel'], c: 0 },
+    { q: 'What are clouds made of?', a: ['Water droplets', 'Cotton', 'Smoke', 'Dust'], c: 0 },
+    { q: 'Which animal has black and white stripes?', a: ['Zebra', 'Lion', 'Tiger', 'Bear'], c: 0 },
+    { q: 'What is the Earth mostly covered with?', a: ['Water', 'Land', 'Sand', 'Ice'], c: 0 },
+    { q: 'What sense do your ears give you?', a: ['Hearing', 'Sight', 'Smell', 'Taste'], c: 0 },
+    { q: 'What animal says "ribbit"?', a: ['Frog', 'Duck', 'Dog', 'Cat'], c: 0 },
+    { q: 'What is the frozen form of water?', a: ['Ice', 'Snow', 'Steam', 'Rain'], c: 0 },
+  ],
+  2: [ // Medium-Easy — Animals, Space, Geography
+    { q: 'What is the fastest land animal?', a: ['Cheetah', 'Lion', 'Horse', 'Deer'], c: 0 },
+    { q: 'Which planet has rings around it?', a: ['Saturn', 'Mars', 'Venus', 'Mercury'], c: 0 },
+    { q: 'What is the largest desert on Earth?', a: ['Sahara', 'Gobi', 'Kalahari', 'Arctic'], c: 0 },
+    { q: 'How many teeth does an adult human have?', a: ['32', '20', '28', '36'], c: 0 },
+    { q: 'What gas do we breathe in to stay alive?', a: ['Oxygen', 'Carbon dioxide', 'Nitrogen', 'Helium'], c: 0 },
+    { q: 'Which organ lets you think and learn?', a: ['Brain', 'Heart', 'Liver', 'Lungs'], c: 0 },
+    { q: 'What is the longest river in the world?', a: ['Nile', 'Amazon', 'Mississippi', 'Yangtze'], c: 0 },
+    { q: 'What type of animal is a dolphin?', a: ['Mammal', 'Fish', 'Reptile', 'Bird'], c: 0 },
+    { q: 'How long does Earth take to orbit the Sun?', a: ['365 days', '30 days', '7 days', '100 days'], c: 0 },
+    { q: 'What is the hardest natural material?', a: ['Diamond', 'Gold', 'Iron', 'Wood'], c: 0 },
+    { q: 'Which planet is closest to the Sun?', a: ['Mercury', 'Venus', 'Earth', 'Mars'], c: 0 },
+    { q: 'What are baby dogs called?', a: ['Puppies', 'Kittens', 'Cubs', 'Chicks'], c: 0 },
+    { q: 'What force keeps us on the ground?', a: ['Gravity', 'Wind', 'Magnetism', 'Friction'], c: 0 },
+    { q: 'What is the largest organ of the human body?', a: ['Skin', 'Liver', 'Heart', 'Brain'], c: 0 },
+    { q: 'What country is known for kangaroos?', a: ['Australia', 'India', 'Brazil', 'Canada'], c: 0 },
+    { q: 'How many wings does a bee have?', a: ['4', '2', '6', '8'], c: 0 },
+    { q: 'What is lava when it cools down?', a: ['Rock', 'Sand', 'Water', 'Mud'], c: 0 },
+    { q: 'Which animal can change its color?', a: ['Chameleon', 'Snake', 'Frog', 'Lizard'], c: 0 },
+    { q: 'What is the center of an atom called?', a: ['Nucleus', 'Electron', 'Proton', 'Shell'], c: 0 },
+    { q: 'What continent is Egypt on?', a: ['Africa', 'Asia', 'Europe', 'Australia'], c: 0 },
+    { q: 'What are the tiny building blocks of life called?', a: ['Cells', 'Atoms', 'Germs', 'Seeds'], c: 0 },
+    { q: 'What is the deepest ocean?', a: ['Pacific', 'Atlantic', 'Indian', 'Arctic'], c: 0 },
+    { q: 'What animal has the longest lifespan?', a: ['Tortoise', 'Elephant', 'Whale', 'Parrot'], c: 0 },
+    { q: 'What is the layer of gases around Earth called?', a: ['Atmosphere', 'Ozone', 'Space', 'Cloud'], c: 0 },
+    { q: 'Which bird can fly backwards?', a: ['Hummingbird', 'Eagle', 'Sparrow', 'Penguin'], c: 0 },
+    { q: 'What is a volcano?', a: ['Mountain that erupts lava', 'Deep hole', 'Tall hill', 'River source'], c: 0 },
+    { q: 'What is the biggest planet in our solar system?', a: ['Jupiter', 'Saturn', 'Neptune', 'Uranus'], c: 0 },
+    { q: 'What is the smallest bone in the human body?', a: ['Stapes (ear)', 'Toe bone', 'Finger bone', 'Rib'], c: 0 },
+    { q: 'What do you call a scientist who studies stars?', a: ['Astronomer', 'Biologist', 'Chemist', 'Geologist'], c: 0 },
+    { q: 'What is the main gas in the air we breathe?', a: ['Nitrogen', 'Oxygen', 'Carbon dioxide', 'Helium'], c: 0 },
+  ],
+  3: [ // Medium — Science, Geography, Body
+    { q: 'What is the chemical symbol for water?', a: ['H2O', 'CO2', 'O2', 'NaCl'], c: 0 },
+    { q: 'What is the tallest mountain on Earth?', a: ['Mount Everest', 'K2', 'Kilimanjaro', 'Denali'], c: 0 },
+    { q: 'What part of the plant takes in water from the soil?', a: ['Roots', 'Leaves', 'Stem', 'Flower'], c: 0 },
+    { q: 'How many chambers does the human heart have?', a: ['4', '2', '3', '6'], c: 0 },
+    { q: 'What is the study of weather called?', a: ['Meteorology', 'Biology', 'Geology', 'Zoology'], c: 0 },
+    { q: 'What galaxy do we live in?', a: ['Milky Way', 'Andromeda', 'Triangulum', 'Orion'], c: 0 },
+    { q: 'What is the largest mammal on land?', a: ['African elephant', 'Blue whale', 'Hippo', 'Rhino'], c: 0 },
+    { q: 'What kind of energy comes from the Sun?', a: ['Solar energy', 'Wind energy', 'Water energy', 'Sound'], c: 0 },
+    { q: 'How many continents are there?', a: ['7', '5', '6', '8'], c: 0 },
+    { q: 'What is the boiling point of water in Celsius?', a: ['100', '50', '200', '0'], c: 0 },
+    { q: 'Which animal is the king of the jungle?', a: ['Lion', 'Tiger', 'Bear', 'Wolf'], c: 0 },
+    { q: 'What do the lungs help you do?', a: ['Breathe', 'Eat', 'See', 'Walk'], c: 0 },
+    { q: 'What is the process of plants making food called?', a: ['Photosynthesis', 'Digestion', 'Respiration', 'Germination'], c: 0 },
+    { q: 'Which planet is farthest from the Sun?', a: ['Neptune', 'Pluto', 'Uranus', 'Saturn'], c: 0 },
+    { q: 'What substance gives bones their strength?', a: ['Calcium', 'Iron', 'Protein', 'Vitamin C'], c: 0 },
+    { q: 'What is the capital of Japan?', a: ['Tokyo', 'Beijing', 'Seoul', 'Bangkok'], c: 0 },
+    { q: 'What type of rock is formed from lava?', a: ['Igneous', 'Sedimentary', 'Metamorphic', 'Mineral'], c: 0 },
+    { q: 'What are animals without backbones called?', a: ['Invertebrates', 'Vertebrates', 'Mammals', 'Reptiles'], c: 0 },
+    { q: 'What ocean lies between Africa and Australia?', a: ['Indian Ocean', 'Pacific', 'Atlantic', 'Arctic'], c: 0 },
+    { q: 'What is the speed of light per second?', a: ['186,000 miles', '100,000 miles', '1 million miles', '50,000 miles'], c: 0 },
+    { q: 'What causes tides in the ocean?', a: ['Moon\'s gravity', 'Wind', 'Earthquakes', 'Sun\'s heat'], c: 0 },
+    { q: 'What is the largest bird in the world?', a: ['Ostrich', 'Eagle', 'Albatross', 'Pelican'], c: 0 },
+    { q: 'What gas do plants absorb from the air?', a: ['Carbon dioxide', 'Oxygen', 'Nitrogen', 'Helium'], c: 0 },
+    { q: 'What are the three states of matter?', a: ['Solid, liquid, gas', 'Hot, warm, cold', 'Big, medium, small', 'Red, blue, green'], c: 0 },
+    { q: 'What is a baby kangaroo called?', a: ['Joey', 'Kit', 'Pup', 'Cub'], c: 0 },
+    { q: 'How many bones are in the human body?', a: ['206', '100', '300', '150'], c: 0 },
+    { q: 'What continent is the Amazon rainforest on?', a: ['South America', 'Africa', 'Asia', 'Australia'], c: 0 },
+    { q: 'What vitamin comes from sunlight?', a: ['Vitamin D', 'Vitamin C', 'Vitamin A', 'Vitamin B'], c: 0 },
+    { q: 'What is the equator?', a: ['Imaginary line around middle of Earth', 'A country', 'A mountain', 'A river'], c: 0 },
+    { q: 'What is the most common element in the universe?', a: ['Hydrogen', 'Oxygen', 'Carbon', 'Helium'], c: 0 },
+  ],
+  4: [ // Medium-Hard — Deeper Science & Geography
+    { q: 'What is the chemical formula for table salt?', a: ['NaCl', 'H2O', 'CO2', 'O2'], c: 0 },
+    { q: 'What layer of Earth do we live on?', a: ['Crust', 'Mantle', 'Core', 'Magma'], c: 0 },
+    { q: 'What is the powerhouse of the cell?', a: ['Mitochondria', 'Nucleus', 'Ribosome', 'Cell wall'], c: 0 },
+    { q: 'What is the Great Barrier Reef made of?', a: ['Coral', 'Rock', 'Sand', 'Ice'], c: 0 },
+    { q: 'What planet has the most moons?', a: ['Saturn', 'Jupiter', 'Neptune', 'Uranus'], c: 0 },
+    { q: 'What is the formula for carbon dioxide?', a: ['CO2', 'C2O', 'CO', 'O2C'], c: 0 },
+    { q: 'How many time zones are there in the world?', a: ['24', '12', '36', '48'], c: 0 },
+    { q: 'What is the largest organ inside the human body?', a: ['Liver', 'Heart', 'Lungs', 'Brain'], c: 0 },
+    { q: 'What type of animal is a whale shark?', a: ['Fish', 'Whale', 'Dolphin', 'Shark-whale hybrid'], c: 0 },
+    { q: 'What is the driest continent?', a: ['Antarctica', 'Africa', 'Australia', 'Asia'], c: 0 },
+    { q: 'What are fossils?', a: ['Remains of ancient life', 'Rocks', 'Crystals', 'Shells'], c: 0 },
+    { q: 'How fast does Earth spin at the equator?', a: ['About 1,000 mph', '100 mph', '10,000 mph', '500 mph'], c: 0 },
+    { q: 'What connects muscles to bones?', a: ['Tendons', 'Ligaments', 'Cartilage', 'Nerves'], c: 0 },
+    { q: 'What country has the most people?', a: ['India', 'China', 'USA', 'Indonesia'], c: 0 },
+    { q: 'What causes earthquakes?', a: ['Tectonic plates moving', 'Wind', 'Rain', 'Volcanos'], c: 0 },
+    { q: 'What is the study of living things called?', a: ['Biology', 'Chemistry', 'Physics', 'Geology'], c: 0 },
+    { q: 'What animal can regenerate its limbs?', a: ['Starfish', 'Dolphin', 'Frog', 'Turtle'], c: 0 },
+    { q: 'What is the smallest planet in our solar system?', a: ['Mercury', 'Mars', 'Venus', 'Pluto'], c: 0 },
+    { q: 'What carries oxygen in the blood?', a: ['Red blood cells', 'White blood cells', 'Plasma', 'Platelets'], c: 0 },
+    { q: 'What is the longest bone in the human body?', a: ['Femur', 'Tibia', 'Humerus', 'Spine'], c: 0 },
+    { q: 'What is the capital of Australia?', a: ['Canberra', 'Sydney', 'Melbourne', 'Perth'], c: 0 },
+    { q: 'What is a group of wolves called?', a: ['Pack', 'Herd', 'Flock', 'School'], c: 0 },
+    { q: 'What causes a rainbow?', a: ['Light refracting in water', 'Paint in the sky', 'Wind', 'Heat'], c: 0 },
+    { q: 'What is the human body\'s largest muscle?', a: ['Gluteus maximus', 'Biceps', 'Heart', 'Quadriceps'], c: 0 },
+    { q: 'What is the name of Earth\'s natural satellite?', a: ['The Moon', 'The Sun', 'Mars', 'Venus'], c: 0 },
+    { q: 'What type of rock is marble?', a: ['Metamorphic', 'Igneous', 'Sedimentary', 'Mineral'], c: 0 },
+    { q: 'How many lungs do humans have?', a: ['2', '1', '3', '4'], c: 0 },
+    { q: 'What is the deepest point in the ocean called?', a: ['Mariana Trench', 'Grand Canyon', 'Deep Blue', 'Bermuda Triangle'], c: 0 },
+    { q: 'Which animal sleeps standing up?', a: ['Horse', 'Dog', 'Cat', 'Bear'], c: 0 },
+    { q: 'What is DNA?', a: ['Genetic code of life', 'A type of cell', 'A bone', 'A vitamin'], c: 0 },
+  ],
+  5: [ // Hard — Advanced Science & Nature
+    { q: 'What is the pH of pure water?', a: ['7', '0', '14', '5'], c: 0 },
+    { q: 'What is the most abundant gas in Earth\'s atmosphere?', a: ['Nitrogen (78%)', 'Oxygen (21%)', 'Carbon dioxide', 'Argon'], c: 0 },
+    { q: 'What is the process of water moving through a cycle called?', a: ['Water cycle', 'Rain cycle', 'Cloud cycle', 'Flow cycle'], c: 0 },
+    { q: 'What element does the symbol Fe represent?', a: ['Iron', 'Fluorine', 'Lead', 'Fermium'], c: 0 },
+    { q: 'How long does it take light to reach Earth from the Sun?', a: ['About 8 minutes', '1 second', '1 hour', '1 day'], c: 0 },
+    { q: 'What is the name of the force that opposes motion?', a: ['Friction', 'Gravity', 'Magnetism', 'Inertia'], c: 0 },
+    { q: 'What animal has three hearts?', a: ['Octopus', 'Whale', 'Spider', 'Eagle'], c: 0 },
+    { q: 'What is the largest known structure in the universe?', a: ['Hercules-Corona Borealis Great Wall', 'Milky Way', 'Andromeda', 'The Sun'], c: 0 },
+    { q: 'What is the name of the first person on the Moon?', a: ['Neil Armstrong', 'Buzz Aldrin', 'John Glenn', 'Yuri Gagarin'], c: 0 },
+    { q: 'What part of the brain controls balance?', a: ['Cerebellum', 'Cerebrum', 'Brain stem', 'Hippocampus'], c: 0 },
+    { q: 'How many chromosomes do humans have?', a: ['46', '23', '48', '44'], c: 0 },
+    { q: 'What is the hardest mineral on the Mohs scale?', a: ['Diamond (10)', 'Quartz (7)', 'Topaz (8)', 'Corundum (9)'], c: 0 },
+    { q: 'What is the smallest unit of an element?', a: ['Atom', 'Molecule', 'Cell', 'Proton'], c: 0 },
+    { q: 'What is a light-year?', a: ['Distance light travels in a year', 'A year of sunlight', 'A fast year', 'A space year'], c: 0 },
+    { q: 'What is the second most common element in Earth\'s crust?', a: ['Silicon', 'Aluminum', 'Iron', 'Calcium'], c: 0 },
+    { q: 'What type of blood vessels carry blood away from the heart?', a: ['Arteries', 'Veins', 'Capillaries', 'Ventricles'], c: 0 },
+    { q: 'What is the name of the theory explaining the origin of the universe?', a: ['Big Bang', 'String theory', 'Relativity', 'Evolution'], c: 0 },
+    { q: 'What is the only mammal that can fly?', a: ['Bat', 'Flying squirrel', 'Sugar glider', 'Owl'], c: 0 },
+    { q: 'What layer of the atmosphere contains the ozone layer?', a: ['Stratosphere', 'Troposphere', 'Mesosphere', 'Thermosphere'], c: 0 },
+    { q: 'What is absolute zero in Celsius?', a: ['-273.15', '0', '-100', '-459'], c: 0 },
+    { q: 'What animal has blue blood?', a: ['Horseshoe crab', 'Blue whale', 'Jellyfish', 'Swordfish'], c: 0 },
+    { q: 'What is the most electrically conductive element?', a: ['Silver', 'Copper', 'Gold', 'Aluminum'], c: 0 },
+    { q: 'What is the study of earthquakes called?', a: ['Seismology', 'Geology', 'Volcanology', 'Meteorology'], c: 0 },
+    { q: 'What is the only planet that rotates on its side?', a: ['Uranus', 'Neptune', 'Saturn', 'Venus'], c: 0 },
+    { q: 'How many valves are in the human heart?', a: ['4', '2', '3', '6'], c: 0 },
+    { q: 'What is the strongest natural fiber?', a: ['Spider silk', 'Cotton', 'Wool', 'Hemp'], c: 0 },
+    { q: 'What is the largest species of penguin?', a: ['Emperor penguin', 'King penguin', 'Gentoo', 'Rockhopper'], c: 0 },
+    { q: 'What element makes up most of the Sun?', a: ['Hydrogen', 'Helium', 'Oxygen', 'Carbon'], c: 0 },
+    { q: 'What is the deepest lake in the world?', a: ['Lake Baikal', 'Lake Superior', 'Caspian Sea', 'Lake Victoria'], c: 0 },
+    { q: 'What is the Earth\'s inner core mostly made of?', a: ['Iron and nickel', 'Rock', 'Magma', 'Silicon'], c: 0 },
+  ]
+};
 
 function createAnimal(type, isBred) {
   isBred = isBred || false;
@@ -2033,6 +2300,35 @@ var Storage = {
         if (!state.lastInterestDate) state.lastInterestDate = state.dailyState.lastDate || todayString();
         if (state.settings.taskFoodReward === undefined) state.settings.taskFoodReward = 2;
         if (state.settings.taskWaterReward === undefined) state.settings.taskWaterReward = 2;
+
+        // New reward settings migration
+        if (state.settings.tasksPerReward === undefined) state.settings.tasksPerReward = 2;
+        if (state.settings.taskRewardFood === undefined) state.settings.taskRewardFood = 1;
+        if (state.settings.taskRewardWater === undefined) state.settings.taskRewardWater = 1;
+        if (state.settings.dailyRewardCap === undefined) state.settings.dailyRewardCap = 0;
+        if (state.settings.quizRewardFood === undefined) state.settings.quizRewardFood = 1;
+        if (state.settings.quizRewardWater === undefined) state.settings.quizRewardWater = 1;
+
+        // Convert quizCompleted → quizMathCompleted/quizEncyclopediaCompleted
+        if (state.dailyState.quizMathCompleted === undefined) {
+          state.dailyState.quizMathCompleted = state.dailyState.quizCompleted || false;
+          state.dailyState.quizEncyclopediaCompleted = false;
+          delete state.dailyState.quizCompleted;
+        }
+        if (state.dailyState.taskRewardsEarned === undefined) state.dailyState.taskRewardsEarned = 0;
+        if (state.dailyState.quizRewardEarned === undefined) state.dailyState.quizRewardEarned = false;
+
+        // Resize tasksCompleted to match chores length
+        if (state.tasks && state.tasks.chores) {
+          var tc = state.dailyState.tasksCompleted;
+          var needed = state.tasks.chores.length;
+          if (tc.length < needed) {
+            for (var mi = tc.length; mi < needed; mi++) tc.push(false);
+          } else if (tc.length > needed) {
+            state.dailyState.tasksCompleted = tc.slice(0, needed);
+          }
+        }
+
         return state;
       }
     } catch (e) {
@@ -2775,7 +3071,7 @@ var Market = (function() {
 })();
 
 // ============================================================
-// tasks.js — Daily chores checklist with configurable rewards
+// tasks.js — Dynamic chores, incremental rewards, two quizzes
 // ============================================================
 
 var Tasks = (function() {
@@ -2783,10 +3079,10 @@ var Tasks = (function() {
   function render() {
     var state = Storage.load();
     var ds = state.dailyState;
-    var foodReward = state.settings.taskFoodReward;
-    var waterReward = state.settings.taskWaterReward;
+    var s = state.settings;
     var list = document.getElementById('tasks-list');
 
+    // Render dynamic chore checkboxes
     list.innerHTML = state.tasks.chores.map(function(chore, i) {
       var done = ds.tasksCompleted[i];
       return '<label class="task-item ' + (done ? 'task-done' : '') + '">' +
@@ -2795,33 +3091,55 @@ var Tasks = (function() {
         '<span class="task-text">' + chore + '</span></label>';
     }).join('');
 
-    var quizBtn = document.getElementById('btn-take-quiz');
-    if (ds.quizCompleted) {
-      quizBtn.textContent = 'Quiz Done!';
-      quizBtn.disabled = true;
+    // Quiz buttons
+    var mathBtn = document.getElementById('btn-math-quiz');
+    var encBtn = document.getElementById('btn-encyclopedia-quiz');
+
+    if (ds.quizMathCompleted) {
+      mathBtn.textContent = 'Math Done!';
+      mathBtn.disabled = true;
     } else {
-      quizBtn.textContent = 'Take Quiz (counts as a task!)';
-      quizBtn.disabled = false;
+      mathBtn.textContent = 'Math Quiz';
+      mathBtn.disabled = false;
+    }
+
+    if (ds.quizEncyclopediaCompleted) {
+      encBtn.textContent = 'Encyclopedia Done!';
+      encBtn.disabled = true;
+    } else {
+      encBtn.textContent = 'Encyclopedia Quiz';
+      encBtn.disabled = false;
     }
 
     // Update reward display
     document.getElementById('task-reward-text').textContent =
-      'Earn: ' + foodReward + ' Food + ' + waterReward + ' Water';
+      'Every ' + s.tasksPerReward + ' tasks = +' + s.taskRewardFood + ' Food +' + s.taskRewardWater + ' Water';
 
-    var completed = ds.tasksCompleted.filter(Boolean).length + (ds.quizCompleted ? 1 : 0);
+    // Progress text
+    var choresDone = ds.tasksCompleted.filter(Boolean).length;
+    var quizDone = (ds.quizMathCompleted ? 1 : 0) + (ds.quizEncyclopediaCompleted ? 1 : 0);
+    var capText = s.dailyRewardCap > 0 ? ' (cap: ' + s.dailyRewardCap + ')' : '';
     document.getElementById('tasks-progress').textContent =
-      completed + '/5 done | Food: ' + state.inventory.food + ' | Water: ' + state.inventory.water;
+      choresDone + ' tasks done | ' + ds.taskRewardsEarned + ' rewards earned' + capText +
+      ' | Food: ' + state.inventory.food + ' | Water: ' + state.inventory.water;
 
+    // Checkbox listeners
     list.querySelectorAll('.task-check').forEach(function(cb) {
       cb.addEventListener('change', function() {
         completeTask(parseInt(cb.dataset.index));
       });
     });
 
-    quizBtn.onclick = function() {
+    // Quiz button listeners
+    mathBtn.onclick = function() {
       Sound.click();
       App.showScreen('quiz');
-      Quiz.start();
+      Quiz.start('math');
+    };
+    encBtn.onclick = function() {
+      Sound.click();
+      App.showScreen('quiz');
+      Quiz.start('encyclopedia');
     };
   }
 
@@ -2832,39 +3150,69 @@ var Tasks = (function() {
     state.dailyState.tasksCompleted[index] = true;
     Sound.click();
 
-    // All 4 chores done → award resources
+    // Incremental rewards: every N tasks = 1 reward batch
     var choresDone = state.dailyState.tasksCompleted.filter(Boolean).length;
-    if (choresDone === 4 && state.dailyState.foodEarned === 0) {
-      var foodReward = state.settings.taskFoodReward;
-      var waterReward = state.settings.taskWaterReward;
-      state.inventory.food += foodReward;
-      state.inventory.water += waterReward;
-      state.dailyState.foodEarned = foodReward;
-      state.dailyState.waterEarned = waterReward;
-      Sound.coin();
-      App.showToast('All chores done! +' + foodReward + ' Food +' + waterReward + ' Water!');
+    var s = state.settings;
+    var expectedRewards = Math.floor(choresDone / s.tasksPerReward);
+    var newRewards = expectedRewards - state.dailyState.taskRewardsEarned;
+
+    if (newRewards > 0) {
+      // Check daily cap
+      if (s.dailyRewardCap > 0) {
+        var canEarn = s.dailyRewardCap - state.dailyState.taskRewardsEarned;
+        newRewards = Math.min(newRewards, canEarn);
+      }
+      if (newRewards > 0) {
+        var foodGain = newRewards * s.taskRewardFood;
+        var waterGain = newRewards * s.taskRewardWater;
+        state.inventory.food += foodGain;
+        state.inventory.water += waterGain;
+        state.dailyState.foodEarned += foodGain;
+        state.dailyState.waterEarned += waterGain;
+        state.dailyState.taskRewardsEarned += newRewards;
+        Sound.coin();
+        App.showToast('Reward! +' + foodGain + ' Food +' + waterGain + ' Water!');
+      }
     }
 
     Storage.save(state);
     render();
   }
 
-  function awardQuizResources() {
+  function awardQuizComplete(quizType) {
     var state = Storage.load();
-    if (!state.dailyState.quizCompleted) {
-      state.dailyState.quizCompleted = true;
-      state.inventory.food += 1;
-      state.inventory.water += 1;
+    if (quizType === 'math') {
+      state.dailyState.quizMathCompleted = true;
+    } else {
+      state.dailyState.quizEncyclopediaCompleted = true;
+    }
+
+    // Award quiz reward when BOTH quizzes are completed
+    if (state.dailyState.quizMathCompleted && state.dailyState.quizEncyclopediaCompleted && !state.dailyState.quizRewardEarned) {
+      state.dailyState.quizRewardEarned = true;
+      var foodGain = state.settings.quizRewardFood;
+      var waterGain = state.settings.quizRewardWater;
+      state.inventory.food += foodGain;
+      state.inventory.water += waterGain;
+      state.dailyState.foodEarned += foodGain;
+      state.dailyState.waterEarned += waterGain;
       Storage.save(state);
-      App.showToast('Quiz done! +1 Food +1 Water!');
+      App.showToast('Both quizzes done! +' + foodGain + ' Food +' + waterGain + ' Water!');
+    } else {
+      Storage.save(state);
+      if (quizType === 'math' && !state.dailyState.quizEncyclopediaCompleted) {
+        App.showToast('Math quiz done! Complete Encyclopedia quiz for bonus!');
+      } else if (quizType === 'encyclopedia' && !state.dailyState.quizMathCompleted) {
+        App.showToast('Encyclopedia quiz done! Complete Math quiz for bonus!');
+      }
     }
   }
 
-  return { render: render, awardQuizResources: awardQuizResources };
+  return { render: render, awardQuizComplete: awardQuizComplete };
 })();
 
 // ============================================================
-// quiz.js — Quiz engine + 200+ questions, adaptive difficulty
+// quiz.js — Quiz engine: math + encyclopedia, 3 questions each
 // ============================================================
 
 const Quiz = (() => {
@@ -2872,8 +3220,10 @@ const Quiz = (() => {
   let currentIndex = 0;
   let score = 0;
   let streak = 0;
+  let quizType = 'math';
+  const QUESTIONS_PER_QUIZ = 3;
 
-  // 200+ questions across 5 difficulty levels
+  // 200+ math questions across 5 difficulty levels
   const QUESTIONS = {
     1: [ // Easy
       { q: 'What is 2 + 3?', a: ['5', '4', '6', '3'], c: 0 },
@@ -2885,33 +3235,22 @@ const Quiz = (() => {
       { q: 'What is 7 + 2?', a: ['9', '8', '10', '7'], c: 0 },
       { q: 'What is 10 - 5?', a: ['5', '4', '6', '3'], c: 0 },
       { q: 'How many legs does a dog have?', a: ['4', '2', '6', '8'], c: 0 },
-      { q: 'What color is the sky on a clear day?', a: ['Blue', 'Green', 'Red', 'Yellow'], c: 0 },
-      { q: 'What do cows drink?', a: ['Water', 'Milk', 'Juice', 'Soda'], c: 0 },
       { q: 'How many days are in a week?', a: ['7', '5', '6', '8'], c: 0 },
-      { q: 'What season comes after winter?', a: ['Spring', 'Summer', 'Fall', 'Winter'], c: 0 },
       { q: 'If you have 3 apples and eat 1, how many are left?', a: ['2', '3', '1', '4'], c: 0 },
       { q: 'What is 2 + 2?', a: ['4', '3', '5', '2'], c: 0 },
-      { q: 'Which is bigger: an elephant or a mouse?', a: ['Elephant', 'Mouse', 'Same', 'Neither'], c: 0 },
       { q: 'How many pennies in a nickel?', a: ['5', '10', '1', '25'], c: 0 },
       { q: 'What comes after 5?', a: ['6', '7', '4', '8'], c: 0 },
       { q: 'What shape has 3 sides?', a: ['Triangle', 'Square', 'Circle', 'Rectangle'], c: 0 },
       { q: 'What is 0 + 5?', a: ['5', '0', '50', '1'], c: 0 },
-      { q: 'What do you use to write on paper?', a: ['Pencil', 'Fork', 'Hammer', 'Shoe'], c: 0 },
-      { q: 'What animal says "moo"?', a: ['Cow', 'Dog', 'Cat', 'Bird'], c: 0 },
       { q: 'What is 8 - 3?', a: ['5', '4', '6', '3'], c: 0 },
       { q: 'How many wheels on a bicycle?', a: ['2', '3', '4', '1'], c: 0 },
-      { q: 'What shape is a ball?', a: ['Sphere', 'Cube', 'Cone', 'Flat'], c: 0 },
       { q: 'What is 3 + 4?', a: ['7', '6', '8', '5'], c: 0 },
       { q: 'What is 9 - 1?', a: ['8', '7', '9', '10'], c: 0 },
-      { q: 'What month comes after January?', a: ['February', 'March', 'December', 'April'], c: 0 },
       { q: 'If you save $1 a day for 3 days, how much do you have?', a: ['$3', '$1', '$2', '$4'], c: 0 },
       { q: 'What is 6 + 2?', a: ['8', '7', '9', '6'], c: 0 },
       { q: 'How many fingers on one hand?', a: ['5', '4', '6', '10'], c: 0 },
-      { q: 'What do fish live in?', a: ['Water', 'Air', 'Sand', 'Mud'], c: 0 },
       { q: 'What is 4 - 4?', a: ['0', '1', '4', '2'], c: 0 },
-      { q: 'What color is a banana?', a: ['Yellow', 'Red', 'Blue', 'Green'], c: 0 },
       { q: 'What is 5 + 5?', a: ['10', '9', '11', '8'], c: 0 },
-      { q: 'Which is a fruit: apple or chair?', a: ['Apple', 'Chair', 'Both', 'Neither'], c: 0 },
       { q: 'If you have 2 coins worth 5 cents each, how much?', a: ['10 cents', '5 cents', '15 cents', '20 cents'], c: 0 },
       { q: 'What is 1 + 2 + 3?', a: ['6', '5', '7', '4'], c: 0 },
       { q: 'How many ears do you have?', a: ['2', '1', '3', '4'], c: 0 },
@@ -2932,7 +3271,6 @@ const Quiz = (() => {
       { q: 'What is 30 - 12?', a: ['18', '22', '16', '20'], c: 0 },
       { q: 'How many dimes in a dollar?', a: ['10', '20', '5', '100'], c: 0 },
       { q: 'What is 7 x 5?', a: ['35', '30', '40', '25'], c: 0 },
-      { q: 'What planet do we live on?', a: ['Earth', 'Mars', 'Venus', 'Jupiter'], c: 0 },
       { q: 'What is 50 - 25?', a: ['25', '20', '30', '15'], c: 0 },
       { q: 'How many sides does a hexagon have?', a: ['6', '5', '8', '7'], c: 0 },
       { q: 'What is 4 x 6?', a: ['24', '20', '26', '18'], c: 0 },
@@ -2940,37 +3278,25 @@ const Quiz = (() => {
       { q: 'What is 100 - 45?', a: ['55', '65', '45', '50'], c: 0 },
       { q: 'How many quarters in a dollar?', a: ['4', '10', '5', '2'], c: 0 },
       { q: 'What is 8 x 3?', a: ['24', '21', '27', '18'], c: 0 },
-      { q: 'What is the largest ocean?', a: ['Pacific', 'Atlantic', 'Indian', 'Arctic'], c: 0 },
       { q: 'What is 11 + 14?', a: ['25', '24', '26', '23'], c: 0 },
       { q: 'How many inches in a foot?', a: ['12', '10', '6', '24'], c: 0 },
       { q: 'What is 9 x 4?', a: ['36', '32', '40', '28'], c: 0 },
       { q: 'If you earn $2 a day for a week, how much?', a: ['$14', '$7', '$12', '$10'], c: 0 },
       { q: 'What is 16 / 2?', a: ['8', '6', '4', '10'], c: 0 },
-      { q: 'What shape has 4 equal sides?', a: ['Square', 'Rectangle', 'Triangle', 'Pentagon'], c: 0 },
       { q: 'What is 5 x 5?', a: ['25', '20', '30', '15'], c: 0 },
-      { q: 'Which coin is worth the most: dime, nickel, or penny?', a: ['Dime', 'Nickel', 'Penny', 'All same'], c: 0 },
       { q: 'What is 14 + 19?', a: ['33', '32', '34', '31'], c: 0 },
-      { q: 'How many cups in a quart?', a: ['4', '2', '8', '3'], c: 0 },
       { q: 'What is 45 - 18?', a: ['27', '23', '33', '25'], c: 0 },
       { q: 'What is 6 x 6?', a: ['36', '30', '42', '24'], c: 0 },
-      { q: 'If a toy costs $4.25 and tax is $0.25, what is the total?', a: ['$4.50', '$4.00', '$4.75', '$5.00'], c: 0 },
-      { q: 'What is 72 / 8?', a: ['9', '8', '7', '10'], c: 0 },
-      { q: 'How many continents are there?', a: ['7', '5', '6', '8'], c: 0 },
-      { q: 'What is 3 x 9?', a: ['27', '24', '30', '21'], c: 0 },
-      { q: 'What is half of 20?', a: ['10', '5', '15', '8'], c: 0 },
     ],
     3: [ // Medium
       { q: 'What is 12 x 11?', a: ['132', '121', '144', '122'], c: 0 },
       { q: 'What is 156 + 244?', a: ['400', '390', '410', '300'], c: 0 },
       { q: 'If you save $5 a week for 8 weeks, how much?', a: ['$40', '$35', '$45', '$30'], c: 0 },
       { q: 'What is 15% of 100?', a: ['15', '10', '20', '25'], c: 0 },
-      { q: 'How many feet in a mile?', a: ['5,280', '5,000', '1,000', '10,000'], c: 0 },
       { q: 'What is 144 / 12?', a: ['12', '11', '13', '14'], c: 0 },
       { q: 'If a shirt costs $20 and is 25% off, what do you pay?', a: ['$15', '$5', '$10', '$18'], c: 0 },
       { q: 'What is 7 x 8?', a: ['56', '54', '48', '63'], c: 0 },
-      { q: 'What is the capital of France?', a: ['Paris', 'London', 'Berlin', 'Madrid'], c: 0 },
       { q: 'What is 1,000 - 637?', a: ['363', '373', '463', '337'], c: 0 },
-      { q: 'How many ounces in a pound?', a: ['16', '12', '8', '32'], c: 0 },
       { q: 'What is 9 x 9?', a: ['81', '72', '90', '63'], c: 0 },
       { q: 'If you share 24 cookies among 6 friends, how many each?', a: ['4', '3', '6', '5'], c: 0 },
       { q: 'What is 250 + 375?', a: ['625', '525', '725', '600'], c: 0 },
@@ -2978,27 +3304,20 @@ const Quiz = (() => {
       { q: 'What is 8 x 7?', a: ['56', '54', '48', '63'], c: 0 },
       { q: 'If an item costs $12.50 and you pay $20, what is your change?', a: ['$7.50', '$7.00', '$8.50', '$8.00'], c: 0 },
       { q: 'What is 500 / 25?', a: ['20', '25', '15', '50'], c: 0 },
-      { q: 'What is the boiling point of water in Fahrenheit?', a: ['212', '100', '200', '180'], c: 0 },
       { q: 'What is 11 x 12?', a: ['132', '121', '144', '120'], c: 0 },
       { q: 'If you earn $8/hour and work 5 hours, how much?', a: ['$40', '$35', '$45', '$48'], c: 0 },
       { q: 'What is 3 squared?', a: ['9', '6', '12', '27'], c: 0 },
-      { q: 'How many states are in the USA?', a: ['50', '48', '52', '51'], c: 0 },
       { q: 'What is 480 / 6?', a: ['80', '70', '60', '90'], c: 0 },
       { q: 'What is 10% of 250?', a: ['25', '2.5', '250', '50'], c: 0 },
       { q: 'If 3 books cost $15, how much for 1 book?', a: ['$5', '$3', '$15', '$10'], c: 0 },
       { q: 'What is 13 x 7?', a: ['91', '84', '97', '77'], c: 0 },
-      { q: 'How many seconds in a minute?', a: ['60', '100', '30', '90'], c: 0 },
       { q: 'What is 1,500 - 876?', a: ['624', '634', '724', '614'], c: 0 },
       { q: 'If you buy 4 items at $3.50 each, what is the total?', a: ['$14.00', '$12.00', '$15.00', '$13.50'], c: 0 },
       { q: 'What is 6 x 12?', a: ['72', '66', '78', '60'], c: 0 },
-      { q: 'How many zeros in one thousand?', a: ['3', '4', '2', '5'], c: 0 },
       { q: 'What is double 45?', a: ['90', '80', '100', '85'], c: 0 },
       { q: 'What is 99 + 99?', a: ['198', '188', '208', '196'], c: 0 },
-      { q: 'If a pizza is cut into 8 slices and you eat 3, what fraction is left?', a: ['5/8', '3/8', '3/5', '5/3'], c: 0 },
       { q: 'What is 15 x 4?', a: ['60', '55', '65', '45'], c: 0 },
       { q: 'What is 200 - 87?', a: ['113', '123', '103', '117'], c: 0 },
-      { q: 'How many hours in a day?', a: ['24', '12', '48', '36'], c: 0 },
-      { q: 'What is the value of 5 dimes and 3 nickels?', a: ['65 cents', '80 cents', '55 cents', '35 cents'], c: 0 },
       { q: 'What is 14 x 5?', a: ['70', '65', '75', '60'], c: 0 },
     ],
     4: [ // Medium-Hard
@@ -3017,31 +3336,21 @@ const Quiz = (() => {
       { q: 'If you save $25/month, how much in a year?', a: ['$300', '$250', '$275', '$325'], c: 0 },
       { q: 'What is 5 cubed?', a: ['125', '15', '25', '75'], c: 0 },
       { q: 'What is 33% of 600?', a: ['198', '200', '180', '210'], c: 0 },
-      { q: 'If 5 workers do a job in 6 days, how many worker-days?', a: ['30', '11', '25', '35'], c: 0 },
       { q: 'What is 1,234 + 4,321?', a: ['5,555', '5,455', '5,655', '5,545'], c: 0 },
       { q: 'What is 75% of 80?', a: ['60', '65', '55', '70'], c: 0 },
       { q: 'What is the perimeter of a 5x3 rectangle?', a: ['16', '15', '8', '30'], c: 0 },
       { q: 'If a dozen eggs costs $3.60, how much for 1 egg?', a: ['$0.30', '$0.36', '$0.25', '$0.40'], c: 0 },
       { q: 'What is 19 x 21?', a: ['399', '389', '409', '379'], c: 0 },
-      { q: 'How many millimeters in a meter?', a: ['1,000', '100', '10,000', '10'], c: 0 },
       { q: 'What is 40% of 200?', a: ['80', '40', '60', '100'], c: 0 },
       { q: 'If you divide $100 among 4 people, how much each?', a: ['$25', '$20', '$50', '$30'], c: 0 },
       { q: 'What is 16 x 16?', a: ['256', '246', '266', '236'], c: 0 },
       { q: 'What is 4,000 / 80?', a: ['50', '40', '500', '5'], c: 0 },
-      { q: 'If a recipe needs 2/3 cup and you triple it, how much?', a: ['2 cups', '6/3 cups', '1 cup', '3 cups'], c: 0 },
       { q: 'What is the area of a triangle with base 10 and height 6?', a: ['30', '60', '16', '20'], c: 0 },
-      { q: 'How many degrees in a right angle?', a: ['90', '180', '45', '360'], c: 0 },
       { q: 'What is 999 + 1?', a: ['1,000', '1,001', '999', '9,991'], c: 0 },
       { q: 'If you buy 3 for $5.99 each, how much total?', a: ['$17.97', '$15.99', '$18.97', '$17.00'], c: 0 },
       { q: 'What is 12 squared?', a: ['144', '124', '132', '156'], c: 0 },
       { q: 'What is 625 / 25?', a: ['25', '20', '30', '125'], c: 0 },
-      { q: 'If it rains 3 inches every 2 days, how much in 10 days?', a: ['15 in', '30 in', '6 in', '10 in'], c: 0 },
       { q: 'What is 14 x 14?', a: ['196', '186', '204', '169'], c: 0 },
-      { q: 'How many faces does a rectangular prism have?', a: ['6', '4', '8', '12'], c: 0 },
-      { q: 'What is 60% of 500?', a: ['300', '350', '250', '200'], c: 0 },
-      { q: 'If gas costs $3.50/gallon and you buy 10 gallons?', a: ['$35', '$30', '$40', '$25'], c: 0 },
-      { q: 'What is 7 x 13?', a: ['91', '84', '98', '77'], c: 0 },
-      { q: 'What is 10,000 - 3,578?', a: ['6,422', '6,432', '7,422', '6,522'], c: 0 },
     ],
     5: [ // Hard
       { q: 'What is 37 x 43?', a: ['1,591', '1,481', '1,691', '1,571'], c: 0 },
@@ -3050,73 +3359,75 @@ const Quiz = (() => {
       { q: 'If 8 people share a $120 bill equally, how much each?', a: ['$15', '$12', '$16', '$14'], c: 0 },
       { q: 'What is 2 to the power of 8?', a: ['256', '128', '512', '64'], c: 0 },
       { q: 'What is 45% of 800?', a: ['360', '320', '400', '380'], c: 0 },
-      { q: 'If a car depreciates 20% per year and costs $10,000, what is it worth after 1 year?', a: ['$8,000', '$2,000', '$9,000', '$7,000'], c: 0 },
+      { q: 'If a car depreciates 20% per year and costs $10,000, what after 1 year?', a: ['$8,000', '$2,000', '$9,000', '$7,000'], c: 0 },
       { q: 'What is 876 x 4?', a: ['3,504', '3,404', '3,604', '3,304'], c: 0 },
       { q: 'How many prime numbers are between 1 and 20?', a: ['8', '7', '9', '6'], c: 0 },
       { q: 'What is 15% tip on an $80 meal?', a: ['$12', '$8', '$15', '$10'], c: 0 },
-      { q: 'What is 7 factorial (7!)?', a: ['5,040', '720', '2,520', '40,320'], c: 0 },
-      { q: 'If you earn $12/hour with 1.5x overtime after 40 hours, what for 45 hours?', a: ['$570', '$540', '$480', '$600'], c: 0 },
-      { q: 'What is the area of a circle with radius 7? (use 22/7)', a: ['154', '44', '49', '308'], c: 0 },
       { q: 'What is 25 x 25?', a: ['625', '525', '675', '600'], c: 0 },
       { q: 'If a store gives 30% off $85, what do you pay?', a: ['$59.50', '$55.50', '$25.50', '$65.00'], c: 0 },
       { q: 'What is 2,048 / 64?', a: ['32', '28', '36', '24'], c: 0 },
-      { q: 'How many faces on an icosahedron?', a: ['20', '12', '8', '6'], c: 0 },
       { q: 'What is 999 x 9?', a: ['8,991', '8,991', '9,991', '8,981'], c: 0 },
       { q: 'If you save $50/week, how many weeks to save $1,000?', a: ['20', '25', '10', '50'], c: 0 },
       { q: 'What is 17 x 19?', a: ['323', '313', '333', '303'], c: 0 },
-      { q: 'The sum of angles in a triangle is?', a: ['180', '360', '90', '270'], c: 0 },
       { q: 'What is 3 to the power of 5?', a: ['243', '125', '81', '729'], c: 0 },
-      { q: 'If a recipe is for 4 people and you need it for 10, multiply by?', a: ['2.5', '2', '3', '6'], c: 0 },
       { q: 'What is 1,111 x 5?', a: ['5,555', '5,505', '5,550', '5,565'], c: 0 },
-      { q: 'How many degrees in a full circle?', a: ['360', '180', '90', '270'], c: 0 },
       { q: 'If compound interest is 10% on $100 for 2 years, the total is?', a: ['$121', '$120', '$110', '$130'], c: 0 },
-      { q: 'What is the Pythagorean theorem for a 3-4-5 triangle hypotenuse?', a: ['5', '7', '12', '6'], c: 0 },
       { q: 'What is 12,345 - 6,789?', a: ['5,556', '5,656', '5,446', '6,556'], c: 0 },
       { q: 'If 1 euro = $1.10, how many dollars for 50 euros?', a: ['$55', '$50', '$60', '$45'], c: 0 },
       { q: 'What is the volume of a cube with side 5?', a: ['125', '25', '75', '150'], c: 0 },
       { q: 'What is 88 x 12?', a: ['1,056', '1,006', '1,156', '1,066'], c: 0 },
-      { q: 'If you spend 1/4 of $80 on food and 1/3 on rent, how much is left?', a: ['$33.33', '$40.00', '$46.67', '$26.67'], c: 0 },
       { q: 'What is 256 / 16?', a: ['16', '12', '18', '24'], c: 0 },
-      { q: 'How many permutations of 3 items from 5? (5P3)', a: ['60', '10', '120', '15'], c: 0 },
       { q: 'What is 0.125 as a fraction?', a: ['1/8', '1/4', '1/6', '1/10'], c: 0 },
       { q: 'If a plane flies at 500 mph for 2.5 hours, how far?', a: ['1,250 mi', '1,000 mi', '1,500 mi', '750 mi'], c: 0 },
       { q: 'What is 13 x 17?', a: ['221', '211', '231', '201'], c: 0 },
       { q: 'What is the median of 3, 7, 9, 15, 21?', a: ['9', '7', '15', '11'], c: 0 },
-      { q: 'If sales double every year from $100, what after 3 years?', a: ['$800', '$400', '$600', '$300'], c: 0 },
       { q: 'What is 47 x 53?', a: ['2,491', '2,481', '2,501', '2,391'], c: 0 },
     ]
   };
 
-  function pickQuestions(difficulty) {
-    const pool = QUESTIONS[difficulty] || QUESTIONS[1];
+  function pickQuestions(difficulty, type) {
+    var pool;
+    if (type === 'encyclopedia') {
+      pool = ENCYCLOPEDIA_QUESTIONS[difficulty] || ENCYCLOPEDIA_QUESTIONS[1];
+    } else {
+      pool = QUESTIONS[difficulty] || QUESTIONS[1];
+    }
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 5);
+    return shuffled.slice(0, QUESTIONS_PER_QUIZ);
   }
 
-  function start() {
+  function start(type) {
+    quizType = type || 'math';
     const state = Storage.load();
-    currentQuestions = pickQuestions(state.quizDifficulty);
+    currentQuestions = pickQuestions(state.quizDifficulty, quizType);
     currentIndex = 0;
     score = 0;
     streak = 0;
+
+    // Update header
+    const header = document.querySelector('#screen-quiz .screen-header h2');
+    if (header) {
+      header.textContent = quizType === 'math' ? 'Math Quiz!' : 'Encyclopedia Quiz!';
+    }
+
     showQuestion();
   }
 
   function showQuestion() {
-    if (currentIndex >= 5) {
+    if (currentIndex >= QUESTIONS_PER_QUIZ) {
       finishQuiz();
       return;
     }
 
     const q = currentQuestions[currentIndex];
     document.getElementById('quiz-progress').textContent =
-      `Question ${currentIndex + 1}/5`;
+      `Question ${currentIndex + 1}/${QUESTIONS_PER_QUIZ}`;
     document.getElementById('quiz-score').textContent = `Score: ${score}`;
     document.getElementById('quiz-question').textContent = q.q;
     document.getElementById('quiz-feedback').textContent = '';
     document.getElementById('quiz-feedback').className = 'quiz-feedback';
 
-    // Shuffle answers (keeping track of correct)
+    // Shuffle answers
     const indices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
     const answers = document.getElementById('quiz-answers');
     answers.innerHTML = indices.map(i => {
@@ -3147,7 +3458,6 @@ const Quiz = (() => {
       Sound.wrong();
     }
 
-    // Highlight correct answer
     buttons.forEach(b => {
       if (parseInt(b.dataset.idx) === q.c) {
         b.classList.add('correct-answer');
@@ -3165,26 +3475,27 @@ const Quiz = (() => {
     state.stats.totalQuizzesTaken++;
 
     // Adaptive difficulty
-    if (score >= 4) {
+    if (score >= QUESTIONS_PER_QUIZ) {
       state.quizDifficulty = Math.min(5, state.quizDifficulty + 1);
-    } else if (score <= 1) {
+    } else if (score === 0) {
       state.quizDifficulty = Math.max(1, state.quizDifficulty - 1);
     }
     state.quizStreak = streak;
     Storage.save(state);
 
     // Show results
+    const typeLabel = quizType === 'math' ? 'Math' : 'Encyclopedia';
     document.getElementById('quiz-question').textContent =
-      `Quiz Complete! You got ${score}/5!`;
+      `${typeLabel} Quiz Complete! You got ${score}/${QUESTIONS_PER_QUIZ}!`;
     document.getElementById('quiz-answers').innerHTML =
       `<button class="btn btn-primary" id="quiz-done">Back to Tasks</button>`;
     document.getElementById('quiz-feedback').textContent =
-      score >= 4 ? 'Amazing job!' : score >= 2 ? 'Good effort!' : 'Keep practicing!';
+      score >= QUESTIONS_PER_QUIZ ? 'Perfect!' : score >= 2 ? 'Good effort!' : 'Keep practicing!';
     document.getElementById('quiz-feedback').className = 'quiz-feedback feedback-correct';
 
     document.getElementById('quiz-done').addEventListener('click', () => {
       Sound.click();
-      Tasks.awardQuizResources();
+      Tasks.awardQuizComplete(quizType);
       App.showScreen('tasks');
     });
   }
@@ -3360,14 +3671,47 @@ var Parent = (function() {
     var editor = document.getElementById('chore-editor');
     editor.innerHTML = state.tasks.chores.map(function(chore, i) {
       return '<div class="chore-edit-row">' +
-        '<label>Chore ' + (i + 1) + ':</label>' +
         '<input type="text" class="chore-input" data-index="' + i + '" value="' + chore + '" maxlength="50">' +
+        '<button class="btn btn-small btn-danger chore-delete-btn" data-index="' + i + '">X</button>' +
         '</div>';
-    }).join('');
+    }).join('') +
+    '<div class="chore-edit-row chore-add-row">' +
+      '<input type="text" id="new-chore-input" class="chore-input" placeholder="Add new task..." maxlength="50">' +
+      '<button class="btn btn-small btn-accent" id="btn-add-chore">+</button>' +
+    '</div>';
+
+    // Delete chore buttons
+    editor.querySelectorAll('.chore-delete-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.dataset.index);
+        var s = Storage.load();
+        s.tasks.chores.splice(idx, 1);
+        s.dailyState.tasksCompleted.splice(idx, 1);
+        Storage.save(s);
+        Sound.click();
+        App.showToast('Task removed!');
+        renderChoreEditor();
+      });
+    });
+
+    // Add chore button
+    document.getElementById('btn-add-chore').onclick = function() {
+      var input = document.getElementById('new-chore-input');
+      var val = input.value.trim();
+      if (!val) { App.showToast('Enter a task name.'); return; }
+      var s = Storage.load();
+      s.tasks.chores.push(val);
+      s.dailyState.tasksCompleted.push(false);
+      Storage.save(s);
+      input.value = '';
+      Sound.click();
+      App.showToast('Task added!');
+      renderChoreEditor();
+    };
 
     document.getElementById('btn-save-chores').onclick = function() {
       var s = Storage.load();
-      document.querySelectorAll('.chore-input').forEach(function(input) {
+      editor.querySelectorAll('.chore-input[data-index]').forEach(function(input) {
         var idx = parseInt(input.dataset.index);
         var val = input.value.trim();
         if (val) s.tasks.chores[idx] = val;
@@ -3385,16 +3729,24 @@ var Parent = (function() {
     document.getElementById('setting-interest').value = s.interestRate;
     document.getElementById('setting-buy-price').value = (s.buyBabyPrice / 100).toFixed(2);
     document.getElementById('setting-sell-price').value = (s.sellAdultPrice / 100).toFixed(2);
-    document.getElementById('setting-food-reward').value = s.taskFoodReward;
-    document.getElementById('setting-water-reward').value = s.taskWaterReward;
+    document.getElementById('setting-tasks-per-reward').value = s.tasksPerReward;
+    document.getElementById('setting-reward-food').value = s.taskRewardFood;
+    document.getElementById('setting-reward-water').value = s.taskRewardWater;
+    document.getElementById('setting-daily-cap').value = s.dailyRewardCap;
+    document.getElementById('setting-quiz-food').value = s.quizRewardFood;
+    document.getElementById('setting-quiz-water').value = s.quizRewardWater;
 
     document.getElementById('btn-save-settings').onclick = function() {
       var st = Storage.load();
       st.settings.interestRate = parseFloat(document.getElementById('setting-interest').value) || 0;
       st.settings.buyBabyPrice = Math.round(parseFloat(document.getElementById('setting-buy-price').value) * 100) || 500;
       st.settings.sellAdultPrice = Math.round(parseFloat(document.getElementById('setting-sell-price').value) * 100) || 1000;
-      st.settings.taskFoodReward = parseInt(document.getElementById('setting-food-reward').value) || 2;
-      st.settings.taskWaterReward = parseInt(document.getElementById('setting-water-reward').value) || 2;
+      st.settings.tasksPerReward = parseInt(document.getElementById('setting-tasks-per-reward').value) || 2;
+      st.settings.taskRewardFood = parseInt(document.getElementById('setting-reward-food').value) || 1;
+      st.settings.taskRewardWater = parseInt(document.getElementById('setting-reward-water').value) || 1;
+      st.settings.dailyRewardCap = parseInt(document.getElementById('setting-daily-cap').value) || 0;
+      st.settings.quizRewardFood = parseInt(document.getElementById('setting-quiz-food').value) || 1;
+      st.settings.quizRewardWater = parseInt(document.getElementById('setting-quiz-water').value) || 1;
       Storage.save(st);
       Sound.click();
       App.showToast('Settings saved!');
@@ -3509,7 +3861,7 @@ var Parent = (function() {
       '<div class="progress-stat"><div class="stat-value">' + formatMoney(state.wallet.balance) + '</div><div class="stat-label">Balance</div></div>' +
       '<div class="progress-stat"><div class="stat-value">' + state.stats.totalAnimalsRaised + '</div><div class="stat-label">Raised</div></div>' +
       '<div class="progress-stat"><div class="stat-value">' + state.stats.totalQuizzesTaken + '</div><div class="stat-label">Quizzes</div></div>' +
-      '<div class="progress-stat"><div class="stat-value">' + choresDone + '/4</div><div class="stat-label">Chores Today</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">' + choresDone + '/' + state.tasks.chores.length + '</div><div class="stat-label">Chores Today</div></div>' +
       '<div class="progress-stat"><div class="stat-value">Lvl ' + state.quizDifficulty + '</div><div class="stat-label">Quiz Level</div></div>' +
       '</div>';
   }
@@ -3578,6 +3930,7 @@ const App = (() => {
       case 'wallet': Wallet.render(); break;
       case 'breeding': Breeding.render(); break;
       case 'parent': Parent.render(); break;
+      case 'leaderboard': renderLeaderboard('total'); break;
     }
   }
 
@@ -3646,10 +3999,13 @@ const App = (() => {
 
     state.dailyState = {
       lastDate: today,
-      tasksCompleted: [false, false, false, false],
-      quizCompleted: false,
+      tasksCompleted: new Array(state.tasks.chores.length).fill(false),
+      quizMathCompleted: false,
+      quizEncyclopediaCompleted: false,
       foodEarned: 0,
       waterEarned: 0,
+      taskRewardsEarned: 0,
+      quizRewardEarned: false,
       parentVoteDone: false
     };
 
@@ -3924,8 +4280,107 @@ const App = (() => {
     });
   }
 
+  function trackLogin() {
+    try {
+      var usage = JSON.parse(localStorage.getItem('piggybank_usage') || '{}');
+      var accId = currentAccountId;
+      if (!accId) return;
+      var accounts = Storage.loadAccounts();
+      var acc = accounts.find(function(a) { return a.id === accId; });
+      var name = acc ? acc.name : accId;
+      var now = new Date().toISOString();
+      var today = todayString();
+
+      if (!usage[accId]) {
+        usage[accId] = { name: name, totalLogins: 0, loginTimestamps: [], daysActive: [], lastLogin: null };
+      }
+      var u = usage[accId];
+      u.name = name;
+      u.totalLogins++;
+      u.loginTimestamps.push(now);
+      if (u.loginTimestamps.length > 100) u.loginTimestamps = u.loginTimestamps.slice(-100);
+      if (u.daysActive.indexOf(today) === -1) u.daysActive.push(today);
+      u.lastLogin = now;
+      localStorage.setItem('piggybank_usage', JSON.stringify(usage));
+    } catch (e) {
+      console.error('Usage tracking error:', e);
+    }
+  }
+
+  function renderLeaderboard(sortBy) {
+    sortBy = sortBy || 'total';
+    var accounts = Storage.loadAccounts();
+    var entries = [];
+
+    accounts.forEach(function(acc) {
+      try {
+        var raw = localStorage.getItem('piggybank_save_' + acc.id);
+        if (!raw) return;
+        var state = JSON.parse(raw);
+        var bank = state.wallet ? state.wallet.balance : 0;
+        var animalValue = 0;
+        if (state.animals) {
+          state.animals.forEach(function(a) {
+            if (!a.alive) return;
+            var buyPrice = (state.settings && state.settings.buyBabyPrice) || 500;
+            var sellPrice = (state.settings && state.settings.sellAdultPrice) || 1000;
+            var maxH = HEARTS.maxHearts;
+            var val = buyPrice + (sellPrice - buyPrice) * (a.hearts / maxH);
+            animalValue += Math.round(val);
+          });
+        }
+        entries.push({
+          name: acc.name,
+          bank: bank,
+          animals: animalValue,
+          total: bank + animalValue,
+          animalCount: state.animals ? state.animals.filter(function(a) { return a.alive; }).length : 0
+        });
+      } catch (e) {}
+    });
+
+    entries.sort(function(a, b) { return b[sortBy] - a[sortBy]; });
+
+    var container = document.getElementById('leaderboard-list');
+    if (!container) return;
+
+    // Sort toggle buttons
+    var toggleHtml = '<div class="leaderboard-sort">' +
+      '<button class="btn btn-small ' + (sortBy === 'total' ? 'btn-accent' : 'btn-secondary') + '" data-sort="total">Total</button>' +
+      '<button class="btn btn-small ' + (sortBy === 'bank' ? 'btn-accent' : 'btn-secondary') + '" data-sort="bank">Bank</button>' +
+      '<button class="btn btn-small ' + (sortBy === 'animals' ? 'btn-accent' : 'btn-secondary') + '" data-sort="animals">Animals</button>' +
+      '</div>';
+
+    var rowsHtml = entries.map(function(e, i) {
+      var rankClass = i === 0 ? 'rank-gold' : (i === 1 ? 'rank-silver' : (i === 2 ? 'rank-bronze' : ''));
+      return '<div class="leaderboard-row ' + rankClass + '">' +
+        '<span class="lb-rank">#' + (i + 1) + '</span>' +
+        '<span class="lb-name">' + e.name + '</span>' +
+        '<span class="lb-stats">' +
+          '<span class="lb-total">' + formatMoney(e.total) + '</span>' +
+          '<span class="lb-detail">Bank: ' + formatMoney(e.bank) + '</span>' +
+          '<span class="lb-detail">Animals: ' + formatMoney(e.animals) + ' (' + e.animalCount + ')</span>' +
+        '</span>' +
+      '</div>';
+    }).join('');
+
+    if (entries.length === 0) {
+      rowsHtml = '<p class="empty-msg">No players yet.</p>';
+    }
+
+    container.innerHTML = toggleHtml + rowsHtml;
+
+    container.querySelectorAll('.leaderboard-sort button').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        Sound.click();
+        renderLeaderboard(btn.dataset.sort);
+      });
+    });
+  }
+
   function startGame() {
     dailyCycle();
+    trackLogin();
     Wallet.processInterest();
     document.getElementById('bottom-nav').style.display = '';
     showScreen('stable');

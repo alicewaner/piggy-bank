@@ -573,6 +573,8 @@ body {
 .task-footer { text-align: center; }
 .task-rewards { font-size: 0.65rem; color: var(--xp-green); text-shadow: 1px 1px 0 #000; }
 .progress-text { margin-top: 8px; font-size: 0.65rem; color: var(--stone-light); text-shadow: 1px 1px 0 #000; }
+.quiz-buttons { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+.quiz-buttons .btn { flex: 1; }
 
 /* ---- Quiz ---- */
 .quiz-info { display: flex; gap: 12px; font-size: 0.7rem; color: var(--gold); }
@@ -1032,6 +1034,76 @@ body {
 .category-add-row .chore-input {
   flex: 1;
 }
+
+/* ---- Chore Editor ---- */
+.chore-edit-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.chore-edit-row .chore-input { flex: 1; }
+.chore-add-row { margin-top: 8px; }
+
+/* ---- Leaderboard ---- */
+.leaderboard-sort {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  margin-bottom: 4px;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.lb-rank {
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: center;
+}
+.lb-name {
+  flex: 1;
+  font-size: 0.8rem;
+}
+.lb-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.lb-total {
+  font-size: 0.85rem;
+  color: var(--emerald);
+  font-weight: 700;
+}
+.lb-detail {
+  font-size: 0.55rem;
+  color: var(--stone-light);
+}
+.rank-gold {
+  border-color: #B8860B #8B6508 #8B6508 #B8860B;
+  box-shadow: inset 0 0 10px rgba(252,219,5,0.15);
+}
+.rank-gold .lb-rank { color: var(--gold); }
+.rank-silver {
+  border-color: #A0A0A0 #707070 #707070 #A0A0A0;
+  box-shadow: inset 0 0 10px rgba(192,192,192,0.15);
+}
+.rank-silver .lb-rank { color: #C0C0C0; }
+.rank-bronze {
+  border-color: #CD7F32 #8B5A2B #8B5A2B #CD7F32;
+  box-shadow: inset 0 0 10px rgba(205,127,50,0.15);
+}
+.rank-bronze .lb-rank { color: #CD7F32; }
 
 /* ---- Animations ---- */
 @keyframes pulse {
