@@ -1,0 +1,3075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f8b4c8">
+  <title>Piggy Bank</title>
+    <style>
+/* ============================================================
+   style.css — Minecraft-inspired UI
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
+
+:root {
+  --dirt: #8B6914;
+  --dirt-dark: #6B4F0E;
+  --grass: #5B8C2A;
+  --grass-dark: #3D6B1C;
+  --stone: #7F7F7F;
+  --stone-light: #A0A0A0;
+  --stone-dark: #555;
+  --wood: #BC8F5A;
+  --wood-dark: #8B6B3E;
+  --obsidian: #1A1A2E;
+  --inventory-bg: #C6C6C6;
+  --inventory-slot: #8B8B8B;
+  --slot-border-light: #FFF;
+  --slot-border-dark: #373737;
+  --text: #3F3F3F;
+  --text-white: #FCFCFC;
+  --text-shadow: #3F3F3F;
+  --red-heart: #E24B4B;
+  --gold: #FCDB05;
+  --emerald: #41CD34;
+  --diamond: #5CDBD5;
+  --xp-green: #80FF20;
+  --bg: #2C2C2C;
+  --radius: 0px; /* Minecraft = no rounded corners */
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Silkscreen', monospace, sans-serif;
+  background: var(--bg);
+  color: var(--text-white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Dirt background pattern */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0px, transparent 2px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0px, transparent 2px);
+  background-size: 8px 8px;
+  background-color: #3B3B3B;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ---- Minecraft Panel Style ---- */
+.mc-panel {
+  background: var(--inventory-bg);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  padding: 8px;
+  color: var(--text);
+}
+
+.mc-slot {
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 8px;
+}
+
+/* ---- Screens ---- */
+.screen {
+  display: none;
+  padding: 12px;
+  padding-bottom: 90px;
+  min-height: 100vh;
+}
+.screen.active { display: block; }
+
+.screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: var(--obsidian);
+  border: 2px solid var(--stone);
+  color: var(--text-white);
+  text-shadow: 2px 2px 0 #000;
+}
+.screen-header h2 {
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+/* ---- Welcome / Login ---- */
+#screen-welcome.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background:
+    linear-gradient(180deg, #78B9E2 0%, #78B9E2 55%, #5B8C2A 55%, #5B8C2A 58%, #8B6914 58%, #6B4F0E 100%);
+}
+
+.welcome-content {
+  padding: 16px;
+  width: 100%;
+  max-width: 360px;
+  background: rgba(0,0,0,0.7);
+  border: 3px solid var(--stone);
+  padding: 24px 20px;
+}
+
+.welcome-mascot {
+  margin-bottom: 12px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.game-title {
+  font-size: 2rem;
+  color: var(--gold);
+  text-shadow: 3px 3px 0 #3F3F00, -1px -1px 0 #3F3F00;
+  margin-bottom: 4px;
+  letter-spacing: 2px;
+}
+
+.game-subtitle {
+  font-size: 0.75rem;
+  color: var(--stone-light);
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+
+.login-form {
+  margin-bottom: 16px;
+  text-align: left;
+}
+.login-form label {
+  display: block;
+  font-size: 0.7rem;
+  margin-bottom: 4px;
+  margin-top: 8px;
+  color: var(--stone-light);
+  text-shadow: 1px 1px 0 #000;
+}
+.login-form input, .login-form select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  background: #000;
+  color: var(--text-white);
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.8rem;
+}
+
+/* ---- Minecraft Buttons ---- */
+.btn {
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Silkscreen', monospace;
+  display: inline-block;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+  letter-spacing: 1px;
+  transition: none;
+  image-rendering: pixelated;
+}
+.btn:active {
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--stone);
+  color: var(--text-white);
+}
+.btn-primary:hover { background: #9A9A9A; }
+.btn-secondary {
+  background: var(--inventory-slot);
+  color: var(--text-white);
+}
+.btn-accent {
+  background: var(--grass);
+  color: var(--text-white);
+}
+.btn-accent:hover { background: #6BA030; }
+.btn-danger {
+  background: #8B2020;
+  color: var(--text-white);
+}
+.btn-action {
+  background: #2D5A9E;
+  color: var(--text-white);
+}
+
+.btn-large {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  display: block;
+  width: 100%;
+  margin: 6px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-small {
+  padding: 4px 10px;
+  font-size: 0.7rem;
+}
+
+/* ---- Bottom Nav (Minecraft Hotbar) ---- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  background: var(--inventory-bg);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  border-bottom: none;
+  z-index: 100;
+  padding: 4px;
+  gap: 4px;
+  padding-bottom: env(safe-area-inset-bottom, 4px);
+}
+
+.nav-btn {
+  flex: 1;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 6px 2px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  font-family: 'Silkscreen', monospace;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.nav-btn.active {
+  background: var(--stone-dark);
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  color: var(--gold);
+}
+.nav-icon { font-size: 1.6rem; margin-bottom: 1px; }
+.nav-label { font-size: 0.55rem; font-weight: 700; letter-spacing: 0.5px; }
+
+/* ---- Resource Bar ---- */
+.resource-bar {
+  display: flex;
+  gap: 8px;
+}
+.resource {
+  background: var(--obsidian);
+  color: var(--xp-green);
+  padding: 3px 8px;
+  border: 1px solid var(--stone);
+  font-size: 0.65rem;
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* ---- Pixel Art ---- */
+.pixel-art {
+  width: 1px;
+  height: 1px;
+  image-rendering: pixelated;
+  display: block;
+  margin: 0 auto;
+  zoom: 9;
+}
+
+.sprite-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  min-height: 120px;
+}
+
+.idle-bounce {
+  animation: bounce 2s ease-in-out infinite;
+}
+@keyframes bounce {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -4px; }
+}
+
+.welcome-mascot .pixel-art { zoom: 12; }
+.animal-card .sprite-wrap { min-height: 120px; }
+.animal-card .pixel-art { zoom: 8; }
+.market-item .sprite-wrap { min-height: 100px; }
+.market-item .pixel-art { zoom: 6; }
+.modal-animal-art .pixel-art { zoom: 10; }
+.breed-slot .pixel-art { zoom: 5; }
+.breed-option .pixel-art { zoom: 4; }
+.parent-animal-row .pixel-art { zoom: 3; }
+
+/* ---- Animal Grid (Inventory Style) ---- */
+.animal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 6px;
+}
+
+.animal-card {
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.animal-card:active {
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  background: var(--stone-dark);
+}
+.adult-card {
+  border-color: #B8860B #8B6508 #8B6508 #B8860B;
+  box-shadow: inset 0 0 8px rgba(252,219,5,0.2);
+}
+
+.animal-info { margin-top: 6px; }
+.animal-name {
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+  color: var(--gold);
+}
+
+/* Minecraft-style heart bar */
+.heart-bar {
+  background: #222;
+  border: 1px solid #000;
+  height: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.heart-fill {
+  background: linear-gradient(180deg, var(--red-heart) 0%, #B03030 100%);
+  height: 100%;
+  transition: width 0.4s ease;
+}
+.heart-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.5rem;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+
+.animal-status {
+  margin-top: 4px;
+  font-size: 0.55rem;
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+}
+.status-fed, .status-watered {
+  background: var(--grass-dark);
+  color: var(--text-white);
+  padding: 1px 5px;
+  border: 1px solid var(--grass);
+  font-size: 0.5rem;
+}
+.bred-badge {
+  background: #6A2CA0;
+  color: var(--text-white);
+  padding: 1px 5px;
+  border: 1px solid #9B59B6;
+  font-size: 0.5rem;
+}
+
+.empty-stable {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--stone-light);
+  grid-column: 1 / -1;
+  font-size: 0.8rem;
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* ---- Market ---- */
+.balance-display {
+  background: var(--obsidian);
+  color: var(--emerald);
+  padding: 4px 10px;
+  border: 1px solid var(--emerald);
+  font-size: 0.75rem;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.market-section { margin-bottom: 16px; }
+.market-section h3 {
+  margin-bottom: 8px;
+  font-size: 0.75rem;
+  color: var(--gold);
+  text-shadow: 1px 1px 0 #000;
+}
+
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px;
+}
+
+.market-item {
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 8px;
+  text-align: center;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.market-item-name { font-size: 0.7rem; margin: 4px 0 2px; }
+.market-item-price { color: var(--emerald); font-size: 0.7rem; margin-bottom: 6px; }
+
+.empty-msg {
+  color: var(--stone-light);
+  font-style: normal;
+  padding: 12px;
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 0.7rem;
+}
+
+/* ---- Tasks ---- */
+.tasks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.task-done { opacity: 0.5; }
+.task-done .task-text { text-decoration: line-through; color: var(--stone-light); }
+
+.task-check { width: 20px; height: 20px; accent-color: var(--emerald); }
+.task-text { font-size: 0.75rem; flex: 1; }
+.task-footer { text-align: center; }
+.task-rewards { font-size: 0.65rem; color: var(--xp-green); text-shadow: 1px 1px 0 #000; }
+.progress-text { margin-top: 8px; font-size: 0.65rem; color: var(--stone-light); text-shadow: 1px 1px 0 #000; }
+
+/* ---- Quiz ---- */
+.quiz-info { display: flex; gap: 12px; font-size: 0.7rem; color: var(--gold); }
+.quiz-container { max-width: 400px; margin: 0 auto; text-align: center; }
+.quiz-question {
+  font-size: 0.9rem;
+  margin: 20px 0;
+  min-height: 50px;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.quiz-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+
+.quiz-btn {
+  padding: 10px 8px;
+  background: var(--stone);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  font-size: 0.75rem;
+  font-family: 'Silkscreen', monospace;
+  cursor: pointer;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+}
+.quiz-btn:active {
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+}
+.quiz-btn:disabled { cursor: not-allowed; }
+.correct-answer {
+  background: var(--grass) !important;
+  color: var(--text-white) !important;
+}
+.wrong-answer {
+  background: #8B2020 !important;
+  color: var(--text-white) !important;
+}
+
+.quiz-feedback { font-size: 0.85rem; min-height: 24px; text-shadow: 1px 1px 0 #000; }
+.feedback-correct { color: var(--emerald); }
+.feedback-wrong { color: var(--red-heart); }
+
+/* ---- Breeding ---- */
+.breeding-container { text-align: center; }
+.breeding-slots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.breed-slot {
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  padding: 16px;
+  width: 130px;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-white);
+  text-shadow: 1px 1px 0 #000;
+  font-size: 0.7rem;
+}
+.breed-heart { font-size: 1.5rem; color: var(--red-heart); }
+.breeding-status { margin: 12px 0; font-size: 0.7rem; color: var(--stone-light); text-shadow: 1px 1px 0 #000; }
+.breeding-active { color: var(--diamond); animation: pulse 1.5s infinite; }
+.breed-select-list { margin-top: 12px; text-align: left; }
+.breed-select-list h4 { margin-bottom: 6px; font-size: 0.75rem; color: var(--gold); text-shadow: 1px 1px 0 #000; }
+.breed-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  margin-bottom: 4px;
+  cursor: pointer;
+  color: var(--text-white);
+  font-size: 0.7rem;
+  min-height: 44px;
+}
+
+/* ---- Wallet / Bank ---- */
+.wallet-container { text-align: center; }
+.wallet-balance {
+  font-size: 2rem;
+  color: var(--emerald);
+  text-shadow: 3px 3px 0 #1A5C10;
+  margin: 12px 0;
+  letter-spacing: 2px;
+}
+.wallet-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.wallet-input-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+.wallet-input-row input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  background: #000;
+  color: var(--text-white);
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.7rem;
+}
+.wallet-input-row .amount-input { max-width: 80px; }
+
+.transaction-list { text-align: left; max-height: 50vh; overflow-y: auto; }
+.transaction {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--inventory-slot);
+  border: 1px solid var(--slot-border-dark);
+  margin-bottom: 3px;
+  color: var(--text-white);
+  font-size: 0.65rem;
+}
+.tx-desc { flex: 1; }
+.tx-amount { margin-left: 6px; }
+.tx-date { width: 100%; font-size: 0.5rem; color: var(--stone-light); margin-top: 2px; }
+.tx-deposit .tx-amount { color: var(--emerald); }
+.tx-withdraw .tx-amount { color: var(--red-heart); }
+
+/* ---- Parent Mode ---- */
+.parent-section {
+  background: var(--inventory-bg);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  padding: 12px;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.parent-section h3 { margin-bottom: 8px; font-size: 0.8rem; color: var(--dirt-dark); }
+
+.pin-input {
+  padding: 8px;
+  font-size: 1rem;
+  text-align: center;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  background: #000;
+  color: var(--text-white);
+  font-family: 'Silkscreen', monospace;
+  width: 140px;
+  display: block;
+  margin: 0 auto 8px;
+  letter-spacing: 6px;
+}
+.error-text { color: var(--red-heart); text-align: center; font-size: 0.7rem; }
+.chore-edit-row { margin-bottom: 6px; }
+.chore-edit-row label { display: block; font-size: 0.6rem; color: var(--stone-dark); margin-bottom: 2px; }
+.chore-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  background: #000;
+  color: var(--text-white);
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.7rem;
+}
+
+.parent-animal-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--inventory-slot);
+  min-height: 40px;
+  font-size: 0.7rem;
+}
+.parent-animal-row span { flex: 1; }
+
+.progress-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.progress-stat {
+  text-align: center;
+  padding: 8px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+}
+.stat-value { font-size: 1rem; color: var(--gold); }
+.stat-label { font-size: 0.5rem; color: var(--stone-dark); }
+
+/* ---- More Menu ---- */
+.more-menu { display: flex; flex-direction: column; gap: 6px; }
+.more-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--stone);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: 'Silkscreen', monospace;
+  color: var(--text-white);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+  text-align: left;
+  width: 100%;
+}
+.more-item:active {
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+}
+.more-icon { font-size: 1.8rem; }
+
+/* ---- Modal (Crafting Table Style) ---- */
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: var(--inventory-bg);
+  border: 3px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  padding: 16px;
+  width: 92%;
+  max-width: 360px;
+  text-align: center;
+  position: relative;
+  max-height: 85vh;
+  overflow-y: auto;
+  color: var(--text);
+}
+
+.modal-close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: var(--stone);
+  border: 2px solid;
+  border-color: var(--slot-border-light) var(--slot-border-dark) var(--slot-border-dark) var(--slot-border-light);
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-white);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Silkscreen', monospace;
+}
+
+.modal-animal-art {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  background: var(--inventory-slot);
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+}
+
+.modal-animal-name { font-size: 1rem; color: var(--dirt-dark); margin-bottom: 6px; }
+.name-input {
+  padding: 6px 10px;
+  border: 2px solid;
+  border-color: var(--slot-border-dark) var(--slot-border-light) var(--slot-border-light) var(--slot-border-dark);
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.7rem;
+  width: 70%;
+  text-align: center;
+  margin-bottom: 4px;
+  background: #000;
+  color: var(--text-white);
+}
+
+.modal-hearts { margin: 8px 0; }
+.heart { font-size: 1rem; display: inline-block; margin: 1px; }
+.heart-full { color: var(--red-heart); }
+.heart-empty { color: var(--inventory-slot); }
+.hearts-today { font-size: 0.55rem; color: var(--stone-dark); margin-top: 4px; }
+.modal-stage { font-size: 0.65rem; color: var(--stone-dark); margin-bottom: 8px; }
+.modal-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 6px; }
+.modal-status { margin-top: 6px; }
+.warning { color: #C84040; font-size: 0.7rem; }
+
+/* ---- Toast (Advancement Style) ---- */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-60px);
+  background: #21003D;
+  border: 2px solid #A020F0;
+  color: var(--gold);
+  padding: 8px 16px;
+  font-size: 0.7rem;
+  font-family: 'Silkscreen', monospace;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 300;
+  pointer-events: none;
+  text-align: center;
+  max-width: 90%;
+  text-shadow: 1px 1px 0 #000;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---- Settings Editor ---- */
+.settings-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.settings-editor label {
+  font-size: 0.75rem;
+  color: var(--gold);
+  margin-top: 4px;
+}
+.setting-input {
+  width: 100%;
+  padding: 8px;
+  font-family: 'Silkscreen', monospace;
+  font-size: 0.85rem;
+  background: var(--obsidian);
+  color: #fff;
+  border: 2px solid var(--stone-dark);
+  box-sizing: border-box;
+}
+
+/* ---- Interest Info ---- */
+.interest-info {
+  font-size: 0.75rem;
+  color: var(--emerald);
+  text-align: center;
+  margin: 4px 0 8px;
+}
+
+/* ---- Parent Animal Hearts ---- */
+.parent-animal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--obsidian);
+  border: 2px solid var(--stone-dark);
+  margin-bottom: 6px;
+}
+.parent-animal-row span {
+  flex: 1;
+  font-size: 0.75rem;
+}
+.parent-animal-row .btn {
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
+/* ---- Animations ---- */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ============================================================
+   animals.css — CSS pixel art for 5 animals (baby + adult)
+   Each uses box-shadow on a 1px element, 16x16 grid
+   Colors: Minecraft-like blocky palette
+   ============================================================ */
+
+/* ---- PIG BABY ---- */
+.pig-baby {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* ears */
+    5px 2px #e8a0b0, 10px 2px #e8a0b0,
+    /* head top */
+    6px 3px #f4b8c4, 7px 3px #f4b8c4, 8px 3px #f4b8c4, 9px 3px #f4b8c4,
+    /* head */
+    5px 4px #f4b8c4, 6px 4px #fcc8d4, 7px 4px #fcc8d4, 8px 4px #fcc8d4, 9px 4px #fcc8d4, 10px 4px #f4b8c4,
+    5px 5px #f4b8c4, 6px 5px #fcc8d4, 7px 5px #3d2020, 8px 5px #fcc8d4, 9px 5px #3d2020, 10px 5px #fcc8d4,
+    /* snout row */
+    5px 6px #f4b8c4, 6px 6px #fcc8d4, 7px 6px #e8a0b0, 8px 6px #e8a0b0, 9px 6px #fcc8d4, 10px 6px #f4b8c4,
+    6px 7px #f4b8c4, 7px 7px #fcc8d4, 8px 7px #fcc8d4, 9px 7px #f4b8c4,
+    /* body */
+    5px 8px #f4b8c4, 6px 8px #fcc8d4, 7px 8px #fcc8d4, 8px 8px #fcc8d4, 9px 8px #fcc8d4, 10px 8px #f4b8c4,
+    5px 9px #f4b8c4, 6px 9px #fcc8d4, 7px 9px #fcc8d4, 8px 9px #fcc8d4, 9px 9px #fcc8d4, 10px 9px #f4b8c4,
+    5px 10px #e8a0b0, 6px 10px #f4b8c4, 7px 10px #f4b8c4, 8px 10px #f4b8c4, 9px 10px #f4b8c4, 10px 10px #e8a0b0,
+    /* legs */
+    5px 11px #e8a0b0, 6px 11px #e8a0b0, 9px 11px #e8a0b0, 10px 11px #e8a0b0;
+}
+
+/* ---- PIG ADULT ---- */
+.pig-adult {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* ears */
+    4px 1px #d4708a, 11px 1px #d4708a,
+    4px 2px #e8a0b0, 11px 2px #e8a0b0,
+    /* head */
+    5px 2px #f4b8c4, 6px 2px #f4b8c4, 7px 2px #f4b8c4, 8px 2px #f4b8c4, 9px 2px #f4b8c4, 10px 2px #f4b8c4,
+    4px 3px #f4b8c4, 5px 3px #fcc8d4, 6px 3px #fcc8d4, 7px 3px #fcc8d4, 8px 3px #fcc8d4, 9px 3px #fcc8d4, 10px 3px #fcc8d4, 11px 3px #f4b8c4,
+    4px 4px #f4b8c4, 5px 4px #fcc8d4, 6px 4px #3d2020, 7px 4px #fcc8d4, 8px 4px #fcc8d4, 9px 4px #3d2020, 10px 4px #fcc8d4, 11px 4px #f4b8c4,
+    4px 5px #f4b8c4, 5px 5px #fcc8d4, 6px 5px #e8a0b0, 7px 5px #d4708a, 8px 5px #d4708a, 9px 5px #e8a0b0, 10px 5px #fcc8d4, 11px 5px #f4b8c4,
+    5px 6px #f4b8c4, 6px 6px #fcc8d4, 7px 6px #fcc8d4, 8px 6px #fcc8d4, 9px 6px #fcc8d4, 10px 6px #f4b8c4,
+    /* body */
+    3px 7px #f4b8c4, 4px 7px #fcc8d4, 5px 7px #fcc8d4, 6px 7px #fcc8d4, 7px 7px #fcc8d4, 8px 7px #fcc8d4, 9px 7px #fcc8d4, 10px 7px #fcc8d4, 11px 7px #fcc8d4, 12px 7px #f4b8c4,
+    3px 8px #f4b8c4, 4px 8px #fcc8d4, 5px 8px #fcc8d4, 6px 8px #fcc8d4, 7px 8px #fcc8d4, 8px 8px #fcc8d4, 9px 8px #fcc8d4, 10px 8px #fcc8d4, 11px 8px #fcc8d4, 12px 8px #f4b8c4,
+    3px 9px #f4b8c4, 4px 9px #fcc8d4, 5px 9px #fcc8d4, 6px 9px #fcc8d4, 7px 9px #fcc8d4, 8px 9px #fcc8d4, 9px 9px #fcc8d4, 10px 9px #fcc8d4, 11px 9px #fcc8d4, 12px 9px #f4b8c4,
+    3px 10px #e8a0b0, 4px 10px #f4b8c4, 5px 10px #f4b8c4, 6px 10px #f4b8c4, 7px 10px #f4b8c4, 8px 10px #f4b8c4, 9px 10px #f4b8c4, 10px 10px #f4b8c4, 11px 10px #f4b8c4, 12px 10px #e8a0b0,
+    /* legs */
+    4px 11px #e8a0b0, 5px 11px #e8a0b0, 10px 11px #e8a0b0, 11px 11px #e8a0b0,
+    4px 12px #d4708a, 5px 12px #d4708a, 10px 12px #d4708a, 11px 12px #d4708a,
+    /* tail */
+    13px 8px #e8a0b0, 14px 7px #e8a0b0;
+}
+
+/* ---- SHEEP BABY ---- */
+.sheep-baby {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* wool top */
+    6px 2px #f0f0f0, 7px 2px #e8e8e8, 8px 2px #f0f0f0, 9px 2px #e8e8e8,
+    5px 3px #e8e8e8, 6px 3px #f5f5f5, 7px 3px #f0f0f0, 8px 3px #f5f5f5, 9px 3px #f0f0f0, 10px 3px #e8e8e8,
+    /* face */
+    5px 4px #e8e8e8, 6px 4px #d4c8b0, 7px 4px #d4c8b0, 8px 4px #d4c8b0, 9px 4px #d4c8b0, 10px 4px #e8e8e8,
+    5px 5px #f0f0f0, 6px 5px #d4c8b0, 7px 5px #3d2020, 8px 5px #d4c8b0, 9px 5px #3d2020, 10px 5px #f0f0f0,
+    6px 6px #d4c8b0, 7px 6px #d4c8b0, 8px 6px #d4c8b0, 9px 6px #d4c8b0,
+    /* wool body */
+    5px 7px #e8e8e8, 6px 7px #f5f5f5, 7px 7px #f0f0f0, 8px 7px #f5f5f5, 9px 7px #f0f0f0, 10px 7px #e8e8e8,
+    5px 8px #f0f0f0, 6px 8px #f0f0f0, 7px 8px #f5f5f5, 8px 8px #f0f0f0, 9px 8px #f5f5f5, 10px 8px #f0f0f0,
+    5px 9px #e8e8e8, 6px 9px #f5f5f5, 7px 9px #f0f0f0, 8px 9px #f5f5f5, 9px 9px #f0f0f0, 10px 9px #e8e8e8,
+    /* legs */
+    6px 10px #8b7355, 7px 10px #8b7355, 8px 10px #8b7355, 9px 10px #8b7355,
+    6px 11px #6b5540, 9px 11px #6b5540;
+}
+
+/* ---- SHEEP ADULT ---- */
+.sheep-adult {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* wool top */
+    5px 1px #f0f0f0, 6px 1px #e8e8e8, 7px 1px #f0f0f0, 8px 1px #e8e8e8, 9px 1px #f0f0f0, 10px 1px #e8e8e8,
+    4px 2px #e8e8e8, 5px 2px #f5f5f5, 6px 2px #f0f0f0, 7px 2px #f5f5f5, 8px 2px #f0f0f0, 9px 2px #f5f5f5, 10px 2px #f0f0f0, 11px 2px #e8e8e8,
+    /* face */
+    4px 3px #e8e8e8, 5px 3px #d4c8b0, 6px 3px #d4c8b0, 7px 3px #d4c8b0, 8px 3px #d4c8b0, 9px 3px #d4c8b0, 10px 3px #d4c8b0, 11px 3px #e8e8e8,
+    4px 4px #f0f0f0, 5px 4px #d4c8b0, 6px 4px #3d2020, 7px 4px #d4c8b0, 8px 4px #d4c8b0, 9px 4px #3d2020, 10px 4px #d4c8b0, 11px 4px #f0f0f0,
+    5px 5px #d4c8b0, 6px 5px #d4c8b0, 7px 5px #d4c8b0, 8px 5px #d4c8b0, 9px 5px #d4c8b0, 10px 5px #d4c8b0,
+    /* body */
+    3px 6px #e8e8e8, 4px 6px #f5f5f5, 5px 6px #f0f0f0, 6px 6px #f5f5f5, 7px 6px #f0f0f0, 8px 6px #f5f5f5, 9px 6px #f0f0f0, 10px 6px #f5f5f5, 11px 6px #f0f0f0, 12px 6px #e8e8e8,
+    3px 7px #f0f0f0, 4px 7px #f0f0f0, 5px 7px #f5f5f5, 6px 7px #f0f0f0, 7px 7px #f5f5f5, 8px 7px #f0f0f0, 9px 7px #f5f5f5, 10px 7px #f0f0f0, 11px 7px #f5f5f5, 12px 7px #f0f0f0,
+    3px 8px #e8e8e8, 4px 8px #f5f5f5, 5px 8px #f0f0f0, 6px 8px #f5f5f5, 7px 8px #f0f0f0, 8px 8px #f5f5f5, 9px 8px #f0f0f0, 10px 8px #f5f5f5, 11px 8px #f0f0f0, 12px 8px #e8e8e8,
+    3px 9px #e0e0e0, 4px 9px #e8e8e8, 5px 9px #f0f0f0, 6px 9px #e8e8e8, 7px 9px #f0f0f0, 8px 9px #e8e8e8, 9px 9px #f0f0f0, 10px 9px #e8e8e8, 11px 9px #f0f0f0, 12px 9px #e0e0e0,
+    /* legs */
+    4px 10px #8b7355, 5px 10px #8b7355, 10px 10px #8b7355, 11px 10px #8b7355,
+    4px 11px #6b5540, 5px 11px #6b5540, 10px 11px #6b5540, 11px 11px #6b5540;
+}
+
+/* ---- CAT BABY ---- */
+.cat-baby {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* ears */
+    5px 2px #e8a050, 10px 2px #e8a050,
+    5px 3px #f0b060, 6px 3px #e8a050, 9px 3px #e8a050, 10px 3px #f0b060,
+    /* head */
+    6px 3px #f0b060, 7px 3px #f4c070, 8px 3px #f4c070, 9px 3px #f0b060,
+    5px 4px #f0b060, 6px 4px #f4c070, 7px 4px #f4c070, 8px 4px #f4c070, 9px 4px #f4c070, 10px 4px #f0b060,
+    5px 5px #f0b060, 6px 5px #40a840, 7px 5px #f4c070, 8px 5px #f4c070, 9px 5px #40a840, 10px 5px #f0b060,
+    6px 6px #f0b060, 7px 6px #e89040, 8px 6px #f0b060, 9px 6px #f0b060,
+    /* body */
+    5px 7px #f0b060, 6px 7px #f4c070, 7px 7px #f4c070, 8px 7px #f4c070, 9px 7px #f4c070, 10px 7px #f0b060,
+    5px 8px #f0b060, 6px 8px #f4c070, 7px 8px #fff8e0, 8px 8px #fff8e0, 9px 8px #f4c070, 10px 8px #f0b060,
+    5px 9px #e8a050, 6px 9px #f0b060, 7px 9px #f0b060, 8px 9px #f0b060, 9px 9px #f0b060, 10px 9px #e8a050,
+    /* legs + tail */
+    6px 10px #e8a050, 7px 10px #e8a050, 8px 10px #e8a050, 9px 10px #e8a050,
+    11px 8px #e8a050, 12px 7px #e8a050;
+}
+
+/* ---- CAT ADULT ---- */
+.cat-adult {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* ears */
+    4px 1px #d88030, 11px 1px #d88030,
+    4px 2px #e8a050, 5px 2px #d88030, 10px 2px #d88030, 11px 2px #e8a050,
+    /* head */
+    5px 2px #f0b060, 6px 2px #f4c070, 7px 2px #f4c070, 8px 2px #f4c070, 9px 2px #f4c070, 10px 2px #f0b060,
+    4px 3px #f0b060, 5px 3px #f4c070, 6px 3px #f4c070, 7px 3px #f4c070, 8px 3px #f4c070, 9px 3px #f4c070, 10px 3px #f4c070, 11px 3px #f0b060,
+    4px 4px #f0b060, 5px 4px #f4c070, 6px 4px #40a840, 7px 4px #f4c070, 8px 4px #f4c070, 9px 4px #40a840, 10px 4px #f4c070, 11px 4px #f0b060,
+    5px 5px #f0b060, 6px 5px #f4c070, 7px 5px #e89040, 8px 5px #e89040, 9px 5px #f4c070, 10px 5px #f0b060,
+    6px 6px #f0b060, 7px 6px #f0b060, 8px 6px #f0b060, 9px 6px #f0b060,
+    /* body */
+    3px 7px #f0b060, 4px 7px #f4c070, 5px 7px #f4c070, 6px 7px #f4c070, 7px 7px #f4c070, 8px 7px #f4c070, 9px 7px #f4c070, 10px 7px #f4c070, 11px 7px #f4c070, 12px 7px #f0b060,
+    3px 8px #f0b060, 4px 8px #f4c070, 5px 8px #f4c070, 6px 8px #fff8e0, 7px 8px #fff8e0, 8px 8px #fff8e0, 9px 8px #fff8e0, 10px 8px #f4c070, 11px 8px #f4c070, 12px 8px #f0b060,
+    3px 9px #e8a050, 4px 9px #f0b060, 5px 9px #f0b060, 6px 9px #f4c070, 7px 9px #f4c070, 8px 9px #f4c070, 9px 9px #f4c070, 10px 9px #f0b060, 11px 9px #f0b060, 12px 9px #e8a050,
+    /* legs + tail */
+    4px 10px #e8a050, 5px 10px #e8a050, 10px 10px #e8a050, 11px 10px #e8a050,
+    4px 11px #d88030, 5px 11px #d88030, 10px 11px #d88030, 11px 11px #d88030,
+    13px 7px #e8a050, 14px 6px #e8a050, 14px 5px #d88030;
+}
+
+/* ---- DOG BABY ---- */
+.dog-baby {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* ears */
+    4px 3px #8b5a2b, 5px 3px #8b5a2b, 10px 3px #8b5a2b, 11px 3px #8b5a2b,
+    4px 4px #a0703c, 5px 4px #a0703c, 10px 4px #a0703c, 11px 4px #a0703c,
+    /* head */
+    6px 3px #c49458, 7px 3px #c49458, 8px 3px #c49458, 9px 3px #c49458,
+    5px 4px #c49458, 6px 4px #d4a868, 7px 4px #d4a868, 8px 4px #d4a868, 9px 4px #d4a868, 10px 4px #c49458,
+    5px 5px #c49458, 6px 5px #3d2020, 7px 5px #d4a868, 8px 5px #d4a868, 9px 5px #3d2020, 10px 5px #c49458,
+    6px 6px #d4a868, 7px 6px #3d2020, 8px 6px #d4a868, 9px 6px #d4a868,
+    /* body */
+    5px 7px #c49458, 6px 7px #d4a868, 7px 7px #d4a868, 8px 7px #d4a868, 9px 7px #d4a868, 10px 7px #c49458,
+    5px 8px #c49458, 6px 8px #d4a868, 7px 8px #e8c898, 8px 8px #e8c898, 9px 8px #d4a868, 10px 8px #c49458,
+    5px 9px #a0703c, 6px 9px #c49458, 7px 9px #c49458, 8px 9px #c49458, 9px 9px #c49458, 10px 9px #a0703c,
+    /* legs + tail */
+    6px 10px #a0703c, 7px 10px #a0703c, 8px 10px #a0703c, 9px 10px #a0703c,
+    11px 8px #a0703c, 12px 7px #a0703c;
+}
+
+/* ---- DOG ADULT ---- */
+.dog-adult {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* ears */
+    3px 2px #6b3a1b, 4px 2px #8b5a2b, 11px 2px #8b5a2b, 12px 2px #6b3a1b,
+    3px 3px #8b5a2b, 4px 3px #a0703c, 11px 3px #a0703c, 12px 3px #8b5a2b,
+    /* head */
+    5px 2px #c49458, 6px 2px #c49458, 7px 2px #c49458, 8px 2px #c49458, 9px 2px #c49458, 10px 2px #c49458,
+    4px 3px #c49458, 5px 3px #d4a868, 6px 3px #d4a868, 7px 3px #d4a868, 8px 3px #d4a868, 9px 3px #d4a868, 10px 3px #d4a868, 11px 3px #c49458,
+    4px 4px #c49458, 5px 4px #d4a868, 6px 4px #3d2020, 7px 4px #d4a868, 8px 4px #d4a868, 9px 4px #3d2020, 10px 4px #d4a868, 11px 4px #c49458,
+    5px 5px #c49458, 6px 5px #d4a868, 7px 5px #3d2020, 8px 5px #3d2020, 9px 5px #d4a868, 10px 5px #c49458,
+    6px 6px #c49458, 7px 6px #d4a868, 8px 6px #d4a868, 9px 6px #c49458,
+    /* body */
+    3px 7px #c49458, 4px 7px #d4a868, 5px 7px #d4a868, 6px 7px #d4a868, 7px 7px #d4a868, 8px 7px #d4a868, 9px 7px #d4a868, 10px 7px #d4a868, 11px 7px #d4a868, 12px 7px #c49458,
+    3px 8px #c49458, 4px 8px #d4a868, 5px 8px #d4a868, 6px 8px #e8c898, 7px 8px #e8c898, 8px 8px #e8c898, 9px 8px #e8c898, 10px 8px #d4a868, 11px 8px #d4a868, 12px 8px #c49458,
+    3px 9px #a0703c, 4px 9px #c49458, 5px 9px #c49458, 6px 9px #d4a868, 7px 9px #d4a868, 8px 9px #d4a868, 9px 9px #d4a868, 10px 9px #c49458, 11px 9px #c49458, 12px 9px #a0703c,
+    /* legs + tail */
+    4px 10px #a0703c, 5px 10px #a0703c, 10px 10px #a0703c, 11px 10px #a0703c,
+    4px 11px #8b5a2b, 5px 11px #8b5a2b, 10px 11px #8b5a2b, 11px 11px #8b5a2b,
+    13px 7px #a0703c, 14px 6px #a0703c, 14px 5px #8b5a2b;
+}
+
+/* ---- DRAGON BABY ---- */
+.dragon-baby {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* horns */
+    5px 1px #c0392b, 10px 1px #c0392b,
+    /* head */
+    6px 2px #27ae60, 7px 2px #2ecc71, 8px 2px #2ecc71, 9px 2px #27ae60,
+    5px 3px #27ae60, 6px 3px #2ecc71, 7px 3px #2ecc71, 8px 3px #2ecc71, 9px 3px #2ecc71, 10px 3px #27ae60,
+    5px 4px #27ae60, 6px 4px #f4d35e, 7px 4px #2ecc71, 8px 4px #2ecc71, 9px 4px #f4d35e, 10px 4px #27ae60,
+    6px 5px #2ecc71, 7px 5px #e74c3c, 8px 5px #2ecc71, 9px 5px #2ecc71,
+    /* wings */
+    3px 6px #8e44ad, 4px 6px #9b59b6,
+    /* body */
+    5px 6px #27ae60, 6px 6px #2ecc71, 7px 6px #2ecc71, 8px 6px #2ecc71, 9px 6px #2ecc71, 10px 6px #27ae60,
+    5px 7px #27ae60, 6px 7px #2ecc71, 7px 7px #f4d35e, 8px 7px #f4d35e, 9px 7px #2ecc71, 10px 7px #27ae60,
+    5px 8px #1e8449, 6px 8px #27ae60, 7px 8px #27ae60, 8px 8px #27ae60, 9px 8px #27ae60, 10px 8px #1e8449,
+    /* legs + tail */
+    6px 9px #1e8449, 7px 9px #1e8449, 8px 9px #1e8449, 9px 9px #1e8449,
+    11px 7px #27ae60, 12px 6px #1e8449;
+}
+
+/* ---- DRAGON ADULT ---- */
+.dragon-adult {
+  background: transparent;
+  width: 1px; height: 1px;
+  box-shadow:
+    /* horns */
+    4px 0px #c0392b, 5px 0px #e74c3c, 10px 0px #e74c3c, 11px 0px #c0392b,
+    /* head spines */
+    7px 0px #1e8449, 8px 0px #1e8449,
+    /* head */
+    5px 1px #27ae60, 6px 1px #2ecc71, 7px 1px #2ecc71, 8px 1px #2ecc71, 9px 1px #2ecc71, 10px 1px #27ae60,
+    4px 2px #27ae60, 5px 2px #2ecc71, 6px 2px #2ecc71, 7px 2px #2ecc71, 8px 2px #2ecc71, 9px 2px #2ecc71, 10px 2px #2ecc71, 11px 2px #27ae60,
+    4px 3px #27ae60, 5px 3px #2ecc71, 6px 3px #f4d35e, 7px 3px #2ecc71, 8px 3px #2ecc71, 9px 3px #f4d35e, 10px 3px #2ecc71, 11px 3px #27ae60,
+    5px 4px #27ae60, 6px 4px #2ecc71, 7px 4px #e74c3c, 8px 4px #e74c3c, 9px 4px #2ecc71, 10px 4px #27ae60,
+    6px 5px #27ae60, 7px 5px #2ecc71, 8px 5px #2ecc71, 9px 5px #27ae60,
+    /* wings */
+    1px 5px #6c3483, 2px 5px #8e44ad, 3px 5px #9b59b6,
+    1px 6px #8e44ad, 2px 6px #9b59b6, 3px 6px #9b59b6,
+    12px 5px #9b59b6, 13px 5px #8e44ad, 14px 5px #6c3483,
+    12px 6px #9b59b6, 13px 6px #9b59b6, 14px 6px #8e44ad,
+    /* body */
+    4px 6px #27ae60, 5px 6px #2ecc71, 6px 6px #2ecc71, 7px 6px #2ecc71, 8px 6px #2ecc71, 9px 6px #2ecc71, 10px 6px #2ecc71, 11px 6px #27ae60,
+    3px 7px #27ae60, 4px 7px #2ecc71, 5px 7px #2ecc71, 6px 7px #f4d35e, 7px 7px #f4d35e, 8px 7px #f4d35e, 9px 7px #f4d35e, 10px 7px #2ecc71, 11px 7px #2ecc71, 12px 7px #27ae60,
+    3px 8px #27ae60, 4px 8px #2ecc71, 5px 8px #2ecc71, 6px 8px #f4d35e, 7px 8px #f4d35e, 8px 8px #f4d35e, 9px 8px #f4d35e, 10px 8px #2ecc71, 11px 8px #2ecc71, 12px 8px #27ae60,
+    3px 9px #1e8449, 4px 9px #27ae60, 5px 9px #27ae60, 6px 9px #27ae60, 7px 9px #27ae60, 8px 9px #27ae60, 9px 9px #27ae60, 10px 9px #27ae60, 11px 9px #27ae60, 12px 9px #1e8449,
+    /* legs */
+    4px 10px #1e8449, 5px 10px #1e8449, 10px 10px #1e8449, 11px 10px #1e8449,
+    4px 11px #145a32, 5px 11px #145a32, 10px 11px #145a32, 11px 11px #145a32,
+    /* tail */
+    13px 8px #27ae60, 14px 7px #1e8449, 15px 7px #e74c3c;
+}
+
+</style>
+</head>
+<body>
+  <div id="app">
+
+    <!-- Welcome / Login Screen -->
+    <div id="screen-welcome" class="screen active">
+      <div class="welcome-content">
+        <div class="welcome-mascot">
+          <div class="pixel-art pig-adult idle-bounce"></div>
+        </div>
+        <h1 class="game-title">Piggy Bank</h1>
+        <p class="game-subtitle">Raise animals, earn coins, have fun!</p>
+        <div id="login-form" class="login-form">
+          <label for="player-name">Your Name</label>
+          <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+          <label for="player-age">Your Age</label>
+          <select id="player-age">
+            <option value="6">6 years old</option>
+            <option value="7">7 years old</option>
+            <option value="8" selected>8 years old</option>
+            <option value="9">9 years old</option>
+            <option value="10">10 years old</option>
+            <option value="11">11 years old</option>
+            <option value="12">12 years old</option>
+          </select>
+        </div>
+        <button id="btn-start" class="btn btn-primary btn-large">Start Playing</button>
+        <button id="btn-continue" class="btn btn-secondary btn-large" style="display:none">Continue</button>
+      </div>
+    </div>
+
+    <!-- My Stable Screen -->
+    <div id="screen-stable" class="screen">
+      <div class="screen-header">
+        <h2>My Stable</h2>
+        <div class="resource-bar">
+          <span class="resource" id="food-count">Food: 0</span>
+          <span class="resource" id="water-count">Water: 0</span>
+        </div>
+      </div>
+      <div id="stable-grid" class="animal-grid">
+        <div class="empty-stable">
+          <p>No animals yet!</p>
+          <p>Visit the Market to buy your first baby animal.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Screen -->
+    <div id="screen-market" class="screen">
+      <div class="screen-header">
+        <h2>Market</h2>
+        <div class="balance-display" id="market-balance">$0.00</div>
+      </div>
+      <div class="market-section">
+        <h3 id="buy-price-label">Buy a Baby Animal - $5.00</h3>
+        <div id="market-buy-grid" class="market-grid"></div>
+      </div>
+      <div class="market-section">
+        <h3 id="sell-price-label">Sell an Adult Animal - $10.00</h3>
+        <div id="market-sell-grid" class="market-grid">
+          <p class="empty-msg">No adult animals to sell.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Tasks Screen -->
+    <div id="screen-tasks" class="screen">
+      <div class="screen-header">
+        <h2>Daily Tasks</h2>
+        <div class="task-rewards">
+          <span id="task-reward-text">Earn: 2 Food + 2 Water</span>
+        </div>
+      </div>
+      <div id="tasks-list" class="tasks-container"></div>
+      <div class="task-footer">
+        <button id="btn-take-quiz" class="btn btn-accent">Take Quiz (counts as a task!)</button>
+        <div id="tasks-progress" class="progress-text"></div>
+      </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="screen-quiz" class="screen">
+      <div class="screen-header">
+        <h2>Quiz Time!</h2>
+        <div class="quiz-info">
+          <span id="quiz-progress">Question 1/5</span>
+          <span id="quiz-score">Score: 0</span>
+        </div>
+      </div>
+      <div class="quiz-container">
+        <div id="quiz-question" class="quiz-question"></div>
+        <div id="quiz-answers" class="quiz-answers"></div>
+        <div id="quiz-feedback" class="quiz-feedback"></div>
+      </div>
+    </div>
+
+    <!-- Bank / Wallet Screen -->
+    <div id="screen-wallet" class="screen">
+      <div class="screen-header">
+        <h2 id="bank-greeting">My Bank</h2>
+      </div>
+      <div class="wallet-container">
+        <div class="wallet-balance" id="wallet-balance">$0.00</div>
+        <div id="interest-info" class="interest-info">Interest: 5% / year</div>
+        <div class="wallet-actions">
+          <button class="btn btn-accent" id="btn-deposit">+ Deposit</button>
+          <button class="btn btn-danger" id="btn-withdraw">- Spend</button>
+        </div>
+        <div id="wallet-pin-area" style="display:none">
+          <div class="wallet-input-row">
+            <input type="password" id="wallet-pin" class="pin-input" placeholder="Parent PIN" maxlength="8">
+            <button class="btn btn-primary btn-small" id="btn-wallet-pin-ok">OK</button>
+            <button class="btn btn-secondary btn-small" id="btn-wallet-pin-cancel">Cancel</button>
+          </div>
+          <p id="wallet-pin-error" class="error-text" style="display:none">Wrong PIN.</p>
+        </div>
+        <div id="wallet-form" style="display:none">
+          <div class="wallet-input-row">
+            <input type="number" id="wallet-amount" class="amount-input" placeholder="$" min="0.01" step="0.01">
+            <input type="text" id="wallet-desc" placeholder="What for?" maxlength="30">
+            <button class="btn btn-primary btn-small" id="btn-wallet-confirm">OK</button>
+            <button class="btn btn-secondary btn-small" id="btn-wallet-cancel">X</button>
+          </div>
+        </div>
+        <h3>Transaction History</h3>
+        <div id="transaction-list" class="transaction-list">
+          <p class="empty-msg">No transactions yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Breeding Pen Screen -->
+    <div id="screen-breeding" class="screen">
+      <div class="screen-header">
+        <h2>Breeding Pen</h2>
+      </div>
+      <div class="breeding-container">
+        <div class="breeding-slots">
+          <div class="breed-slot" id="breed-slot-1">
+            <p>Select Parent 1</p>
+          </div>
+          <div class="breed-heart">+</div>
+          <div class="breed-slot" id="breed-slot-2">
+            <p>Select Parent 2</p>
+          </div>
+        </div>
+        <div id="breeding-status" class="breeding-status"></div>
+        <button id="btn-breed" class="btn btn-primary" style="display:none">Start Breeding!</button>
+        <div id="breed-select-list" class="breed-select-list"></div>
+      </div>
+    </div>
+
+    <!-- Parent Mode Screen -->
+    <div id="screen-parent" class="screen">
+      <div class="screen-header">
+        <h2>Parent Mode</h2>
+      </div>
+      <div id="parent-pin" class="parent-section">
+        <h3>Enter PIN</h3>
+        <input type="password" id="pin-input" maxlength="8" placeholder="PIN" class="pin-input">
+        <button id="btn-pin-submit" class="btn btn-primary">Enter</button>
+        <p id="pin-error" class="error-text" style="display:none">Wrong PIN. Try again.</p>
+      </div>
+      <div id="parent-dashboard" style="display:none">
+        <div class="parent-section">
+          <h3>Edit Daily Chores</h3>
+          <div id="chore-editor"></div>
+          <button id="btn-save-chores" class="btn btn-primary">Save Chores</button>
+        </div>
+        <div class="parent-section">
+          <h3>Game Settings</h3>
+          <div class="settings-editor">
+            <label>Interest Rate (% / year):</label>
+            <input type="number" id="setting-interest" class="setting-input" min="0" max="100" step="0.5">
+            <label>Buy Baby Price ($):</label>
+            <input type="number" id="setting-buy-price" class="setting-input" min="0.01" step="0.01">
+            <label>Sell Adult Price ($):</label>
+            <input type="number" id="setting-sell-price" class="setting-input" min="0.01" step="0.01">
+            <label>Task Food Reward:</label>
+            <input type="number" id="setting-food-reward" class="setting-input" min="0" max="20">
+            <label>Task Water Reward:</label>
+            <input type="number" id="setting-water-reward" class="setting-input" min="0" max="20">
+            <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
+          </div>
+        </div>
+        <div class="parent-section">
+          <h3>Happy Hearts</h3>
+          <div id="parent-animals"></div>
+        </div>
+        <div class="parent-section">
+          <h3>Child Progress</h3>
+          <div id="progress-dashboard"></div>
+        </div>
+        <div class="parent-section">
+          <h3>Change PIN</h3>
+          <input type="password" id="new-pin" maxlength="8" placeholder="New PIN" class="pin-input">
+          <button id="btn-change-pin" class="btn btn-secondary">Change PIN</button>
+        </div>
+        <div class="parent-section">
+          <button id="btn-reset-game" class="btn btn-danger">Reset Game</button>
+        </div>
+        <div class="parent-section">
+          <button id="btn-parent-logout" class="btn btn-secondary">Lock Parent Mode</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- More Menu Screen -->
+    <div id="screen-more" class="screen">
+      <div class="screen-header">
+        <h2>More</h2>
+      </div>
+      <div class="more-menu">
+        <button class="more-item" data-screen="breeding">
+          <span class="more-icon">&#x1F423;</span>
+          <span>Breeding Pen</span>
+        </button>
+        <button class="more-item" data-screen="parent">
+          <span class="more-icon">&#x1F512;</span>
+          <span>Parent Mode</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Animal Detail Modal -->
+    <div id="animal-modal" class="modal" style="display:none">
+      <div class="modal-content">
+        <button class="modal-close" id="modal-close">&times;</button>
+        <div id="modal-animal-art" class="modal-animal-art"></div>
+        <div id="modal-animal-name" class="modal-animal-name"></div>
+        <input type="text" id="modal-name-input" class="name-input" placeholder="Name your animal" maxlength="16">
+        <button id="btn-save-name" class="btn btn-small">Save Name</button>
+        <div id="modal-hearts" class="modal-hearts"></div>
+        <div id="modal-stage" class="modal-stage"></div>
+        <div class="modal-actions">
+          <button id="btn-feed" class="btn btn-action">Feed</button>
+          <button id="btn-water" class="btn btn-action">Water</button>
+        </div>
+        <div id="modal-status" class="modal-status"></div>
+        <button id="btn-modal-done" class="btn btn-primary" style="margin-top:12px;width:100%">Done</button>
+      </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Bottom Navigation: 5 tabs -->
+    <nav id="bottom-nav" class="bottom-nav" style="display:none">
+      <button class="nav-btn" data-screen="stable">
+        <span class="nav-icon">&#x1F3E0;</span>
+        <span class="nav-label">Stable</span>
+      </button>
+      <button class="nav-btn" data-screen="market">
+        <span class="nav-icon">&#x1F3EA;</span>
+        <span class="nav-label">Market</span>
+      </button>
+      <button class="nav-btn" data-screen="wallet">
+        <span class="nav-icon">&#x1F4B0;</span>
+        <span class="nav-label">Bank</span>
+      </button>
+      <button class="nav-btn" data-screen="tasks">
+        <span class="nav-icon">&#x2705;</span>
+        <span class="nav-label">Tasks</span>
+      </button>
+      <button class="nav-btn" data-screen="more">
+        <span class="nav-icon">&#x2699;</span>
+        <span class="nav-label">More</span>
+      </button>
+    </nav>
+  </div>
+
+                      <script>
+// ============================================================
+// data.js — Constants, default state, Animal class
+// ============================================================
+
+var ANIMAL_TYPES = ['pig', 'sheep', 'cat', 'dog', 'dragon'];
+
+var ANIMAL_NAMES = {
+  pig:    { singular: 'Pig' },
+  sheep:  { singular: 'Sheep' },
+  cat:    { singular: 'Cat' },
+  dog:    { singular: 'Dog' },
+  dragon: { singular: 'Dragon' }
+};
+
+// Default prices (can be overridden by parent)
+var DEFAULT_PRICES = {
+  buyBaby: 500,    // $5.00
+  sellAdult: 1000  // $10.00
+};
+
+var HEARTS = {
+  maxHearts: 15,
+  adultThreshold: 15,
+  maxPerDayBought: 3,   // feed(1) + water(1) + happy(1)
+  maxPerDayBred: 5
+};
+
+var DEATH = {
+  daysWithoutWater: 2,
+  daysWithoutFood: 3
+};
+
+var DEFAULT_CHORES = [
+  'Make your bed',
+  'Brush your teeth',
+  'Clean your room',
+  'Do your homework'
+];
+
+function createDefaultState() {
+  return {
+    wallet: {
+      balance: 1000, // $10.00 in cents
+      transactions: [
+        { type: 'deposit', amount: 1000, desc: 'Welcome bonus!', date: todayString() }
+      ]
+    },
+    animals: [],
+    dailyState: {
+      lastDate: todayString(),
+      tasksCompleted: [false, false, false, false],
+      quizCompleted: false,
+      foodEarned: 0,
+      waterEarned: 0
+    },
+    tasks: {
+      chores: [].concat(DEFAULT_CHORES)
+    },
+    playerName: '',
+    playerAge: 8,
+    parentPassword: '1234',
+    quizDifficulty: 1,
+    quizStreak: 0,
+    breedingPen: {
+      parent1Id: null,
+      parent2Id: null,
+      startDate: null,
+      active: false
+    },
+    stats: {
+      totalAnimalsRaised: 0,
+      totalMoneyEarned: 0,
+      totalQuizzesTaken: 0,
+      daysPlayed: 1
+    },
+    inventory: {
+      food: 2,
+      water: 2
+    },
+    nextAnimalId: 1,
+    // Parent-configurable settings
+    settings: {
+      interestRate: 5,       // Annual interest rate (%)
+      buyBabyPrice: 500,     // cents
+      sellAdultPrice: 1000,  // cents
+      taskFoodReward: 2,
+      taskWaterReward: 2
+    },
+    lastInterestDate: todayString()
+  };
+}
+
+function createAnimal(type, isBred) {
+  isBred = isBred || false;
+  var state = Storage.load();
+  var id = state.nextAnimalId++;
+  var animal = {
+    id: id,
+    type: type,
+    name: '',
+    stage: 'baby',
+    hearts: 0,
+    isBred: isBred,
+    alive: true,
+    daysWithoutFood: 0,
+    daysWithoutWater: 0,
+    fedToday: false,
+    wateredToday: false,
+    happyHeartToday: false,    // auto-granted when fed+watered
+    happyHeartRemoved: false,  // parent removed it
+    heartsToday: 0,
+    bornDate: todayString()
+  };
+  state.animals.push(animal);
+  Storage.save(state);
+  return animal;
+}
+
+function todayString() {
+  var d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
+function formatMoney(cents) {
+  return '$' + (cents / 100).toFixed(2);
+}
+
+function getMonthYear(dateStr) {
+  var parts = dateStr.split('-');
+  return parts[0] + '-' + parts[1];
+}
+
+// ============================================================
+// storage.js — localStorage save/load/reset
+// ============================================================
+
+var SAVE_KEY = 'piggybank_save';
+
+var Storage = {
+  load: function() {
+    try {
+      var raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        var state = JSON.parse(raw);
+        var defaults = createDefaultState();
+        // Migrate missing fields
+        if (!state.inventory) state.inventory = defaults.inventory;
+        if (!state.stats) state.stats = defaults.stats;
+        if (state.nextAnimalId === undefined) state.nextAnimalId = defaults.nextAnimalId;
+        if (state.quizStreak === undefined) state.quizStreak = 0;
+        if (!state.playerName) state.playerName = '';
+        if (!state.playerAge) state.playerAge = 8;
+        if (!state.settings) state.settings = defaults.settings;
+        if (!state.lastInterestDate) state.lastInterestDate = state.dailyState.lastDate || todayString();
+        if (state.settings.taskFoodReward === undefined) state.settings.taskFoodReward = 2;
+        if (state.settings.taskWaterReward === undefined) state.settings.taskWaterReward = 2;
+        return state;
+      }
+    } catch (e) {
+      console.error('Failed to load save:', e);
+    }
+    return null;
+  },
+
+  save: function(state) {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.error('Failed to save:', e);
+    }
+  },
+
+  hasSave: function() {
+    return localStorage.getItem(SAVE_KEY) !== null;
+  },
+
+  reset: function() {
+    localStorage.removeItem(SAVE_KEY);
+  },
+
+  init: function() {
+    if (!this.hasSave()) {
+      var state = createDefaultState();
+      this.save(state);
+      return state;
+    }
+    return this.load();
+  }
+};
+
+// ============================================================
+// sound.js — Web Audio API sound effects
+// ============================================================
+
+const Sound = (() => {
+  let ctx = null;
+
+  function getCtx() {
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return ctx;
+  }
+
+  function play(frequency, duration, type = 'square', volume = 0.15) {
+    try {
+      const c = getCtx();
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = type;
+      osc.frequency.value = frequency;
+      gain.gain.value = volume;
+      gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.start(c.currentTime);
+      osc.stop(c.currentTime + duration);
+    } catch (e) { /* ignore audio errors */ }
+  }
+
+  return {
+    coin() {
+      play(880, 0.1); setTimeout(() => play(1320, 0.15), 80);
+    },
+    feed() {
+      play(523, 0.08); setTimeout(() => play(659, 0.08), 60);
+      setTimeout(() => play(784, 0.12), 120);
+    },
+    water() {
+      play(440, 0.1, 'sine'); setTimeout(() => play(660, 0.15, 'sine'), 100);
+    },
+    heart() {
+      play(660, 0.1); setTimeout(() => play(880, 0.1), 80);
+      setTimeout(() => play(1100, 0.2), 160);
+    },
+    death() {
+      play(440, 0.2, 'sawtooth', 0.1);
+      setTimeout(() => play(330, 0.2, 'sawtooth', 0.1), 200);
+      setTimeout(() => play(220, 0.4, 'sawtooth', 0.08), 400);
+    },
+    buy() {
+      play(440, 0.08); setTimeout(() => play(550, 0.08), 60);
+      setTimeout(() => play(660, 0.08), 120);
+      setTimeout(() => play(880, 0.15), 180);
+    },
+    sell() {
+      play(880, 0.1); setTimeout(() => play(1100, 0.1), 80);
+      setTimeout(() => play(1320, 0.2), 160);
+    },
+    correct() {
+      play(523, 0.1); setTimeout(() => play(784, 0.15), 100);
+    },
+    wrong() {
+      play(300, 0.2, 'sawtooth', 0.1);
+    },
+    click() {
+      play(800, 0.05, 'square', 0.08);
+    },
+    breed() {
+      play(440, 0.15); setTimeout(() => play(550, 0.15), 150);
+      setTimeout(() => play(660, 0.15), 300);
+      setTimeout(() => play(880, 0.3), 450);
+    },
+    baby() {
+      play(880, 0.08); setTimeout(() => play(1100, 0.08), 60);
+      setTimeout(() => play(1320, 0.08), 120);
+      setTimeout(() => play(1760, 0.2), 180);
+    }
+  };
+})();
+
+// ============================================================
+// wallet.js — Bank with balance, deposit/withdraw (PIN gated),
+//             interest calculation, transaction history
+// ============================================================
+
+var Wallet = (function() {
+  var currentAction = null; // 'deposit' or 'withdraw'
+  var pinVerified = false;
+
+  function addTransaction(type, amount, desc) {
+    var state = Storage.load();
+    if (type === 'deposit') {
+      state.wallet.balance += amount;
+    } else {
+      if (state.wallet.balance < amount) return false;
+      state.wallet.balance -= amount;
+    }
+    state.wallet.transactions.unshift({
+      type: type, amount: amount, desc: desc, date: todayString()
+    });
+    if (state.wallet.transactions.length > 100) {
+      state.wallet.transactions = state.wallet.transactions.slice(0, 100);
+    }
+    Storage.save(state);
+    return true;
+  }
+
+  function getBalance() {
+    return Storage.load().wallet.balance;
+  }
+
+  // Calculate and apply monthly interest
+  function processInterest() {
+    var state = Storage.load();
+    var today = todayString();
+    var lastMonth = getMonthYear(state.lastInterestDate);
+    var thisMonth = getMonthYear(today);
+
+    if (lastMonth === thisMonth) return; // Same month, no interest
+
+    // Calculate months passed
+    var lastParts = state.lastInterestDate.split('-');
+    var todayParts = today.split('-');
+    var monthsPassed = (parseInt(todayParts[0]) - parseInt(lastParts[0])) * 12 +
+                       (parseInt(todayParts[1]) - parseInt(lastParts[1]));
+
+    if (monthsPassed <= 0) return;
+
+    var annualRate = state.settings.interestRate;
+    var monthlyRate = annualRate / 12 / 100;
+
+    for (var m = 0; m < monthsPassed; m++) {
+      var interest = Math.round(state.wallet.balance * monthlyRate);
+      if (interest > 0) {
+        state.wallet.balance += interest;
+        state.wallet.transactions.unshift({
+          type: 'deposit',
+          amount: interest,
+          desc: 'Monthly interest (' + annualRate + '% annual)',
+          date: today
+        });
+      }
+    }
+
+    state.lastInterestDate = today;
+    Storage.save(state);
+  }
+
+  function render() {
+    var state = Storage.load();
+    var balance = state.wallet.balance;
+    var name = state.playerName || 'Friend';
+
+    document.getElementById('bank-greeting').textContent = name + "'s Bank";
+    document.getElementById('wallet-balance').textContent = formatMoney(balance);
+
+    // Interest info
+    var rateInfo = document.getElementById('interest-info');
+    if (rateInfo) {
+      rateInfo.textContent = 'Interest: ' + state.settings.interestRate + '% / year';
+    }
+
+    // Transaction list
+    var list = document.getElementById('transaction-list');
+    if (state.wallet.transactions.length === 0) {
+      list.innerHTML = '<p class="empty-msg">No transactions yet.</p>';
+    } else {
+      list.innerHTML = state.wallet.transactions.map(function(t) {
+        var sign = t.type === 'deposit' ? '+' : '-';
+        var cls = t.type === 'deposit' ? 'tx-deposit' : 'tx-withdraw';
+        return '<div class="transaction ' + cls + '">' +
+          '<span class="tx-desc">' + t.desc + '</span>' +
+          '<span class="tx-amount">' + sign + formatMoney(t.amount) + '</span>' +
+          '<span class="tx-date">' + t.date + '</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    // Wire up buttons
+    document.getElementById('btn-deposit').onclick = function() {
+      currentAction = 'deposit';
+      showPinGate();
+    };
+    document.getElementById('btn-withdraw').onclick = function() {
+      currentAction = 'withdraw';
+      showPinGate();
+    };
+    document.getElementById('btn-wallet-cancel').onclick = function() {
+      hideWalletForm();
+    };
+    document.getElementById('btn-wallet-confirm').onclick = function() {
+      confirmTransaction();
+    };
+  }
+
+  function showPinGate() {
+    var pinArea = document.getElementById('wallet-pin-area');
+    var form = document.getElementById('wallet-form');
+    pinArea.style.display = '';
+    form.style.display = 'none';
+    document.getElementById('wallet-pin').value = '';
+    document.getElementById('wallet-pin-error').style.display = 'none';
+    document.getElementById('wallet-pin').focus();
+
+    document.getElementById('btn-wallet-pin-ok').onclick = function() {
+      var state = Storage.load();
+      var pin = document.getElementById('wallet-pin').value;
+      if (pin === state.parentPassword) {
+        pinArea.style.display = 'none';
+        form.style.display = '';
+        document.getElementById('wallet-amount').value = '';
+        document.getElementById('wallet-desc').value = '';
+        document.getElementById('wallet-amount').focus();
+      } else {
+        document.getElementById('wallet-pin-error').style.display = '';
+        Sound.wrong();
+      }
+    };
+    document.getElementById('btn-wallet-pin-cancel').onclick = function() {
+      pinArea.style.display = 'none';
+      currentAction = null;
+    };
+  }
+
+  function confirmTransaction() {
+    var amountStr = document.getElementById('wallet-amount').value;
+    var desc = document.getElementById('wallet-desc').value.trim();
+    if (!desc) desc = currentAction === 'deposit' ? 'Deposit' : 'Spending';
+    var amount = Math.round(parseFloat(amountStr) * 100);
+
+    if (!amount || amount <= 0) {
+      App.showToast('Enter a valid amount!');
+      return;
+    }
+    if (currentAction === 'withdraw' && amount > getBalance()) {
+      App.showToast('Not enough money!');
+      return;
+    }
+
+    addTransaction(currentAction, amount, desc);
+    Sound.coin();
+    App.showToast(currentAction === 'deposit' ? 'Deposited!' : 'Spent!');
+    hideWalletForm();
+    render();
+  }
+
+  function hideWalletForm() {
+    document.getElementById('wallet-form').style.display = 'none';
+    document.getElementById('wallet-pin-area').style.display = 'none';
+    currentAction = null;
+  }
+
+  return {
+    addTransaction: addTransaction,
+    getBalance: getBalance,
+    render: render,
+    processInterest: processInterest
+  };
+})();
+
+// ============================================================
+// stable.js — My Stable screen
+// Hearts: feed=1, water=1, both=auto happy heart (parent can remove)
+// ============================================================
+
+var Stable = (function() {
+  var selectedAnimalId = null;
+
+  function render() {
+    var state = Storage.load();
+    var grid = document.getElementById('stable-grid');
+    var alive = state.animals.filter(function(a) { return a.alive; });
+
+    document.getElementById('food-count').textContent = 'Food: ' + state.inventory.food;
+    document.getElementById('water-count').textContent = 'Water: ' + state.inventory.water;
+
+    if (alive.length === 0) {
+      grid.innerHTML = '<div class="empty-stable">' +
+        '<p>No animals yet!</p><p>Visit the Market to buy your first baby animal.</p></div>';
+      return;
+    }
+
+    grid.innerHTML = alive.map(function(animal) {
+      var name = animal.name || ANIMAL_NAMES[animal.type].singular;
+      var heartPct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
+      var cssClass = animal.type + '-' + animal.stage;
+      var statusIcons = '';
+      if (animal.fedToday) statusIcons += '<span class="status-fed">Fed</span>';
+      if (animal.wateredToday) statusIcons += '<span class="status-watered">Water</span>';
+      if (animal.happyHeartToday && !animal.happyHeartRemoved) statusIcons += '<span class="bred-badge">Happy</span>';
+      if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
+
+      return '<div class="animal-card ' + (animal.stage === 'adult' ? 'adult-card' : '') + '" data-id="' + animal.id + '">' +
+        '<div class="sprite-wrap"><div class="pixel-art ' + cssClass + ' idle-bounce"></div></div>' +
+        '<div class="animal-info">' +
+        '<div class="animal-name">' + name + '</div>' +
+        '<div class="heart-bar"><div class="heart-fill" style="width:' + heartPct + '%"></div>' +
+        '<span class="heart-text">' + animal.hearts + '/' + HEARTS.maxHearts + '</span></div>' +
+        '<div class="animal-status">' + statusIcons + '</div>' +
+        '</div></div>';
+    }).join('');
+
+    grid.querySelectorAll('.animal-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        Sound.click();
+        openAnimalModal(parseInt(card.dataset.id));
+      });
+    });
+  }
+
+  function openAnimalModal(animalId) {
+    var state = Storage.load();
+    var animal = state.animals.find(function(a) { return a.id === animalId; });
+    if (!animal || !animal.alive) return;
+
+    selectedAnimalId = animalId;
+    var modal = document.getElementById('animal-modal');
+    var name = animal.name || ANIMAL_NAMES[animal.type].singular;
+    var cssClass = animal.type + '-' + animal.stage;
+
+    document.getElementById('modal-animal-art').innerHTML =
+      '<div class="pixel-art ' + cssClass + ' idle-bounce"></div>';
+    document.getElementById('modal-animal-name').textContent = name;
+    document.getElementById('modal-name-input').value = animal.name;
+
+    // Hearts display
+    var heartsHTML = '';
+    for (var i = 0; i < HEARTS.maxHearts; i++) {
+      heartsHTML += '<span class="heart ' + (i < animal.hearts ? 'heart-full' : 'heart-empty') + '">&#9829;</span>';
+    }
+    // Show today's heart breakdown
+    var todayInfo = [];
+    if (animal.fedToday) todayInfo.push('Fed +1');
+    if (animal.wateredToday) todayInfo.push('Water +1');
+    if (animal.happyHeartToday && !animal.happyHeartRemoved) todayInfo.push('Happy +1');
+    if (animal.happyHeartRemoved) todayInfo.push('Happy removed');
+    heartsHTML += '<div class="hearts-today">Today: ' + (todayInfo.length ? todayInfo.join(', ') : 'none yet') + '</div>';
+    document.getElementById('modal-hearts').innerHTML = heartsHTML;
+
+    document.getElementById('modal-stage').textContent =
+      animal.stage === 'adult' ? 'ADULT - Ready to sell or breed!' : 'Baby - Keep feeding to grow!';
+
+    // Feed/water buttons
+    var btnFeed = document.getElementById('btn-feed');
+    var btnWater = document.getElementById('btn-water');
+    btnFeed.disabled = animal.fedToday || state.inventory.food <= 0;
+    btnWater.disabled = animal.wateredToday || state.inventory.water <= 0;
+    btnFeed.textContent = animal.fedToday ? 'Fed!' : 'Feed (' + state.inventory.food + ')';
+    btnWater.textContent = animal.wateredToday ? 'Watered!' : 'Water (' + state.inventory.water + ')';
+
+    // Status warnings
+    var status = '';
+    if (animal.daysWithoutFood > 0) {
+      status += '<p class="warning">Hungry! ' + animal.daysWithoutFood + ' day(s) without food!</p>';
+    }
+    if (animal.daysWithoutWater > 0) {
+      status += '<p class="warning">Thirsty! ' + animal.daysWithoutWater + ' day(s) without water!</p>';
+    }
+    document.getElementById('modal-status').innerHTML = status;
+
+    modal.style.display = 'flex';
+
+    btnFeed.onclick = function() { feedAnimal(animalId); };
+    btnWater.onclick = function() { waterAnimal(animalId); };
+    document.getElementById('btn-save-name').onclick = function() { saveName(animalId); };
+  }
+
+  function feedAnimal(id) {
+    var state = Storage.load();
+    var animal = state.animals.find(function(a) { return a.id === id; });
+    if (!animal || animal.fedToday || state.inventory.food <= 0) return;
+
+    animal.fedToday = true;
+    animal.daysWithoutFood = 0;
+    state.inventory.food--;
+
+    // Feed heart
+    giveHeart(animal);
+
+    // Check for happy heart (both fed and watered)
+    checkHappyHeart(animal);
+
+    Storage.save(state);
+    Sound.feed();
+    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' enjoyed the food!');
+    openAnimalModal(id);
+    render();
+  }
+
+  function waterAnimal(id) {
+    var state = Storage.load();
+    var animal = state.animals.find(function(a) { return a.id === id; });
+    if (!animal || animal.wateredToday || state.inventory.water <= 0) return;
+
+    animal.wateredToday = true;
+    animal.daysWithoutWater = 0;
+    state.inventory.water--;
+
+    // Water heart
+    giveHeart(animal);
+
+    // Check for happy heart
+    checkHappyHeart(animal);
+
+    Storage.save(state);
+    Sound.water();
+    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' drank water!');
+    openAnimalModal(id);
+    render();
+  }
+
+  function giveHeart(animal) {
+    var maxDay = animal.isBred ? HEARTS.maxPerDayBred : HEARTS.maxPerDayBought;
+    if (animal.heartsToday < maxDay && animal.hearts < HEARTS.maxHearts) {
+      animal.hearts++;
+      animal.heartsToday++;
+      if (animal.hearts >= HEARTS.adultThreshold && animal.stage === 'baby') {
+        animal.stage = 'adult';
+        Sound.heart();
+        App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' grew into an adult!');
+      }
+    }
+  }
+
+  // Auto happy heart when both fed and watered
+  function checkHappyHeart(animal) {
+    if (animal.fedToday && animal.wateredToday && !animal.happyHeartToday) {
+      animal.happyHeartToday = true;
+      animal.happyHeartRemoved = false;
+      giveHeart(animal);
+      Sound.heart();
+    }
+  }
+
+  // Called by parent to remove happy heart
+  function removeHappyHeart(animalId) {
+    var state = Storage.load();
+    var animal = state.animals.find(function(a) { return a.id === animalId; });
+    if (!animal || !animal.happyHeartToday || animal.happyHeartRemoved) return;
+
+    animal.happyHeartRemoved = true;
+    // Take back the heart
+    if (animal.hearts > 0) {
+      animal.hearts--;
+      animal.heartsToday--;
+      // Check if we need to revert adult stage
+      if (animal.hearts < HEARTS.adultThreshold) {
+        animal.stage = 'baby';
+      }
+    }
+    Storage.save(state);
+  }
+
+  function saveName(id) {
+    var state = Storage.load();
+    var animal = state.animals.find(function(a) { return a.id === id; });
+    if (!animal) return;
+    var input = document.getElementById('modal-name-input');
+    animal.name = input.value.trim().slice(0, 16);
+    Storage.save(state);
+    Sound.click();
+    App.showToast('Named: ' + animal.name);
+    openAnimalModal(id);
+    render();
+  }
+
+  return { render: render, openAnimalModal: openAnimalModal, removeHappyHeart: removeHappyHeart };
+})();
+
+// ============================================================
+// market.js — Buy/sell animals with configurable prices
+// ============================================================
+
+var Market = (function() {
+
+  function render() {
+    var state = Storage.load();
+    var buyPrice = state.settings.buyBabyPrice;
+    var sellPrice = state.settings.sellAdultPrice;
+
+    document.getElementById('market-balance').textContent = formatMoney(state.wallet.balance);
+
+    // Buy grid
+    var buyGrid = document.getElementById('market-buy-grid');
+    buyGrid.innerHTML = ANIMAL_TYPES.map(function(type) {
+      var canAfford = state.wallet.balance >= buyPrice;
+      return '<div class="market-item">' +
+        '<div class="sprite-wrap"><div class="pixel-art ' + type + '-baby idle-bounce"></div></div>' +
+        '<div class="market-item-name">Baby ' + ANIMAL_NAMES[type].singular + '</div>' +
+        '<div class="market-item-price">' + formatMoney(buyPrice) + '</div>' +
+        '<button class="btn btn-primary btn-small buy-btn" data-type="' + type + '"' +
+        (canAfford ? '' : ' disabled') + '>Buy</button></div>';
+    }).join('');
+
+    buyGrid.querySelectorAll('.buy-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { buyAnimal(btn.dataset.type); });
+    });
+
+    // Sell grid
+    var sellGrid = document.getElementById('market-sell-grid');
+    var adults = state.animals.filter(function(a) { return a.alive && a.stage === 'adult'; });
+    if (adults.length === 0) {
+      sellGrid.innerHTML = '<p class="empty-msg">No adult animals to sell.</p>';
+    } else {
+      sellGrid.innerHTML = adults.map(function(a) {
+        var name = a.name || ANIMAL_NAMES[a.type].singular;
+        return '<div class="market-item">' +
+          '<div class="sprite-wrap"><div class="pixel-art ' + a.type + '-adult idle-bounce"></div></div>' +
+          '<div class="market-item-name">' + name + '</div>' +
+          '<div class="market-item-price">' + formatMoney(sellPrice) + '</div>' +
+          '<button class="btn btn-accent btn-small sell-btn" data-id="' + a.id + '">Sell</button></div>';
+      }).join('');
+
+      sellGrid.querySelectorAll('.sell-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() { sellAnimal(parseInt(btn.dataset.id)); });
+      });
+    }
+
+    // Update section headers with current prices
+    document.getElementById('buy-price-label').textContent = 'Buy a Baby Animal - ' + formatMoney(buyPrice);
+    document.getElementById('sell-price-label').textContent = 'Sell an Adult Animal - ' + formatMoney(sellPrice);
+  }
+
+  function buyAnimal(type) {
+    var state = Storage.load();
+    var price = state.settings.buyBabyPrice;
+    if (state.wallet.balance < price) {
+      App.showToast('Not enough money!');
+      return;
+    }
+
+    Wallet.addTransaction('withdraw', price, 'Bought baby ' + ANIMAL_NAMES[type].singular);
+    createAnimal(type, false);
+    Sound.buy();
+    App.showToast('You got a baby ' + ANIMAL_NAMES[type].singular + '!');
+    render();
+  }
+
+  function sellAnimal(id) {
+    var state = Storage.load();
+    var animal = state.animals.find(function(a) { return a.id === id; });
+    if (!animal || !animal.alive || animal.stage !== 'adult') return;
+
+    var price = state.settings.sellAdultPrice;
+    var name = animal.name || ANIMAL_NAMES[animal.type].singular;
+    if (!confirm('Sell ' + name + ' for ' + formatMoney(price) + '?')) return;
+
+    animal.alive = false;
+    state.stats.totalAnimalsRaised++;
+    state.stats.totalMoneyEarned += price;
+    Storage.save(state);
+
+    Wallet.addTransaction('deposit', price, 'Sold ' + name);
+    Sound.sell();
+    App.showToast('Sold ' + name + ' for ' + formatMoney(price) + '!');
+    render();
+  }
+
+  return { render: render };
+})();
+
+// ============================================================
+// tasks.js — Daily chores checklist with configurable rewards
+// ============================================================
+
+var Tasks = (function() {
+
+  function render() {
+    var state = Storage.load();
+    var ds = state.dailyState;
+    var foodReward = state.settings.taskFoodReward;
+    var waterReward = state.settings.taskWaterReward;
+    var list = document.getElementById('tasks-list');
+
+    list.innerHTML = state.tasks.chores.map(function(chore, i) {
+      var done = ds.tasksCompleted[i];
+      return '<label class="task-item ' + (done ? 'task-done' : '') + '">' +
+        '<input type="checkbox" class="task-check" data-index="' + i + '"' +
+        (done ? ' checked disabled' : '') + '>' +
+        '<span class="task-text">' + chore + '</span></label>';
+    }).join('');
+
+    var quizBtn = document.getElementById('btn-take-quiz');
+    if (ds.quizCompleted) {
+      quizBtn.textContent = 'Quiz Done!';
+      quizBtn.disabled = true;
+    } else {
+      quizBtn.textContent = 'Take Quiz (counts as a task!)';
+      quizBtn.disabled = false;
+    }
+
+    // Update reward display
+    document.getElementById('task-reward-text').textContent =
+      'Earn: ' + foodReward + ' Food + ' + waterReward + ' Water';
+
+    var completed = ds.tasksCompleted.filter(Boolean).length + (ds.quizCompleted ? 1 : 0);
+    document.getElementById('tasks-progress').textContent =
+      completed + '/5 done | Food: ' + state.inventory.food + ' | Water: ' + state.inventory.water;
+
+    list.querySelectorAll('.task-check').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        completeTask(parseInt(cb.dataset.index));
+      });
+    });
+
+    quizBtn.onclick = function() {
+      Sound.click();
+      App.showScreen('quiz');
+      Quiz.start();
+    };
+  }
+
+  function completeTask(index) {
+    var state = Storage.load();
+    if (state.dailyState.tasksCompleted[index]) return;
+
+    state.dailyState.tasksCompleted[index] = true;
+    Sound.click();
+
+    // All 4 chores done → award resources
+    var choresDone = state.dailyState.tasksCompleted.filter(Boolean).length;
+    if (choresDone === 4 && state.dailyState.foodEarned === 0) {
+      var foodReward = state.settings.taskFoodReward;
+      var waterReward = state.settings.taskWaterReward;
+      state.inventory.food += foodReward;
+      state.inventory.water += waterReward;
+      state.dailyState.foodEarned = foodReward;
+      state.dailyState.waterEarned = waterReward;
+      Sound.coin();
+      App.showToast('All chores done! +' + foodReward + ' Food +' + waterReward + ' Water!');
+    }
+
+    Storage.save(state);
+    render();
+  }
+
+  function awardQuizResources() {
+    var state = Storage.load();
+    if (!state.dailyState.quizCompleted) {
+      state.dailyState.quizCompleted = true;
+      state.inventory.food += 1;
+      state.inventory.water += 1;
+      Storage.save(state);
+      App.showToast('Quiz done! +1 Food +1 Water!');
+    }
+  }
+
+  return { render: render, awardQuizResources: awardQuizResources };
+})();
+
+// ============================================================
+// quiz.js — Quiz engine + 200+ questions, adaptive difficulty
+// ============================================================
+
+const Quiz = (() => {
+  let currentQuestions = [];
+  let currentIndex = 0;
+  let score = 0;
+  let streak = 0;
+
+  // 200+ questions across 5 difficulty levels
+  const QUESTIONS = {
+    1: [ // Easy
+      { q: 'What is 2 + 3?', a: ['5', '4', '6', '3'], c: 0 },
+      { q: 'What is 5 - 2?', a: ['3', '4', '2', '1'], c: 0 },
+      { q: 'What is 1 + 1?', a: ['2', '3', '1', '0'], c: 0 },
+      { q: 'What is 4 + 1?', a: ['5', '6', '3', '4'], c: 0 },
+      { q: 'What is 3 + 3?', a: ['6', '5', '7', '4'], c: 0 },
+      { q: 'What is 6 - 4?', a: ['2', '3', '1', '4'], c: 0 },
+      { q: 'What is 7 + 2?', a: ['9', '8', '10', '7'], c: 0 },
+      { q: 'What is 10 - 5?', a: ['5', '4', '6', '3'], c: 0 },
+      { q: 'How many legs does a dog have?', a: ['4', '2', '6', '8'], c: 0 },
+      { q: 'What color is the sky on a clear day?', a: ['Blue', 'Green', 'Red', 'Yellow'], c: 0 },
+      { q: 'What do cows drink?', a: ['Water', 'Milk', 'Juice', 'Soda'], c: 0 },
+      { q: 'How many days are in a week?', a: ['7', '5', '6', '8'], c: 0 },
+      { q: 'What season comes after winter?', a: ['Spring', 'Summer', 'Fall', 'Winter'], c: 0 },
+      { q: 'If you have 3 apples and eat 1, how many are left?', a: ['2', '3', '1', '4'], c: 0 },
+      { q: 'What is 2 + 2?', a: ['4', '3', '5', '2'], c: 0 },
+      { q: 'Which is bigger: an elephant or a mouse?', a: ['Elephant', 'Mouse', 'Same', 'Neither'], c: 0 },
+      { q: 'How many pennies in a nickel?', a: ['5', '10', '1', '25'], c: 0 },
+      { q: 'What comes after 5?', a: ['6', '7', '4', '8'], c: 0 },
+      { q: 'What shape has 3 sides?', a: ['Triangle', 'Square', 'Circle', 'Rectangle'], c: 0 },
+      { q: 'What is 0 + 5?', a: ['5', '0', '50', '1'], c: 0 },
+      { q: 'What do you use to write on paper?', a: ['Pencil', 'Fork', 'Hammer', 'Shoe'], c: 0 },
+      { q: 'What animal says "moo"?', a: ['Cow', 'Dog', 'Cat', 'Bird'], c: 0 },
+      { q: 'What is 8 - 3?', a: ['5', '4', '6', '3'], c: 0 },
+      { q: 'How many wheels on a bicycle?', a: ['2', '3', '4', '1'], c: 0 },
+      { q: 'What shape is a ball?', a: ['Sphere', 'Cube', 'Cone', 'Flat'], c: 0 },
+      { q: 'What is 3 + 4?', a: ['7', '6', '8', '5'], c: 0 },
+      { q: 'What is 9 - 1?', a: ['8', '7', '9', '10'], c: 0 },
+      { q: 'What month comes after January?', a: ['February', 'March', 'December', 'April'], c: 0 },
+      { q: 'If you save $1 a day for 3 days, how much do you have?', a: ['$3', '$1', '$2', '$4'], c: 0 },
+      { q: 'What is 6 + 2?', a: ['8', '7', '9', '6'], c: 0 },
+      { q: 'How many fingers on one hand?', a: ['5', '4', '6', '10'], c: 0 },
+      { q: 'What do fish live in?', a: ['Water', 'Air', 'Sand', 'Mud'], c: 0 },
+      { q: 'What is 4 - 4?', a: ['0', '1', '4', '2'], c: 0 },
+      { q: 'What color is a banana?', a: ['Yellow', 'Red', 'Blue', 'Green'], c: 0 },
+      { q: 'What is 5 + 5?', a: ['10', '9', '11', '8'], c: 0 },
+      { q: 'Which is a fruit: apple or chair?', a: ['Apple', 'Chair', 'Both', 'Neither'], c: 0 },
+      { q: 'If you have 2 coins worth 5 cents each, how much?', a: ['10 cents', '5 cents', '15 cents', '20 cents'], c: 0 },
+      { q: 'What is 1 + 2 + 3?', a: ['6', '5', '7', '4'], c: 0 },
+      { q: 'How many ears do you have?', a: ['2', '1', '3', '4'], c: 0 },
+      { q: 'What is 7 - 7?', a: ['0', '1', '7', '14'], c: 0 },
+    ],
+    2: [ // Medium-Easy
+      { q: 'What is 12 + 8?', a: ['20', '18', '22', '19'], c: 0 },
+      { q: 'What is 15 - 7?', a: ['8', '7', '9', '6'], c: 0 },
+      { q: 'What is 3 x 4?', a: ['12', '7', '10', '14'], c: 0 },
+      { q: 'What is 20 / 4?', a: ['5', '4', '6', '10'], c: 0 },
+      { q: 'How many nickels make a quarter?', a: ['5', '4', '10', '25'], c: 0 },
+      { q: 'What is 9 x 2?', a: ['18', '16', '20', '11'], c: 0 },
+      { q: 'If you buy a toy for $3 and pay with $5, what is your change?', a: ['$2', '$3', '$1', '$5'], c: 0 },
+      { q: 'What is 25 + 15?', a: ['40', '35', '45', '30'], c: 0 },
+      { q: 'How many months in a year?', a: ['12', '10', '11', '14'], c: 0 },
+      { q: 'What is 6 x 3?', a: ['18', '15', '21', '12'], c: 0 },
+      { q: 'If you have $10 and spend $4, how much is left?', a: ['$6', '$4', '$5', '$7'], c: 0 },
+      { q: 'What is 30 - 12?', a: ['18', '22', '16', '20'], c: 0 },
+      { q: 'How many dimes in a dollar?', a: ['10', '20', '5', '100'], c: 0 },
+      { q: 'What is 7 x 5?', a: ['35', '30', '40', '25'], c: 0 },
+      { q: 'What planet do we live on?', a: ['Earth', 'Mars', 'Venus', 'Jupiter'], c: 0 },
+      { q: 'What is 50 - 25?', a: ['25', '20', '30', '15'], c: 0 },
+      { q: 'How many sides does a hexagon have?', a: ['6', '5', '8', '7'], c: 0 },
+      { q: 'What is 4 x 6?', a: ['24', '20', '26', '18'], c: 0 },
+      { q: 'If something costs $7.50, how much change from $10?', a: ['$2.50', '$3.50', '$2.00', '$3.00'], c: 0 },
+      { q: 'What is 100 - 45?', a: ['55', '65', '45', '50'], c: 0 },
+      { q: 'How many quarters in a dollar?', a: ['4', '10', '5', '2'], c: 0 },
+      { q: 'What is 8 x 3?', a: ['24', '21', '27', '18'], c: 0 },
+      { q: 'What is the largest ocean?', a: ['Pacific', 'Atlantic', 'Indian', 'Arctic'], c: 0 },
+      { q: 'What is 11 + 14?', a: ['25', '24', '26', '23'], c: 0 },
+      { q: 'How many inches in a foot?', a: ['12', '10', '6', '24'], c: 0 },
+      { q: 'What is 9 x 4?', a: ['36', '32', '40', '28'], c: 0 },
+      { q: 'If you earn $2 a day for a week, how much?', a: ['$14', '$7', '$12', '$10'], c: 0 },
+      { q: 'What is 16 / 2?', a: ['8', '6', '4', '10'], c: 0 },
+      { q: 'What shape has 4 equal sides?', a: ['Square', 'Rectangle', 'Triangle', 'Pentagon'], c: 0 },
+      { q: 'What is 5 x 5?', a: ['25', '20', '30', '15'], c: 0 },
+      { q: 'Which coin is worth the most: dime, nickel, or penny?', a: ['Dime', 'Nickel', 'Penny', 'All same'], c: 0 },
+      { q: 'What is 14 + 19?', a: ['33', '32', '34', '31'], c: 0 },
+      { q: 'How many cups in a quart?', a: ['4', '2', '8', '3'], c: 0 },
+      { q: 'What is 45 - 18?', a: ['27', '23', '33', '25'], c: 0 },
+      { q: 'What is 6 x 6?', a: ['36', '30', '42', '24'], c: 0 },
+      { q: 'If a toy costs $4.25 and tax is $0.25, what is the total?', a: ['$4.50', '$4.00', '$4.75', '$5.00'], c: 0 },
+      { q: 'What is 72 / 8?', a: ['9', '8', '7', '10'], c: 0 },
+      { q: 'How many continents are there?', a: ['7', '5', '6', '8'], c: 0 },
+      { q: 'What is 3 x 9?', a: ['27', '24', '30', '21'], c: 0 },
+      { q: 'What is half of 20?', a: ['10', '5', '15', '8'], c: 0 },
+    ],
+    3: [ // Medium
+      { q: 'What is 12 x 11?', a: ['132', '121', '144', '122'], c: 0 },
+      { q: 'What is 156 + 244?', a: ['400', '390', '410', '300'], c: 0 },
+      { q: 'If you save $5 a week for 8 weeks, how much?', a: ['$40', '$35', '$45', '$30'], c: 0 },
+      { q: 'What is 15% of 100?', a: ['15', '10', '20', '25'], c: 0 },
+      { q: 'How many feet in a mile?', a: ['5,280', '5,000', '1,000', '10,000'], c: 0 },
+      { q: 'What is 144 / 12?', a: ['12', '11', '13', '14'], c: 0 },
+      { q: 'If a shirt costs $20 and is 25% off, what do you pay?', a: ['$15', '$5', '$10', '$18'], c: 0 },
+      { q: 'What is 7 x 8?', a: ['56', '54', '48', '63'], c: 0 },
+      { q: 'What is the capital of France?', a: ['Paris', 'London', 'Berlin', 'Madrid'], c: 0 },
+      { q: 'What is 1,000 - 637?', a: ['363', '373', '463', '337'], c: 0 },
+      { q: 'How many ounces in a pound?', a: ['16', '12', '8', '32'], c: 0 },
+      { q: 'What is 9 x 9?', a: ['81', '72', '90', '63'], c: 0 },
+      { q: 'If you share 24 cookies among 6 friends, how many each?', a: ['4', '3', '6', '5'], c: 0 },
+      { q: 'What is 250 + 375?', a: ['625', '525', '725', '600'], c: 0 },
+      { q: 'How many minutes in 2 hours?', a: ['120', '100', '90', '180'], c: 0 },
+      { q: 'What is 8 x 7?', a: ['56', '54', '48', '63'], c: 0 },
+      { q: 'If an item costs $12.50 and you pay $20, what is your change?', a: ['$7.50', '$7.00', '$8.50', '$8.00'], c: 0 },
+      { q: 'What is 500 / 25?', a: ['20', '25', '15', '50'], c: 0 },
+      { q: 'What is the boiling point of water in Fahrenheit?', a: ['212', '100', '200', '180'], c: 0 },
+      { q: 'What is 11 x 12?', a: ['132', '121', '144', '120'], c: 0 },
+      { q: 'If you earn $8/hour and work 5 hours, how much?', a: ['$40', '$35', '$45', '$48'], c: 0 },
+      { q: 'What is 3 squared?', a: ['9', '6', '12', '27'], c: 0 },
+      { q: 'How many states are in the USA?', a: ['50', '48', '52', '51'], c: 0 },
+      { q: 'What is 480 / 6?', a: ['80', '70', '60', '90'], c: 0 },
+      { q: 'What is 10% of 250?', a: ['25', '2.5', '250', '50'], c: 0 },
+      { q: 'If 3 books cost $15, how much for 1 book?', a: ['$5', '$3', '$15', '$10'], c: 0 },
+      { q: 'What is 13 x 7?', a: ['91', '84', '97', '77'], c: 0 },
+      { q: 'How many seconds in a minute?', a: ['60', '100', '30', '90'], c: 0 },
+      { q: 'What is 1,500 - 876?', a: ['624', '634', '724', '614'], c: 0 },
+      { q: 'If you buy 4 items at $3.50 each, what is the total?', a: ['$14.00', '$12.00', '$15.00', '$13.50'], c: 0 },
+      { q: 'What is 6 x 12?', a: ['72', '66', '78', '60'], c: 0 },
+      { q: 'How many zeros in one thousand?', a: ['3', '4', '2', '5'], c: 0 },
+      { q: 'What is double 45?', a: ['90', '80', '100', '85'], c: 0 },
+      { q: 'What is 99 + 99?', a: ['198', '188', '208', '196'], c: 0 },
+      { q: 'If a pizza is cut into 8 slices and you eat 3, what fraction is left?', a: ['5/8', '3/8', '3/5', '5/3'], c: 0 },
+      { q: 'What is 15 x 4?', a: ['60', '55', '65', '45'], c: 0 },
+      { q: 'What is 200 - 87?', a: ['113', '123', '103', '117'], c: 0 },
+      { q: 'How many hours in a day?', a: ['24', '12', '48', '36'], c: 0 },
+      { q: 'What is the value of 5 dimes and 3 nickels?', a: ['65 cents', '80 cents', '55 cents', '35 cents'], c: 0 },
+      { q: 'What is 14 x 5?', a: ['70', '65', '75', '60'], c: 0 },
+    ],
+    4: [ // Medium-Hard
+      { q: 'What is 23 x 17?', a: ['391', '381', '401', '371'], c: 0 },
+      { q: 'What is 20% of 350?', a: ['70', '35', '7', '175'], c: 0 },
+      { q: 'If you invest $100 and earn 10% interest, how much total?', a: ['$110', '$100', '$10', '$120'], c: 0 },
+      { q: 'What is the square root of 64?', a: ['8', '6', '7', '9'], c: 0 },
+      { q: 'What is 2,500 / 50?', a: ['50', '25', '500', '5'], c: 0 },
+      { q: 'If a bus travels 60 mph for 3 hours, how far?', a: ['180 mi', '120 mi', '200 mi', '60 mi'], c: 0 },
+      { q: 'What is 15 x 15?', a: ['225', '200', '250', '215'], c: 0 },
+      { q: 'What fraction is equivalent to 0.75?', a: ['3/4', '1/2', '2/3', '7/5'], c: 0 },
+      { q: 'If sales tax is 8% on a $50 item, what is the total?', a: ['$54', '$58', '$50.08', '$45'], c: 0 },
+      { q: 'What is 18 x 12?', a: ['216', '206', '226', '196'], c: 0 },
+      { q: 'How many edges does a cube have?', a: ['12', '6', '8', '10'], c: 0 },
+      { q: 'What is 3,456 - 1,789?', a: ['1,667', '1,767', '1,567', '1,677'], c: 0 },
+      { q: 'If you save $25/month, how much in a year?', a: ['$300', '$250', '$275', '$325'], c: 0 },
+      { q: 'What is 5 cubed?', a: ['125', '15', '25', '75'], c: 0 },
+      { q: 'What is 33% of 600?', a: ['198', '200', '180', '210'], c: 0 },
+      { q: 'If 5 workers do a job in 6 days, how many worker-days?', a: ['30', '11', '25', '35'], c: 0 },
+      { q: 'What is 1,234 + 4,321?', a: ['5,555', '5,455', '5,655', '5,545'], c: 0 },
+      { q: 'What is 75% of 80?', a: ['60', '65', '55', '70'], c: 0 },
+      { q: 'What is the perimeter of a 5x3 rectangle?', a: ['16', '15', '8', '30'], c: 0 },
+      { q: 'If a dozen eggs costs $3.60, how much for 1 egg?', a: ['$0.30', '$0.36', '$0.25', '$0.40'], c: 0 },
+      { q: 'What is 19 x 21?', a: ['399', '389', '409', '379'], c: 0 },
+      { q: 'How many millimeters in a meter?', a: ['1,000', '100', '10,000', '10'], c: 0 },
+      { q: 'What is 40% of 200?', a: ['80', '40', '60', '100'], c: 0 },
+      { q: 'If you divide $100 among 4 people, how much each?', a: ['$25', '$20', '$50', '$30'], c: 0 },
+      { q: 'What is 16 x 16?', a: ['256', '246', '266', '236'], c: 0 },
+      { q: 'What is 4,000 / 80?', a: ['50', '40', '500', '5'], c: 0 },
+      { q: 'If a recipe needs 2/3 cup and you triple it, how much?', a: ['2 cups', '6/3 cups', '1 cup', '3 cups'], c: 0 },
+      { q: 'What is the area of a triangle with base 10 and height 6?', a: ['30', '60', '16', '20'], c: 0 },
+      { q: 'How many degrees in a right angle?', a: ['90', '180', '45', '360'], c: 0 },
+      { q: 'What is 999 + 1?', a: ['1,000', '1,001', '999', '9,991'], c: 0 },
+      { q: 'If you buy 3 for $5.99 each, how much total?', a: ['$17.97', '$15.99', '$18.97', '$17.00'], c: 0 },
+      { q: 'What is 12 squared?', a: ['144', '124', '132', '156'], c: 0 },
+      { q: 'What is 625 / 25?', a: ['25', '20', '30', '125'], c: 0 },
+      { q: 'If it rains 3 inches every 2 days, how much in 10 days?', a: ['15 in', '30 in', '6 in', '10 in'], c: 0 },
+      { q: 'What is 14 x 14?', a: ['196', '186', '204', '169'], c: 0 },
+      { q: 'How many faces does a rectangular prism have?', a: ['6', '4', '8', '12'], c: 0 },
+      { q: 'What is 60% of 500?', a: ['300', '350', '250', '200'], c: 0 },
+      { q: 'If gas costs $3.50/gallon and you buy 10 gallons?', a: ['$35', '$30', '$40', '$25'], c: 0 },
+      { q: 'What is 7 x 13?', a: ['91', '84', '98', '77'], c: 0 },
+      { q: 'What is 10,000 - 3,578?', a: ['6,422', '6,432', '7,422', '6,522'], c: 0 },
+    ],
+    5: [ // Hard
+      { q: 'What is 37 x 43?', a: ['1,591', '1,481', '1,691', '1,571'], c: 0 },
+      { q: 'If you invest $500 at 5% simple interest for 2 years, how much interest?', a: ['$50', '$25', '$100', '$55'], c: 0 },
+      { q: 'What is the square root of 169?', a: ['13', '12', '14', '11'], c: 0 },
+      { q: 'If 8 people share a $120 bill equally, how much each?', a: ['$15', '$12', '$16', '$14'], c: 0 },
+      { q: 'What is 2 to the power of 8?', a: ['256', '128', '512', '64'], c: 0 },
+      { q: 'What is 45% of 800?', a: ['360', '320', '400', '380'], c: 0 },
+      { q: 'If a car depreciates 20% per year and costs $10,000, what is it worth after 1 year?', a: ['$8,000', '$2,000', '$9,000', '$7,000'], c: 0 },
+      { q: 'What is 876 x 4?', a: ['3,504', '3,404', '3,604', '3,304'], c: 0 },
+      { q: 'How many prime numbers are between 1 and 20?', a: ['8', '7', '9', '6'], c: 0 },
+      { q: 'What is 15% tip on an $80 meal?', a: ['$12', '$8', '$15', '$10'], c: 0 },
+      { q: 'What is 7 factorial (7!)?', a: ['5,040', '720', '2,520', '40,320'], c: 0 },
+      { q: 'If you earn $12/hour with 1.5x overtime after 40 hours, what for 45 hours?', a: ['$570', '$540', '$480', '$600'], c: 0 },
+      { q: 'What is the area of a circle with radius 7? (use 22/7)', a: ['154', '44', '49', '308'], c: 0 },
+      { q: 'What is 25 x 25?', a: ['625', '525', '675', '600'], c: 0 },
+      { q: 'If a store gives 30% off $85, what do you pay?', a: ['$59.50', '$55.50', '$25.50', '$65.00'], c: 0 },
+      { q: 'What is 2,048 / 64?', a: ['32', '28', '36', '24'], c: 0 },
+      { q: 'How many faces on an icosahedron?', a: ['20', '12', '8', '6'], c: 0 },
+      { q: 'What is 999 x 9?', a: ['8,991', '8,991', '9,991', '8,981'], c: 0 },
+      { q: 'If you save $50/week, how many weeks to save $1,000?', a: ['20', '25', '10', '50'], c: 0 },
+      { q: 'What is 17 x 19?', a: ['323', '313', '333', '303'], c: 0 },
+      { q: 'The sum of angles in a triangle is?', a: ['180', '360', '90', '270'], c: 0 },
+      { q: 'What is 3 to the power of 5?', a: ['243', '125', '81', '729'], c: 0 },
+      { q: 'If a recipe is for 4 people and you need it for 10, multiply by?', a: ['2.5', '2', '3', '6'], c: 0 },
+      { q: 'What is 1,111 x 5?', a: ['5,555', '5,505', '5,550', '5,565'], c: 0 },
+      { q: 'How many degrees in a full circle?', a: ['360', '180', '90', '270'], c: 0 },
+      { q: 'If compound interest is 10% on $100 for 2 years, the total is?', a: ['$121', '$120', '$110', '$130'], c: 0 },
+      { q: 'What is the Pythagorean theorem for a 3-4-5 triangle hypotenuse?', a: ['5', '7', '12', '6'], c: 0 },
+      { q: 'What is 12,345 - 6,789?', a: ['5,556', '5,656', '5,446', '6,556'], c: 0 },
+      { q: 'If 1 euro = $1.10, how many dollars for 50 euros?', a: ['$55', '$50', '$60', '$45'], c: 0 },
+      { q: 'What is the volume of a cube with side 5?', a: ['125', '25', '75', '150'], c: 0 },
+      { q: 'What is 88 x 12?', a: ['1,056', '1,006', '1,156', '1,066'], c: 0 },
+      { q: 'If you spend 1/4 of $80 on food and 1/3 on rent, how much is left?', a: ['$33.33', '$40.00', '$46.67', '$26.67'], c: 0 },
+      { q: 'What is 256 / 16?', a: ['16', '12', '18', '24'], c: 0 },
+      { q: 'How many permutations of 3 items from 5? (5P3)', a: ['60', '10', '120', '15'], c: 0 },
+      { q: 'What is 0.125 as a fraction?', a: ['1/8', '1/4', '1/6', '1/10'], c: 0 },
+      { q: 'If a plane flies at 500 mph for 2.5 hours, how far?', a: ['1,250 mi', '1,000 mi', '1,500 mi', '750 mi'], c: 0 },
+      { q: 'What is 13 x 17?', a: ['221', '211', '231', '201'], c: 0 },
+      { q: 'What is the median of 3, 7, 9, 15, 21?', a: ['9', '7', '15', '11'], c: 0 },
+      { q: 'If sales double every year from $100, what after 3 years?', a: ['$800', '$400', '$600', '$300'], c: 0 },
+      { q: 'What is 47 x 53?', a: ['2,491', '2,481', '2,501', '2,391'], c: 0 },
+    ]
+  };
+
+  function pickQuestions(difficulty) {
+    const pool = QUESTIONS[difficulty] || QUESTIONS[1];
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 5);
+  }
+
+  function start() {
+    const state = Storage.load();
+    currentQuestions = pickQuestions(state.quizDifficulty);
+    currentIndex = 0;
+    score = 0;
+    streak = 0;
+    showQuestion();
+  }
+
+  function showQuestion() {
+    if (currentIndex >= 5) {
+      finishQuiz();
+      return;
+    }
+
+    const q = currentQuestions[currentIndex];
+    document.getElementById('quiz-progress').textContent =
+      `Question ${currentIndex + 1}/5`;
+    document.getElementById('quiz-score').textContent = `Score: ${score}`;
+    document.getElementById('quiz-question').textContent = q.q;
+    document.getElementById('quiz-feedback').textContent = '';
+    document.getElementById('quiz-feedback').className = 'quiz-feedback';
+
+    // Shuffle answers (keeping track of correct)
+    const indices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+    const answers = document.getElementById('quiz-answers');
+    answers.innerHTML = indices.map(i => {
+      return `<button class="quiz-btn" data-idx="${i}">${q.a[i]}</button>`;
+    }).join('');
+
+    answers.querySelectorAll('.quiz-btn').forEach(btn => {
+      btn.addEventListener('click', () => answerQuestion(parseInt(btn.dataset.idx)));
+    });
+  }
+
+  function answerQuestion(idx) {
+    const q = currentQuestions[currentIndex];
+    const feedback = document.getElementById('quiz-feedback');
+    const buttons = document.querySelectorAll('.quiz-btn');
+    buttons.forEach(b => b.disabled = true);
+
+    if (idx === q.c) {
+      score++;
+      streak++;
+      feedback.textContent = 'Correct!';
+      feedback.className = 'quiz-feedback feedback-correct';
+      Sound.correct();
+    } else {
+      streak = 0;
+      feedback.textContent = `Wrong! The answer was: ${q.a[q.c]}`;
+      feedback.className = 'quiz-feedback feedback-wrong';
+      Sound.wrong();
+    }
+
+    // Highlight correct answer
+    buttons.forEach(b => {
+      if (parseInt(b.dataset.idx) === q.c) {
+        b.classList.add('correct-answer');
+      } else if (parseInt(b.dataset.idx) === idx && idx !== q.c) {
+        b.classList.add('wrong-answer');
+      }
+    });
+
+    currentIndex++;
+    setTimeout(showQuestion, 1500);
+  }
+
+  function finishQuiz() {
+    const state = Storage.load();
+    state.stats.totalQuizzesTaken++;
+
+    // Adaptive difficulty
+    if (score >= 4) {
+      state.quizDifficulty = Math.min(5, state.quizDifficulty + 1);
+    } else if (score <= 1) {
+      state.quizDifficulty = Math.max(1, state.quizDifficulty - 1);
+    }
+    state.quizStreak = streak;
+    Storage.save(state);
+
+    // Show results
+    document.getElementById('quiz-question').textContent =
+      `Quiz Complete! You got ${score}/5!`;
+    document.getElementById('quiz-answers').innerHTML =
+      `<button class="btn btn-primary" id="quiz-done">Back to Tasks</button>`;
+    document.getElementById('quiz-feedback').textContent =
+      score >= 4 ? 'Amazing job!' : score >= 2 ? 'Good effort!' : 'Keep practicing!';
+    document.getElementById('quiz-feedback').className = 'quiz-feedback feedback-correct';
+
+    document.getElementById('quiz-done').addEventListener('click', () => {
+      Sound.click();
+      Tasks.awardQuizResources();
+      App.showScreen('tasks');
+    });
+  }
+
+  return { start };
+})();
+
+// ============================================================
+// breeding.js — Breeding pen logic
+// ============================================================
+
+const Breeding = (() => {
+  let selectingSlot = null; // 1 or 2
+
+  function render() {
+    const state = Storage.load();
+    const pen = state.breedingPen;
+
+    // Slot 1
+    renderSlot(1, pen.parent1Id, state);
+    // Slot 2
+    renderSlot(2, pen.parent2Id, state);
+
+    // Breeding button
+    const breedBtn = document.getElementById('btn-breed');
+    const statusEl = document.getElementById('breeding-status');
+
+    if (pen.active) {
+      breedBtn.style.display = 'none';
+      statusEl.innerHTML = '<p class="breeding-active">Breeding in progress... Baby will arrive tomorrow!</p>';
+    } else if (pen.parent1Id && pen.parent2Id) {
+      breedBtn.style.display = '';
+      breedBtn.onclick = startBreeding;
+      statusEl.textContent = 'Both parents ready! Start breeding?';
+    } else {
+      breedBtn.style.display = 'none';
+      statusEl.textContent = 'Select 2 adult animals to breed.';
+    }
+
+    // Adult selection list
+    renderSelectList(state);
+  }
+
+  function renderSlot(num, animalId, state) {
+    const slot = document.getElementById('breed-slot-' + num);
+    if (animalId) {
+      const animal = state.animals.find(a => a.id === animalId);
+      if (animal && animal.alive) {
+        const name = animal.name || ANIMAL_NAMES[animal.type].singular;
+        slot.innerHTML = `
+          <div class="pixel-art ${animal.type}-adult idle-bounce"></div>
+          <p>${name}</p>
+          <button class="btn btn-small btn-secondary remove-parent" data-slot="${num}">Remove</button>`;
+        slot.querySelector('.remove-parent').addEventListener('click', () => {
+          const s = Storage.load();
+          if (num === 1) s.breedingPen.parent1Id = null;
+          else s.breedingPen.parent2Id = null;
+          Storage.save(s);
+          Sound.click();
+          render();
+        });
+        return;
+      }
+    }
+    slot.innerHTML = `<p>Select Parent ${num}</p>
+      <button class="btn btn-small btn-primary select-parent" data-slot="${num}">Choose</button>`;
+    slot.querySelector('.select-parent').addEventListener('click', () => {
+      selectingSlot = num;
+      Sound.click();
+      render();
+    });
+  }
+
+  function renderSelectList(state) {
+    const list = document.getElementById('breed-select-list');
+    if (selectingSlot === null) {
+      list.innerHTML = '';
+      return;
+    }
+
+    const pen = state.breedingPen;
+    const adults = state.animals.filter(a =>
+      a.alive && a.stage === 'adult' &&
+      a.id !== pen.parent1Id && a.id !== pen.parent2Id
+    );
+
+    if (adults.length === 0) {
+      list.innerHTML = '<p class="empty-msg">No available adult animals. Raise some babies first!</p>';
+      return;
+    }
+
+    list.innerHTML = '<h4>Choose an adult:</h4>' + adults.map(a => {
+      const name = a.name || ANIMAL_NAMES[a.type].singular;
+      return `<div class="breed-option" data-id="${a.id}">
+        <div class="pixel-art ${a.type}-adult" ></div>
+        <span>${name}</span>
+      </div>`;
+    }).join('');
+
+    list.querySelectorAll('.breed-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const id = parseInt(opt.dataset.id);
+        const s = Storage.load();
+        if (selectingSlot === 1) s.breedingPen.parent1Id = id;
+        else s.breedingPen.parent2Id = id;
+        Storage.save(s);
+        selectingSlot = null;
+        Sound.click();
+        render();
+      });
+    });
+  }
+
+  function startBreeding() {
+    const state = Storage.load();
+    state.breedingPen.active = true;
+    state.breedingPen.startDate = todayString();
+    Storage.save(state);
+    Sound.breed();
+    App.showToast('Breeding started! Check back tomorrow for your new baby!');
+    render();
+  }
+
+  return { render };
+})();
+
+// ============================================================
+// parent.js — Parent mode: PIN gate, edit chores, prices,
+//   interest rate, task rewards, remove happy hearts, progress
+// ============================================================
+
+var Parent = (function() {
+  var authenticated = false;
+
+  function render() {
+    var pinSection = document.getElementById('parent-pin');
+    var dashboard = document.getElementById('parent-dashboard');
+
+    if (!authenticated) {
+      pinSection.style.display = '';
+      dashboard.style.display = 'none';
+      document.getElementById('pin-input').value = '';
+      document.getElementById('pin-error').style.display = 'none';
+
+      document.getElementById('btn-pin-submit').onclick = function() {
+        var state = Storage.load();
+        var pin = document.getElementById('pin-input').value;
+        if (pin === state.parentPassword) {
+          authenticated = true;
+          Sound.click();
+          render();
+        } else {
+          document.getElementById('pin-error').style.display = '';
+          Sound.wrong();
+        }
+      };
+      return;
+    }
+
+    pinSection.style.display = 'none';
+    dashboard.style.display = '';
+
+    renderChoreEditor();
+    renderSettingsEditor();
+    renderAnimalHearts();
+    renderProgressDashboard();
+    setupParentButtons();
+  }
+
+  function renderChoreEditor() {
+    var state = Storage.load();
+    var editor = document.getElementById('chore-editor');
+    editor.innerHTML = state.tasks.chores.map(function(chore, i) {
+      return '<div class="chore-edit-row">' +
+        '<label>Chore ' + (i + 1) + ':</label>' +
+        '<input type="text" class="chore-input" data-index="' + i + '" value="' + chore + '" maxlength="50">' +
+        '</div>';
+    }).join('');
+
+    document.getElementById('btn-save-chores').onclick = function() {
+      var s = Storage.load();
+      document.querySelectorAll('.chore-input').forEach(function(input) {
+        var idx = parseInt(input.dataset.index);
+        var val = input.value.trim();
+        if (val) s.tasks.chores[idx] = val;
+      });
+      Storage.save(s);
+      Sound.click();
+      App.showToast('Chores updated!');
+    };
+  }
+
+  function renderSettingsEditor() {
+    var state = Storage.load();
+    var s = state.settings;
+
+    document.getElementById('setting-interest').value = s.interestRate;
+    document.getElementById('setting-buy-price').value = (s.buyBabyPrice / 100).toFixed(2);
+    document.getElementById('setting-sell-price').value = (s.sellAdultPrice / 100).toFixed(2);
+    document.getElementById('setting-food-reward').value = s.taskFoodReward;
+    document.getElementById('setting-water-reward').value = s.taskWaterReward;
+
+    document.getElementById('btn-save-settings').onclick = function() {
+      var st = Storage.load();
+      st.settings.interestRate = parseFloat(document.getElementById('setting-interest').value) || 0;
+      st.settings.buyBabyPrice = Math.round(parseFloat(document.getElementById('setting-buy-price').value) * 100) || 500;
+      st.settings.sellAdultPrice = Math.round(parseFloat(document.getElementById('setting-sell-price').value) * 100) || 1000;
+      st.settings.taskFoodReward = parseInt(document.getElementById('setting-food-reward').value) || 2;
+      st.settings.taskWaterReward = parseInt(document.getElementById('setting-water-reward').value) || 2;
+      Storage.save(st);
+      Sound.click();
+      App.showToast('Settings saved!');
+    };
+  }
+
+  function renderAnimalHearts() {
+    var state = Storage.load();
+    var container = document.getElementById('parent-animals');
+    var alive = state.animals.filter(function(a) { return a.alive; });
+
+    if (alive.length === 0) {
+      container.innerHTML = '<p class="empty-msg">No animals.</p>';
+      return;
+    }
+
+    container.innerHTML = alive.map(function(a) {
+      var name = a.name || ANIMAL_NAMES[a.type].singular;
+      var hasHappy = a.happyHeartToday && !a.happyHeartRemoved;
+      var btnText = hasHappy ? 'Remove Happy Heart' : (a.happyHeartRemoved ? 'Already removed' : 'No happy heart yet');
+      var canRemove = hasHappy;
+
+      return '<div class="parent-animal-row">' +
+        '<div class="pixel-art ' + a.type + '-' + a.stage + '"></div>' +
+        '<span>' + name + ' (' + a.hearts + '/' + HEARTS.maxHearts + ')' +
+        (a.fedToday ? ' Fed' : '') + (a.wateredToday ? ' Water' : '') + '</span>' +
+        '<button class="btn btn-small ' + (canRemove ? 'btn-danger' : 'btn-secondary') + '" ' +
+        'data-id="' + a.id + '"' + (canRemove ? '' : ' disabled') + '>' +
+        btnText + '</button></div>';
+    }).join('');
+
+    container.querySelectorAll('button[data-id]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = parseInt(btn.dataset.id);
+        Stable.removeHappyHeart(id);
+        Sound.wrong();
+        App.showToast('Happy heart removed.');
+        renderAnimalHearts();
+      });
+    });
+  }
+
+  function renderProgressDashboard() {
+    var state = Storage.load();
+    var alive = state.animals.filter(function(a) { return a.alive; });
+    var adults = alive.filter(function(a) { return a.stage === 'adult'; });
+    var choresDone = state.dailyState.tasksCompleted.filter(Boolean).length;
+
+    var dash = document.getElementById('progress-dashboard');
+    dash.innerHTML =
+      '<div class="progress-grid">' +
+      '<div class="progress-stat"><div class="stat-value">' + state.stats.daysPlayed + '</div><div class="stat-label">Days Played</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">' + alive.length + '</div><div class="stat-label">Animals</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">' + adults.length + '</div><div class="stat-label">Adults</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">' + formatMoney(state.wallet.balance) + '</div><div class="stat-label">Balance</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">' + state.stats.totalAnimalsRaised + '</div><div class="stat-label">Raised</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">' + state.stats.totalQuizzesTaken + '</div><div class="stat-label">Quizzes</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">' + choresDone + '/4</div><div class="stat-label">Chores Today</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">Lvl ' + state.quizDifficulty + '</div><div class="stat-label">Quiz Level</div></div>' +
+      '</div>';
+  }
+
+  function setupParentButtons() {
+    document.getElementById('btn-change-pin').onclick = function() {
+      var newPin = document.getElementById('new-pin').value.trim();
+      if (newPin.length < 1) {
+        App.showToast('Enter a new PIN.');
+        return;
+      }
+      var state = Storage.load();
+      state.parentPassword = newPin;
+      Storage.save(state);
+      Sound.click();
+      App.showToast('PIN changed!');
+      document.getElementById('new-pin').value = '';
+    };
+
+    document.getElementById('btn-reset-game').onclick = function() {
+      if (confirm('Reset the entire game? This cannot be undone!')) {
+        Storage.reset();
+        Storage.init();
+        authenticated = false;
+        Sound.click();
+        App.showToast('Game reset!');
+        App.showScreen('welcome');
+        document.getElementById('bottom-nav').style.display = 'none';
+      }
+    };
+
+    document.getElementById('btn-parent-logout').onclick = function() {
+      authenticated = false;
+      Sound.click();
+      render();
+    };
+  }
+
+  return { render: render };
+})();
+
+// ============================================================
+// app.js — Screen router, daily cycle, entry point
+// ============================================================
+
+const App = (() => {
+  let currentScreen = 'welcome';
+
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const screen = document.getElementById('screen-' + name);
+    if (screen) {
+      screen.classList.add('active');
+      currentScreen = name;
+    }
+
+    // Update nav active state
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.screen === name);
+    });
+
+    // Refresh screen data
+    switch (name) {
+      case 'stable': Stable.render(); break;
+      case 'market': Market.render(); break;
+      case 'tasks': Tasks.render(); break;
+      case 'wallet': Wallet.render(); break;
+      case 'breeding': Breeding.render(); break;
+      case 'parent': Parent.render(); break;
+    }
+  }
+
+  function dailyCycle() {
+    const state = Storage.load();
+    const today = todayString();
+    if (state.dailyState.lastDate === today) return;
+
+    const oldDate = state.dailyState.lastDate;
+    const daysPassed = Math.max(1, dateDiffDays(oldDate, today));
+
+    for (let d = 0; d < daysPassed; d++) {
+      state.animals.forEach(animal => {
+        if (!animal.alive) return;
+
+        if (!animal.fedToday) {
+          animal.daysWithoutFood++;
+        } else {
+          animal.daysWithoutFood = 0;
+        }
+        if (!animal.wateredToday) {
+          animal.daysWithoutWater++;
+        } else {
+          animal.daysWithoutWater = 0;
+        }
+
+        if (animal.daysWithoutWater >= DEATH.daysWithoutWater ||
+            animal.daysWithoutFood >= DEATH.daysWithoutFood) {
+          animal.alive = false;
+          showToast('Oh no! ' + (animal.name || ANIMAL_NAMES[animal.type].singular) + ' has passed away...');
+          Sound.death();
+        }
+
+        animal.fedToday = false;
+        animal.wateredToday = false;
+        animal.parentVoteToday = false;
+        animal.heartsToday = 0;
+        animal.happyHeartToday = false;
+        animal.happyHeartRemoved = false;
+      });
+
+      if (state.breedingPen.active && state.breedingPen.startDate) {
+        const breedDays = dateDiffDays(state.breedingPen.startDate, today);
+        if (breedDays >= 1) {
+          const p1 = state.animals.find(a => a.id === state.breedingPen.parent1Id);
+          const p2 = state.animals.find(a => a.id === state.breedingPen.parent2Id);
+          if (p1 && p2) {
+            const babyType = Math.random() < 0.5 ? p1.type : p2.type;
+            const id = state.nextAnimalId++;
+            state.animals.push({
+              id, type: babyType, name: '', stage: 'baby',
+              hearts: 0, isBred: true, alive: true,
+              daysWithoutFood: 0, daysWithoutWater: 0,
+              fedToday: false, wateredToday: false,
+              parentVoteToday: false, heartsToday: 0,
+              happyHeartToday: false, happyHeartRemoved: false,
+              bornDate: today
+            });
+            showToast('A new baby ' + ANIMAL_NAMES[babyType].singular + ' was born from breeding!');
+            Sound.baby();
+          }
+          state.breedingPen = { parent1Id: null, parent2Id: null, startDate: null, active: false };
+        }
+      }
+    }
+
+    state.dailyState = {
+      lastDate: today,
+      tasksCompleted: [false, false, false, false],
+      quizCompleted: false,
+      foodEarned: 0,
+      waterEarned: 0,
+      parentVoteDone: false
+    };
+
+    state.stats.daysPlayed += daysPassed;
+    Storage.save(state);
+  }
+
+  function dateDiffDays(dateStr1, dateStr2) {
+    const d1 = new Date(dateStr1 + 'T00:00:00');
+    const d2 = new Date(dateStr2 + 'T00:00:00');
+    return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
+  }
+
+  function showToast(msg, duration) {
+    duration = duration || 3000;
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, duration);
+  }
+
+  // Map age to starting quiz difficulty
+  function ageToDifficulty(age) {
+    if (age <= 6) return 1;
+    if (age <= 7) return 1;
+    if (age <= 8) return 2;
+    if (age <= 9) return 3;
+    if (age <= 10) return 3;
+    if (age <= 11) return 4;
+    return 5;
+  }
+
+  function init() {
+    // Check for existing save
+    if (Storage.hasSave()) {
+      document.getElementById('btn-continue').style.display = '';
+      document.getElementById('btn-start').textContent = 'New Game';
+      document.getElementById('login-form').style.display = 'none';
+    }
+
+    // Start button — new game with name/age
+    document.getElementById('btn-start').addEventListener('click', function() {
+      Sound.click();
+      if (Storage.hasSave()) {
+        if (confirm('Start a new game? This will erase your current save.')) {
+          Storage.reset();
+        } else {
+          return;
+        }
+      }
+
+      var name = document.getElementById('player-name').value.trim();
+      var age = parseInt(document.getElementById('player-age').value) || 8;
+
+      if (!name) {
+        App.showToast('Please enter your name!');
+        return;
+      }
+
+      var state = Storage.init();
+      state.playerName = name;
+      state.playerAge = age;
+      state.quizDifficulty = ageToDifficulty(age);
+      Storage.save(state);
+
+      startGame();
+    });
+
+    // Continue button
+    document.getElementById('btn-continue').addEventListener('click', function() {
+      Sound.click();
+      startGame();
+    });
+
+    // Nav bar
+    document.querySelectorAll('.nav-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        Sound.click();
+        showScreen(btn.dataset.screen);
+      });
+    });
+
+    // More menu items
+    document.querySelectorAll('.more-item').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        Sound.click();
+        showScreen(btn.dataset.screen);
+      });
+    });
+
+    // Modal close — X button, tap outside, Done button
+    document.getElementById('modal-close').addEventListener('click', function() {
+      document.getElementById('animal-modal').style.display = 'none';
+    });
+    document.getElementById('animal-modal').addEventListener('click', function(e) {
+      if (e.target.id === 'animal-modal') {
+        document.getElementById('animal-modal').style.display = 'none';
+      }
+    });
+    document.getElementById('btn-modal-done').addEventListener('click', function() {
+      document.getElementById('animal-modal').style.display = 'none';
+    });
+  }
+
+  function startGame() {
+    dailyCycle();
+    Wallet.processInterest();
+    document.getElementById('bottom-nav').style.display = '';
+    showScreen('stable');
+  }
+
+  return { init: init, showScreen: showScreen, showToast: showToast, dailyCycle: dailyCycle };
+})();
+
+// Boot
+document.addEventListener('DOMContentLoaded', App.init);
+
+</script>
+</body>
+</html>

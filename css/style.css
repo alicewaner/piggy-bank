@@ -118,12 +118,13 @@ body {
 }
 
 .welcome-mascot {
-  margin-bottom: 12px;
-  height: 120px;
+  margin-bottom: 8px;
+  height: 90px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .game-title {
@@ -399,7 +400,7 @@ body {
   50% { margin-top: -4px; }
 }
 
-.welcome-mascot .pixel-art { zoom: 12; }
+.welcome-mascot .pixel-art { zoom: 8; }
 .animal-card .sprite-wrap { min-height: 120px; overflow: hidden; }
 .animal-card .pixel-art { zoom: 8; }
 .market-item .sprite-wrap { min-height: 100px; overflow: hidden; }
