@@ -29,6 +29,7 @@ const App = (() => {
       case 'wallet': Wallet.render(); break;
       case 'breeding': Breeding.render(); break;
       case 'parent': Parent.render(); break;
+      case 'chat': Chat.render(); break;
       case 'leaderboard': renderLeaderboard('total'); break;
     }
   }
@@ -345,11 +346,13 @@ const App = (() => {
     dailyCycle();
     trackLogin();
     Wallet.processInterest();
+    Chat.initListeners();
     document.getElementById('bottom-nav').style.display = '';
     showScreen('stable');
   }
 
   function logout() {
+    Chat.cleanup();
     auth.signOut().then(function() {
       currentAccountId = null;
       document.getElementById('bottom-nav').style.display = 'none';
