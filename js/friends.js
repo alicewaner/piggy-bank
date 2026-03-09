@@ -38,7 +38,7 @@ const Friends = (() => {
       })
       .catch(function(err) {
         console.error('Friends load error:', err);
-        container.innerHTML = '<p class="empty-msg">Could not load friends.</p>';
+        container.innerHTML = '<p class="empty-msg">Could not load friends. ' + escapeHtml(err.message || '') + '</p>';
       });
   }
 
@@ -155,7 +155,7 @@ const Friends = (() => {
       })
       .catch(function(err) {
         console.error('Send request error:', err);
-        App.showToast('Could not send request.');
+        App.showToast('Could not send request. ' + (err.message || ''));
       });
   }
 
