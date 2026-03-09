@@ -160,6 +160,7 @@ var Storage = {
     if (state.quizStreak === undefined) state.quizStreak = 0;
     if (!state.playerName) state.playerName = '';
     if (!state.playerAge) state.playerAge = 8;
+    if (state.playerBirthday === undefined) state.playerBirthday = '';
     if (!state.settings) state.settings = defaults.settings;
     if (!state.lastInterestDate) state.lastInterestDate = state.dailyState.lastDate || todayString();
     if (state.settings.taskFoodReward === undefined) state.settings.taskFoodReward = 2;
@@ -190,6 +191,20 @@ var Storage = {
         else if (d.indexOf('welcome bonus') !== -1) t.category = 'Gift';
         else if (d.indexOf('task') !== -1) t.category = 'Task Reward';
         else if (d.indexOf('quiz') !== -1) t.category = 'Quiz Reward';
+      });
+    }
+
+    if (state.settings.questionsPerQuiz === undefined) state.settings.questionsPerQuiz = 5;
+
+    // Points currency migration
+    if (state.inventory.points === undefined) state.inventory.points = 0;
+    if (state.dailyState.pointsEarned === undefined) state.dailyState.pointsEarned = 0;
+
+    // Animal feedCount + mood migration
+    if (state.animals) {
+      state.animals.forEach(function(a) {
+        if (a.feedCount === undefined) a.feedCount = 0;
+        if (a.mood === undefined) a.mood = 'happy';
       });
     }
 

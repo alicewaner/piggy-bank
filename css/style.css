@@ -766,6 +766,21 @@ body {
 .pin-input:focus { border-color: var(--primary); }
 .error-text { color: #EF4444; text-align: center; font-size: 0.85rem; }
 
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: underline;
+}
+
 .chore-edit-row { margin-bottom: 6px; }
 .chore-edit-row label { display: block; font-size: 0.75rem; color: var(--stone-dark); margin-bottom: 2px; }
 .chore-input {
@@ -1371,6 +1386,56 @@ body {
   height: 18px;
   accent-color: var(--primary);
   cursor: pointer;
+}
+
+/* ---- Mood Badge ---- */
+.mood-badge {
+  padding: 1px 5px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  display: inline-block;
+}
+.mood-happy {
+  background: #D1FAE5;
+  color: #059669;
+}
+.mood-sad {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* ---- Supply Shop ---- */
+.supply-shop {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.supply-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--slot-border-light);
+  border-radius: 8px;
+}
+.supply-label {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.supply-stock {
+  font-size: 0.8rem;
+  color: var(--stone-dark);
+  font-weight: 600;
+}
+.market-header-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* ---- Animations ---- */

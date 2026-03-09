@@ -1,5 +1,5 @@
 // ============================================================
-// tasks.js — Dynamic chores, incremental rewards, two quizzes
+// tasks.js — Dynamic chores, incremental rewards (points), two quizzes
 // ============================================================
 
 var Tasks = (function() {
@@ -41,7 +41,7 @@ var Tasks = (function() {
 
     // Update reward display
     document.getElementById('task-reward-text').textContent =
-      'Every ' + s.tasksPerReward + ' tasks = +' + s.taskRewardFood + ' Food +' + s.taskRewardWater + ' Water';
+      'Every ' + s.tasksPerReward + ' tasks = +10 Points';
 
     // Progress text
     var choresDone = ds.tasksCompleted.filter(Boolean).length;
@@ -49,6 +49,7 @@ var Tasks = (function() {
     var capText = s.dailyRewardCap > 0 ? ' (cap: ' + s.dailyRewardCap + ')' : '';
     document.getElementById('tasks-progress').textContent =
       choresDone + ' tasks done | ' + ds.taskRewardsEarned + ' rewards earned' + capText +
+      ' | Points: ' + (state.inventory.points || 0) +
       ' | Food: ' + state.inventory.food + ' | Water: ' + state.inventory.water;
 
     // Checkbox listeners
@@ -78,7 +79,7 @@ var Tasks = (function() {
     state.dailyState.tasksCompleted[index] = true;
     Sound.click();
 
-    // Incremental rewards: every N tasks = 1 reward batch
+    // Incremental rewards: every N tasks = 1 reward batch of 10 points
     var choresDone = state.dailyState.tasksCompleted.filter(Boolean).length;
     var s = state.settings;
     var expectedRewards = Math.floor(choresDone / s.tasksPerReward);
@@ -91,15 +92,13 @@ var Tasks = (function() {
         newRewards = Math.min(newRewards, canEarn);
       }
       if (newRewards > 0) {
-        var foodGain = newRewards * s.taskRewardFood;
-        var waterGain = newRewards * s.taskRewardWater;
-        state.inventory.food += foodGain;
-        state.inventory.water += waterGain;
-        state.dailyState.foodEarned += foodGain;
-        state.dailyState.waterEarned += waterGain;
+        var pointsGain = newRewards * 10;
+        if (!state.inventory.points) state.inventory.points = 0;
+        state.inventory.points += pointsGain;
+        state.dailyState.pointsEarned = (state.dailyState.pointsEarned || 0) + pointsGain;
         state.dailyState.taskRewardsEarned += newRewards;
         Sound.coin();
-        App.showToast('Reward! +' + foodGain + ' Food +' + waterGain + ' Water!');
+        App.showToast('Reward! +' + pointsGain + ' Points!');
       }
     }
 
@@ -118,14 +117,12 @@ var Tasks = (function() {
     // Award quiz reward when BOTH quizzes are completed
     if (state.dailyState.quizMathCompleted && state.dailyState.quizEncyclopediaCompleted && !state.dailyState.quizRewardEarned) {
       state.dailyState.quizRewardEarned = true;
-      var foodGain = state.settings.quizRewardFood;
-      var waterGain = state.settings.quizRewardWater;
-      state.inventory.food += foodGain;
-      state.inventory.water += waterGain;
-      state.dailyState.foodEarned += foodGain;
-      state.dailyState.waterEarned += waterGain;
+      var pointsGain = 10;
+      if (!state.inventory.points) state.inventory.points = 0;
+      state.inventory.points += pointsGain;
+      state.dailyState.pointsEarned = (state.dailyState.pointsEarned || 0) + pointsGain;
       Storage.save(state);
-      App.showToast('Both quizzes done! +' + foodGain + ' Food +' + waterGain + ' Water!');
+      App.showToast('Both quizzes done! +' + pointsGain + ' Points!');
     } else {
       Storage.save(state);
       if (quizType === 'math' && !state.dailyState.quizEncyclopediaCompleted) {

@@ -773,6 +773,21 @@ body {
 .pin-input:focus { border-color: var(--primary); }
 .error-text { color: #EF4444; text-align: center; font-size: 0.85rem; }
 
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: underline;
+}
+
 .chore-edit-row { margin-bottom: 6px; }
 .chore-edit-row label { display: block; font-size: 0.75rem; color: var(--stone-dark); margin-bottom: 2px; }
 .chore-input {
@@ -1380,6 +1395,56 @@ body {
   cursor: pointer;
 }
 
+/* ---- Mood Badge ---- */
+.mood-badge {
+  padding: 1px 5px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  display: inline-block;
+}
+.mood-happy {
+  background: #D1FAE5;
+  color: #059669;
+}
+.mood-sad {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* ---- Supply Shop ---- */
+.supply-shop {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.supply-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--slot-border-light);
+  border-radius: 8px;
+}
+.supply-label {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.supply-stock {
+  font-size: 0.8rem;
+  color: var(--stone-dark);
+  font-weight: 600;
+}
+.market-header-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* ---- Animations ---- */
 @keyframes pulse {
   0%, 100% { opacity: 1; }
@@ -1872,6 +1937,7 @@ body {
           <input type="password" id="login-password" placeholder="Enter your password">
           <p id="login-error" class="error-text" style="display:none"></p>
           <button id="btn-login" class="btn btn-primary btn-large">Sign In</button>
+          <button id="btn-forgot-password" class="btn-link">Forgot Password?</button>
           <button id="btn-show-register" class="btn btn-accent btn-large">Create Account</button>
         </div>
 
@@ -1879,16 +1945,8 @@ body {
         <div id="register-form" class="login-form" style="display:none">
           <label for="register-name">Your Name</label>
           <input type="text" id="register-name" placeholder="Enter your name" maxlength="20">
-          <label for="register-age">Your Age</label>
-          <select id="register-age">
-            <option value="6">6 years old</option>
-            <option value="7">7 years old</option>
-            <option value="8" selected>8 years old</option>
-            <option value="9">9 years old</option>
-            <option value="10">10 years old</option>
-            <option value="11">11 years old</option>
-            <option value="12">12 years old</option>
-          </select>
+          <label for="register-birthday">Your Birthday</label>
+          <input type="date" id="register-birthday">
           <label for="register-email">Email</label>
           <input type="email" id="register-email" placeholder="Enter your email">
           <label for="register-password">Password</label>
@@ -1905,6 +1963,7 @@ body {
       <div class="screen-header">
         <h2>My Barn</h2>
         <div class="resource-bar">
+          <span class="resource" id="points-count">Points: 0</span>
           <span class="resource" id="food-count">Food: 0</span>
           <span class="resource" id="water-count">Water: 0</span>
         </div>
@@ -1921,7 +1980,14 @@ body {
     <div id="screen-market" class="screen">
       <div class="screen-header">
         <h2>Market</h2>
-        <div class="balance-display" id="market-balance">$0.00</div>
+        <div class="market-header-stats">
+          <div class="balance-display" id="market-balance">$0.00</div>
+          <span class="resource" id="market-points">Points: 0</span>
+        </div>
+      </div>
+      <div class="market-section">
+        <h3>Buy Supplies</h3>
+        <div id="supply-shop" class="supply-shop"></div>
       </div>
       <div class="market-section">
         <h3 id="buy-price-label">Buy a Baby Animal - $5.00</h3>
@@ -2078,6 +2144,8 @@ body {
             <input type="number" id="setting-quiz-food" class="setting-input" min="0" max="20">
             <label>Quiz Reward Water:</label>
             <input type="number" id="setting-quiz-water" class="setting-input" min="0" max="20">
+            <label>Questions per Quiz:</label>
+            <input type="number" id="setting-questions-per-quiz" class="setting-input" min="1" max="20">
             <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
           </div>
         </div>
@@ -2212,6 +2280,16 @@ body {
       </div>
     </div>
 
+    <!-- Birthday Prompt Modal -->
+    <div id="birthday-modal" class="modal" style="display:none">
+      <div class="modal-content" style="text-align:center;padding:24px">
+        <h3 style="margin-bottom:12px;color:var(--primary)">When is your birthday?</h3>
+        <p style="font-size:0.85rem;color:var(--stone-dark);margin-bottom:12px">We need your birthday to pick the right quiz level for you!</p>
+        <input type="date" id="birthday-prompt-input" style="width:100%;padding:10px;border:2px solid var(--slot-border-light);border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.9rem;margin-bottom:12px">
+        <button id="btn-birthday-save" class="btn btn-primary btn-large">Save</button>
+      </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="toast"></div>
 
@@ -2309,8 +2387,7 @@ function createDefaultState() {
       tasksCompleted: [false, false, false, false],
       quizMathCompleted: false,
       quizEncyclopediaCompleted: false,
-      foodEarned: 0,
-      waterEarned: 0,
+      pointsEarned: 0,
       taskRewardsEarned: 0,
       quizRewardEarned: false
     },
@@ -2318,6 +2395,7 @@ function createDefaultState() {
       chores: [].concat(DEFAULT_CHORES)
     },
     playerName: '',
+    playerBirthday: '',
     playerAge: 8,
     parentPassword: '1234',
     quizDifficulty: 1,
@@ -2336,7 +2414,8 @@ function createDefaultState() {
     },
     inventory: {
       food: 2,
-      water: 2
+      water: 2,
+      points: 0
     },
     nextAnimalId: 1,
     // Parent-configurable settings
@@ -2352,6 +2431,7 @@ function createDefaultState() {
       dailyRewardCap: 0,     // 0 = unlimited
       quizRewardFood: 1,
       quizRewardWater: 1,
+      questionsPerQuiz: 5,
       customDepositCategories: [],
       customWithdrawCategories: []
     },
@@ -2541,6 +2621,8 @@ function createAnimal(type, isBred) {
     happyHeartToday: false,    // auto-granted when fed+watered
     happyHeartRemoved: false,  // parent removed it
     heartsToday: 0,
+    feedCount: 0,
+    mood: 'happy',
     bornDate: todayString()
   };
   state.animals.push(animal);
@@ -2752,6 +2834,7 @@ var Storage = {
     if (state.quizStreak === undefined) state.quizStreak = 0;
     if (!state.playerName) state.playerName = '';
     if (!state.playerAge) state.playerAge = 8;
+    if (state.playerBirthday === undefined) state.playerBirthday = '';
     if (!state.settings) state.settings = defaults.settings;
     if (!state.lastInterestDate) state.lastInterestDate = state.dailyState.lastDate || todayString();
     if (state.settings.taskFoodReward === undefined) state.settings.taskFoodReward = 2;
@@ -2782,6 +2865,20 @@ var Storage = {
         else if (d.indexOf('welcome bonus') !== -1) t.category = 'Gift';
         else if (d.indexOf('task') !== -1) t.category = 'Task Reward';
         else if (d.indexOf('quiz') !== -1) t.category = 'Quiz Reward';
+      });
+    }
+
+    if (state.settings.questionsPerQuiz === undefined) state.settings.questionsPerQuiz = 5;
+
+    // Points currency migration
+    if (state.inventory.points === undefined) state.inventory.points = 0;
+    if (state.dailyState.pointsEarned === undefined) state.dailyState.pointsEarned = 0;
+
+    // Animal feedCount + mood migration
+    if (state.animals) {
+      state.animals.forEach(function(a) {
+        if (a.feedCount === undefined) a.feedCount = 0;
+        if (a.mood === undefined) a.mood = 'happy';
       });
     }
 
@@ -3265,7 +3362,8 @@ var Wallet = (function() {
 
 // ============================================================
 // stable.js — My Stable screen
-// Hearts: feed=1, water=1, both=auto happy heart (parent can remove)
+// Hearts: combined feed (1 food + 1 water = 1 heart), max 2/day
+// 3rd heart auto if mood === 'happy' after 2nd feed
 // ============================================================
 
 var Stable = (function() {
@@ -3278,6 +3376,7 @@ var Stable = (function() {
 
     document.getElementById('food-count').textContent = 'Food: ' + state.inventory.food;
     document.getElementById('water-count').textContent = 'Water: ' + state.inventory.water;
+    document.getElementById('points-count').textContent = 'Points: ' + (state.inventory.points || 0);
 
     if (alive.length === 0) {
       grid.innerHTML = '<div class="empty-stable">' +
@@ -3289,10 +3388,12 @@ var Stable = (function() {
       var name = animal.name || ANIMAL_NAMES[animal.type].singular;
       var heartPct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
       var cssClass = animal.type + '-' + animal.stage;
+      var fc = animal.feedCount || 0;
+      var mood = animal.mood || 'happy';
       var statusIcons = '';
-      if (animal.fedToday) statusIcons += '<span class="status-fed">Fed</span>';
-      if (animal.wateredToday) statusIcons += '<span class="status-watered">Water</span>';
-      if (animal.happyHeartToday && !animal.happyHeartRemoved) statusIcons += '<span class="bred-badge">Happy</span>';
+      if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/2</span>';
+      var moodClass = mood === 'happy' ? 'mood-happy' : 'mood-sad';
+      statusIcons += '<span class="mood-badge ' + moodClass + '">' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>';
       if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
 
       return '<div class="animal-card ' + (animal.stage === 'adult' ? 'adult-card' : '') + '" data-id="' + animal.id + '">' +
@@ -3322,6 +3423,8 @@ var Stable = (function() {
     var modal = document.getElementById('animal-modal');
     var name = animal.name || ANIMAL_NAMES[animal.type].singular;
     var cssClass = animal.type + '-' + animal.stage;
+    var fc = animal.feedCount || 0;
+    var mood = animal.mood || 'happy';
 
     document.getElementById('modal-animal-art').innerHTML =
       '<div class="pixel-art ' + cssClass + ' idle-bounce"></div>';
@@ -3335,23 +3438,32 @@ var Stable = (function() {
     }
     // Show today's heart breakdown
     var todayInfo = [];
-    if (animal.fedToday) todayInfo.push('Fed +1');
-    if (animal.wateredToday) todayInfo.push('Water +1');
+    if (fc >= 1) todayInfo.push('Feed 1 +1');
+    if (fc >= 2) todayInfo.push('Feed 2 +1');
     if (animal.happyHeartToday && !animal.happyHeartRemoved) todayInfo.push('Happy +1');
     if (animal.happyHeartRemoved) todayInfo.push('Happy removed');
     heartsHTML += '<div class="hearts-today">Today: ' + (todayInfo.length ? todayInfo.join(', ') : 'none yet') + '</div>';
     document.getElementById('modal-hearts').innerHTML = heartsHTML;
 
-    document.getElementById('modal-stage').textContent =
-      animal.stage === 'adult' ? 'ADULT - Ready to sell or breed!' : 'Baby - Keep feeding to grow!';
+    // Mood display
+    var moodClass = mood === 'happy' ? 'mood-happy' : 'mood-sad';
+    document.getElementById('modal-stage').innerHTML =
+      (animal.stage === 'adult' ? 'ADULT - Ready to sell or breed!' : 'Baby - Keep feeding to grow!') +
+      '<br><span class="mood-badge ' + moodClass + '">Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>';
 
-    // Feed/water buttons
+    // Combined Feed button (replaces separate feed/water)
     var btnFeed = document.getElementById('btn-feed');
     var btnWater = document.getElementById('btn-water');
-    btnFeed.disabled = animal.fedToday || state.inventory.food <= 0;
-    btnWater.disabled = animal.wateredToday || state.inventory.water <= 0;
-    btnFeed.textContent = animal.fedToday ? 'Fed!' : 'Feed (' + state.inventory.food + ')';
-    btnWater.textContent = animal.wateredToday ? 'Watered!' : 'Water (' + state.inventory.water + ')';
+    // Hide the water button, repurpose feed button
+    btnWater.style.display = 'none';
+
+    var canFeed = state.inventory.food >= 1 && state.inventory.water >= 1 && fc < 2;
+    btnFeed.disabled = !canFeed;
+    if (fc >= 2) {
+      btnFeed.textContent = 'Fed 2/2';
+    } else {
+      btnFeed.textContent = 'Feed ' + fc + '/2 (1 food + 1 water)';
+    }
 
     // Status warnings
     var status = '';
@@ -3366,50 +3478,44 @@ var Stable = (function() {
     modal.style.display = 'flex';
 
     btnFeed.onclick = function() { feedAnimal(animalId); };
-    btnWater.onclick = function() { waterAnimal(animalId); };
     document.getElementById('btn-save-name').onclick = function() { saveName(animalId); };
   }
 
   function feedAnimal(id) {
     var state = Storage.load();
     var animal = state.animals.find(function(a) { return a.id === id; });
-    if (!animal || animal.fedToday || state.inventory.food <= 0) return;
+    if (!animal) return;
+    var fc = animal.feedCount || 0;
+    if (fc >= 2 || state.inventory.food < 1 || state.inventory.water < 1) return;
 
-    animal.fedToday = true;
-    animal.daysWithoutFood = 0;
+    // Consume 1 food + 1 water
     state.inventory.food--;
+    state.inventory.water--;
+    animal.feedCount = fc + 1;
 
-    // Feed heart
+    // Mark fed/watered for death tracking
+    animal.fedToday = true;
+    animal.wateredToday = true;
+    animal.daysWithoutFood = 0;
+    animal.daysWithoutWater = 0;
+
+    // Give 1 heart
     giveHeart(animal);
 
-    // Check for happy heart (both fed and watered)
-    checkHappyHeart(animal);
+    // After 2nd feed: check mood for auto 3rd heart
+    if (animal.feedCount >= 2) {
+      var mood = animal.mood || 'happy';
+      if (mood === 'happy' && !animal.happyHeartToday) {
+        animal.happyHeartToday = true;
+        animal.happyHeartRemoved = false;
+        giveHeart(animal);
+        Sound.heart();
+      }
+    }
 
     Storage.save(state);
     Sound.feed();
-    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' enjoyed the food!');
-    openAnimalModal(id);
-    render();
-  }
-
-  function waterAnimal(id) {
-    var state = Storage.load();
-    var animal = state.animals.find(function(a) { return a.id === id; });
-    if (!animal || animal.wateredToday || state.inventory.water <= 0) return;
-
-    animal.wateredToday = true;
-    animal.daysWithoutWater = 0;
-    state.inventory.water--;
-
-    // Water heart
-    giveHeart(animal);
-
-    // Check for happy heart
-    checkHappyHeart(animal);
-
-    Storage.save(state);
-    Sound.water();
-    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' drank water!');
+    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' enjoyed the meal!');
     openAnimalModal(id);
     render();
   }
@@ -3424,16 +3530,6 @@ var Stable = (function() {
         Sound.heart();
         App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' grew into an adult!');
       }
-    }
-  }
-
-  // Auto happy heart when both fed and watered
-  function checkHappyHeart(animal) {
-    if (animal.fedToday && animal.wateredToday && !animal.happyHeartToday) {
-      animal.happyHeartToday = true;
-      animal.happyHeartRemoved = false;
-      giveHeart(animal);
-      Sound.heart();
     }
   }
 
@@ -3469,11 +3565,11 @@ var Stable = (function() {
     render();
   }
 
-  return { render: render, openAnimalModal: openAnimalModal, removeHappyHeart: removeHappyHeart };
+  return { render: render, openAnimalModal: openAnimalModal, removeHappyHeart: removeHappyHeart, giveHeart: giveHeart };
 })();
 
 // ============================================================
-// market.js — Buy/sell animals with configurable prices
+// market.js — Buy/sell animals + buy supplies with points
 // ============================================================
 
 var Market = (function() {
@@ -3482,8 +3578,29 @@ var Market = (function() {
     var state = Storage.load();
     var buyPrice = state.settings.buyBabyPrice;
     var sellPrice = state.settings.sellAdultPrice;
+    var pts = state.inventory.points || 0;
 
     document.getElementById('market-balance').textContent = formatMoney(state.wallet.balance);
+    document.getElementById('market-points').textContent = 'Points: ' + pts;
+
+    // Supply shop
+    var supplySection = document.getElementById('supply-shop');
+    var canBuyFood = pts >= 10;
+    var canBuyWater = pts >= 10;
+    supplySection.innerHTML =
+      '<div class="supply-row">' +
+        '<span class="supply-label">Food (10 pts)</span>' +
+        '<span class="supply-stock">Stock: ' + state.inventory.food + '</span>' +
+        '<button class="btn btn-accent btn-small" id="btn-buy-food"' + (canBuyFood ? '' : ' disabled') + '>Buy</button>' +
+      '</div>' +
+      '<div class="supply-row">' +
+        '<span class="supply-label">Water (10 pts)</span>' +
+        '<span class="supply-stock">Stock: ' + state.inventory.water + '</span>' +
+        '<button class="btn btn-accent btn-small" id="btn-buy-water"' + (canBuyWater ? '' : ' disabled') + '>Buy</button>' +
+      '</div>';
+
+    document.getElementById('btn-buy-food').addEventListener('click', function() { buySupply('food'); });
+    document.getElementById('btn-buy-water').addEventListener('click', function() { buySupply('water'); });
 
     // Buy grid
     var buyGrid = document.getElementById('market-buy-grid');
@@ -3526,6 +3643,21 @@ var Market = (function() {
     document.getElementById('sell-price-label').textContent = 'Sell an Adult Animal - ' + formatMoney(sellPrice);
   }
 
+  function buySupply(type) {
+    var state = Storage.load();
+    if (!state.inventory.points) state.inventory.points = 0;
+    if (state.inventory.points < 10) {
+      App.showToast('Not enough points!');
+      return;
+    }
+    state.inventory.points -= 10;
+    state.inventory[type]++;
+    Storage.save(state);
+    Sound.buy();
+    App.showToast('Bought 1 ' + type + '!');
+    render();
+  }
+
   function buyAnimal(type) {
     var state = Storage.load();
     var price = state.settings.buyBabyPrice;
@@ -3565,7 +3697,7 @@ var Market = (function() {
 })();
 
 // ============================================================
-// tasks.js — Dynamic chores, incremental rewards, two quizzes
+// tasks.js — Dynamic chores, incremental rewards (points), two quizzes
 // ============================================================
 
 var Tasks = (function() {
@@ -3607,7 +3739,7 @@ var Tasks = (function() {
 
     // Update reward display
     document.getElementById('task-reward-text').textContent =
-      'Every ' + s.tasksPerReward + ' tasks = +' + s.taskRewardFood + ' Food +' + s.taskRewardWater + ' Water';
+      'Every ' + s.tasksPerReward + ' tasks = +10 Points';
 
     // Progress text
     var choresDone = ds.tasksCompleted.filter(Boolean).length;
@@ -3615,6 +3747,7 @@ var Tasks = (function() {
     var capText = s.dailyRewardCap > 0 ? ' (cap: ' + s.dailyRewardCap + ')' : '';
     document.getElementById('tasks-progress').textContent =
       choresDone + ' tasks done | ' + ds.taskRewardsEarned + ' rewards earned' + capText +
+      ' | Points: ' + (state.inventory.points || 0) +
       ' | Food: ' + state.inventory.food + ' | Water: ' + state.inventory.water;
 
     // Checkbox listeners
@@ -3644,7 +3777,7 @@ var Tasks = (function() {
     state.dailyState.tasksCompleted[index] = true;
     Sound.click();
 
-    // Incremental rewards: every N tasks = 1 reward batch
+    // Incremental rewards: every N tasks = 1 reward batch of 10 points
     var choresDone = state.dailyState.tasksCompleted.filter(Boolean).length;
     var s = state.settings;
     var expectedRewards = Math.floor(choresDone / s.tasksPerReward);
@@ -3657,15 +3790,13 @@ var Tasks = (function() {
         newRewards = Math.min(newRewards, canEarn);
       }
       if (newRewards > 0) {
-        var foodGain = newRewards * s.taskRewardFood;
-        var waterGain = newRewards * s.taskRewardWater;
-        state.inventory.food += foodGain;
-        state.inventory.water += waterGain;
-        state.dailyState.foodEarned += foodGain;
-        state.dailyState.waterEarned += waterGain;
+        var pointsGain = newRewards * 10;
+        if (!state.inventory.points) state.inventory.points = 0;
+        state.inventory.points += pointsGain;
+        state.dailyState.pointsEarned = (state.dailyState.pointsEarned || 0) + pointsGain;
         state.dailyState.taskRewardsEarned += newRewards;
         Sound.coin();
-        App.showToast('Reward! +' + foodGain + ' Food +' + waterGain + ' Water!');
+        App.showToast('Reward! +' + pointsGain + ' Points!');
       }
     }
 
@@ -3684,14 +3815,12 @@ var Tasks = (function() {
     // Award quiz reward when BOTH quizzes are completed
     if (state.dailyState.quizMathCompleted && state.dailyState.quizEncyclopediaCompleted && !state.dailyState.quizRewardEarned) {
       state.dailyState.quizRewardEarned = true;
-      var foodGain = state.settings.quizRewardFood;
-      var waterGain = state.settings.quizRewardWater;
-      state.inventory.food += foodGain;
-      state.inventory.water += waterGain;
-      state.dailyState.foodEarned += foodGain;
-      state.dailyState.waterEarned += waterGain;
+      var pointsGain = 10;
+      if (!state.inventory.points) state.inventory.points = 0;
+      state.inventory.points += pointsGain;
+      state.dailyState.pointsEarned = (state.dailyState.pointsEarned || 0) + pointsGain;
       Storage.save(state);
-      App.showToast('Both quizzes done! +' + foodGain + ' Food +' + waterGain + ' Water!');
+      App.showToast('Both quizzes done! +' + pointsGain + ' Points!');
     } else {
       Storage.save(state);
       if (quizType === 'math' && !state.dailyState.quizEncyclopediaCompleted) {
@@ -3706,7 +3835,7 @@ var Tasks = (function() {
 })();
 
 // ============================================================
-// quiz.js — Quiz engine: math + encyclopedia, 3 questions each
+// quiz.js — Quiz engine: math + encyclopedia, 5 questions each
 // ============================================================
 
 const Quiz = (() => {
@@ -3715,7 +3844,10 @@ const Quiz = (() => {
   let score = 0;
   let streak = 0;
   let quizType = 'math';
-  const QUESTIONS_PER_QUIZ = 3;
+  function getQuestionsPerQuiz() {
+    var state = Storage.load();
+    return (state.settings && state.settings.questionsPerQuiz) || 5;
+  }
 
   // 200+ math questions across 5 difficulty levels
   const QUESTIONS = {
@@ -3887,7 +4019,7 @@ const Quiz = (() => {
       pool = QUESTIONS[difficulty] || QUESTIONS[1];
     }
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, QUESTIONS_PER_QUIZ);
+    return shuffled.slice(0, getQuestionsPerQuiz());
   }
 
   function start(type) {
@@ -3908,14 +4040,14 @@ const Quiz = (() => {
   }
 
   function showQuestion() {
-    if (currentIndex >= QUESTIONS_PER_QUIZ) {
+    if (currentIndex >= getQuestionsPerQuiz()) {
       finishQuiz();
       return;
     }
 
     const q = currentQuestions[currentIndex];
     document.getElementById('quiz-progress').textContent =
-      `Question ${currentIndex + 1}/${QUESTIONS_PER_QUIZ}`;
+      `Question ${currentIndex + 1}/${getQuestionsPerQuiz()}`;
     document.getElementById('quiz-score').textContent = `Score: ${score}`;
     document.getElementById('quiz-question').textContent = q.q;
     document.getElementById('quiz-feedback').textContent = '';
@@ -3969,7 +4101,7 @@ const Quiz = (() => {
     state.stats.totalQuizzesTaken++;
 
     // Adaptive difficulty
-    if (score >= QUESTIONS_PER_QUIZ) {
+    if (score >= getQuestionsPerQuiz()) {
       state.quizDifficulty = Math.min(5, state.quizDifficulty + 1);
     } else if (score === 0) {
       state.quizDifficulty = Math.max(1, state.quizDifficulty - 1);
@@ -3980,11 +4112,11 @@ const Quiz = (() => {
     // Show results
     const typeLabel = quizType === 'math' ? 'Math' : 'Encyclopedia';
     document.getElementById('quiz-question').textContent =
-      `${typeLabel} Quiz Complete! You got ${score}/${QUESTIONS_PER_QUIZ}!`;
+      `${typeLabel} Quiz Complete! You got ${score}/${getQuestionsPerQuiz()}!`;
     document.getElementById('quiz-answers').innerHTML =
       `<button class="btn btn-primary" id="quiz-done">Back to Tasks</button>`;
     document.getElementById('quiz-feedback').textContent =
-      score >= QUESTIONS_PER_QUIZ ? 'Perfect!' : score >= 2 ? 'Good effort!' : 'Keep practicing!';
+      score >= getQuestionsPerQuiz() ? 'Perfect!' : score >= 2 ? 'Good effort!' : 'Keep practicing!';
     document.getElementById('quiz-feedback').className = 'quiz-feedback feedback-correct';
 
     document.getElementById('quiz-done').addEventListener('click', () => {
@@ -4229,6 +4361,7 @@ var Parent = (function() {
     document.getElementById('setting-daily-cap').value = s.dailyRewardCap;
     document.getElementById('setting-quiz-food').value = s.quizRewardFood;
     document.getElementById('setting-quiz-water').value = s.quizRewardWater;
+    document.getElementById('setting-questions-per-quiz').value = s.questionsPerQuiz || 5;
 
     document.getElementById('btn-save-settings').onclick = function() {
       var st = Storage.load();
@@ -4241,6 +4374,7 @@ var Parent = (function() {
       st.settings.dailyRewardCap = parseInt(document.getElementById('setting-daily-cap').value) || 0;
       st.settings.quizRewardFood = parseInt(document.getElementById('setting-quiz-food').value) || 1;
       st.settings.quizRewardWater = parseInt(document.getElementById('setting-quiz-water').value) || 1;
+      st.settings.questionsPerQuiz = parseInt(document.getElementById('setting-questions-per-quiz').value) || 5;
       Storage.save(st);
       Sound.click();
       App.showToast('Settings saved!');
@@ -4319,17 +4453,24 @@ var Parent = (function() {
       var hasHappy = a.happyHeartToday && !a.happyHeartRemoved;
       var btnText = hasHappy ? 'Remove Happy Heart' : (a.happyHeartRemoved ? 'Already removed' : 'No happy heart yet');
       var canRemove = hasHappy;
+      var mood = a.mood || 'happy';
+      var moodBtnText = mood === 'happy' ? 'Set Sad' : 'Set Happy';
+      var moodBtnClass = mood === 'happy' ? 'btn-danger' : 'btn-accent';
+      var fc = a.feedCount || 0;
 
       return '<div class="parent-animal-row">' +
         '<div class="pixel-art ' + a.type + '-' + a.stage + '"></div>' +
         '<span>' + name + ' (' + a.hearts + '/' + HEARTS.maxHearts + ')' +
-        (a.fedToday ? ' Fed' : '') + (a.wateredToday ? ' Water' : '') + '</span>' +
-        '<button class="btn btn-small ' + (canRemove ? 'btn-danger' : 'btn-secondary') + '" ' +
+        ' Fed ' + fc + '/2' +
+        ' | Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>' +
+        '<button class="btn btn-small ' + moodBtnClass + ' mood-toggle-btn" data-id="' + a.id + '">' +
+        moodBtnText + '</button>' +
+        '<button class="btn btn-small ' + (canRemove ? 'btn-danger' : 'btn-secondary') + ' remove-happy-btn" ' +
         'data-id="' + a.id + '"' + (canRemove ? '' : ' disabled') + '>' +
         btnText + '</button></div>';
     }).join('');
 
-    container.querySelectorAll('button[data-id]').forEach(function(btn) {
+    container.querySelectorAll('.remove-happy-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var id = parseInt(btn.dataset.id);
         Stable.removeHappyHeart(id);
@@ -4338,6 +4479,26 @@ var Parent = (function() {
         renderAnimalHearts();
       });
     });
+
+    container.querySelectorAll('.mood-toggle-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = parseInt(btn.dataset.id);
+        toggleMood(id);
+      });
+    });
+  }
+
+  function toggleMood(animalId) {
+    var state = Storage.load();
+    var animal = state.animals.find(function(a) { return a.id === animalId; });
+    if (!animal) return;
+
+    var currentMood = animal.mood || 'happy';
+    animal.mood = currentMood === 'happy' ? 'sad' : 'happy';
+    Storage.save(state);
+    Sound.click();
+    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' mood set to ' + animal.mood + '!');
+    renderAnimalHearts();
   }
 
   function renderProgressDashboard() {
@@ -4833,11 +4994,14 @@ const Friends = (() => {
 
   // ---- View Friend's Stable ----
 
+  var currentFriendUid = null;
+
   function viewFriendStable(uid, name) {
     var header = document.getElementById('friend-stable-name');
     var grid = document.getElementById('friend-stable-grid');
     if (!header || !grid) return;
 
+    currentFriendUid = uid;
     header.textContent = name + "'s Barn";
     grid.innerHTML = '<p class="empty-msg">Loading...</p>';
 
@@ -4848,8 +5012,9 @@ const Friends = (() => {
         grid.innerHTML = '<p class="empty-msg">Could not load barn.</p>';
         return;
       }
-      var state = doc.data().gameState;
-      var alive = (state.animals || []).filter(function(a) { return a.alive; });
+      var friendState = doc.data().gameState;
+      var alive = (friendState.animals || []).filter(function(a) { return a.alive; });
+      var myState = Storage.load();
 
       var countEl = document.getElementById('friend-stable-count');
       if (countEl) countEl.textContent = alive.length + ' animal' + (alive.length !== 1 ? 's' : '');
@@ -4863,8 +5028,15 @@ const Friends = (() => {
         var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
         var heartPct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
         var cssClass = animal.type + '-' + animal.stage;
+        var fc = animal.feedCount || 0;
         var statusIcons = '';
+        if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/2</span>';
         if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
+
+        var canFeed = myState.inventory.food >= 1 && myState.inventory.water >= 1 && fc < 2;
+        var feedBtn = '<button class="btn btn-accent btn-small btn-feed-friend" data-animal-id="' + animal.id + '"' +
+          (canFeed ? '' : ' disabled') + '>' +
+          (fc >= 2 ? 'Full' : 'Feed') + '</button>';
 
         return '<div class="animal-card ' + (animal.stage === 'adult' ? 'adult-card' : '') + '">' +
           '<div class="sprite-wrap"><div class="pixel-art ' + cssClass + ' idle-bounce"></div></div>' +
@@ -4873,11 +5045,105 @@ const Friends = (() => {
           '<div class="heart-bar"><div class="heart-fill" style="width:' + heartPct + '%"></div>' +
           '<span class="heart-text">' + animal.hearts + '/' + HEARTS.maxHearts + '</span></div>' +
           '<div class="animal-status">' + statusIcons + '</div>' +
+          feedBtn +
           '</div></div>';
       }).join('');
+
+      grid.querySelectorAll('.btn-feed-friend').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          Sound.click();
+          feedFriendAnimal(uid, parseInt(btn.dataset.animalId), name);
+        });
+      });
     }).catch(function(err) {
       console.error('Load friend stable error:', err);
       grid.innerHTML = '<p class="empty-msg">Could not load barn.</p>';
+    });
+  }
+
+  function feedFriendAnimal(friendUid, animalId, friendName) {
+    // Check local inventory
+    var myState = Storage.load();
+    if (myState.inventory.food < 1 || myState.inventory.water < 1) {
+      App.showToast('You need 1 food + 1 water to feed!');
+      return;
+    }
+
+    // Load friend's data from Firestore
+    db.collection('users').doc(friendUid).get().then(function(doc) {
+      if (!doc.exists || !doc.data().gameState) {
+        App.showToast('Could not load friend data.');
+        return;
+      }
+      var friendState = doc.data().gameState;
+      var animal = friendState.animals.find(function(a) { return a.id === animalId; });
+      if (!animal || !animal.alive) {
+        App.showToast('Animal not found.');
+        return;
+      }
+
+      var fc = animal.feedCount || 0;
+      if (fc >= 2) {
+        App.showToast('This animal has been fed enough today!');
+        return;
+      }
+
+      // Update friend's animal
+      animal.feedCount = fc + 1;
+      animal.fedToday = true;
+      animal.wateredToday = true;
+      animal.daysWithoutFood = 0;
+      animal.daysWithoutWater = 0;
+
+      // Give heart
+      var maxDay = animal.isBred ? HEARTS.maxPerDayBred : HEARTS.maxPerDayBought;
+      if ((animal.heartsToday || 0) < maxDay && animal.hearts < HEARTS.maxHearts) {
+        animal.hearts++;
+        animal.heartsToday = (animal.heartsToday || 0) + 1;
+        if (animal.hearts >= HEARTS.adultThreshold && animal.stage === 'baby') {
+          animal.stage = 'adult';
+        }
+      }
+
+      // After 2nd feed: check mood for auto 3rd heart
+      if (animal.feedCount >= 2) {
+        var mood = animal.mood || 'happy';
+        if (mood === 'happy' && !animal.happyHeartToday) {
+          animal.happyHeartToday = true;
+          animal.happyHeartRemoved = false;
+          if ((animal.heartsToday || 0) < maxDay && animal.hearts < HEARTS.maxHearts) {
+            animal.hearts++;
+            animal.heartsToday = (animal.heartsToday || 0) + 1;
+            if (animal.hearts >= HEARTS.adultThreshold && animal.stage === 'baby') {
+              animal.stage = 'adult';
+            }
+          }
+        }
+      }
+
+      // Save friend's state to Firestore
+      return db.collection('users').doc(friendUid).update({
+        'gameState': friendState
+      }).then(function() {
+        // Deduct from my inventory
+        var ms = Storage.load();
+        ms.inventory.food--;
+        ms.inventory.water--;
+        Storage.save(ms);
+
+        // Sync my state to cloud
+        if (typeof CloudSync !== 'undefined' && CloudSync.saveToCloud) {
+          CloudSync.saveToCloud();
+        }
+
+        Sound.feed();
+        var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
+        App.showToast('You fed ' + friendName + "'s " + aName + '!');
+        viewFriendStable(friendUid, friendName);
+      });
+    }).catch(function(err) {
+      console.error('Feed friend animal error:', err);
+      App.showToast('Could not feed animal. ' + (err.message || ''));
     });
   }
 
@@ -5184,6 +5450,7 @@ const App = (() => {
         animal.heartsToday = 0;
         animal.happyHeartToday = false;
         animal.happyHeartRemoved = false;
+        animal.feedCount = 0;
       });
 
       if (state.breedingPen.active && state.breedingPen.startDate) {
@@ -5201,6 +5468,7 @@ const App = (() => {
               fedToday: false, wateredToday: false,
               parentVoteToday: false, heartsToday: 0,
               happyHeartToday: false, happyHeartRemoved: false,
+              feedCount: 0, mood: 'happy',
               bornDate: today
             });
             showToast('A new baby ' + ANIMAL_NAMES[babyType].singular + ' was born from breeding!');
@@ -5216,8 +5484,7 @@ const App = (() => {
       tasksCompleted: new Array(state.tasks.chores.length).fill(false),
       quizMathCompleted: false,
       quizEncyclopediaCompleted: false,
-      foodEarned: 0,
-      waterEarned: 0,
+      pointsEarned: 0,
       taskRewardsEarned: 0,
       quizRewardEarned: false,
       parentVoteDone: false
@@ -5249,6 +5516,33 @@ const App = (() => {
     if (age <= 10) return 3;
     if (age <= 11) return 4;
     return 5;
+  }
+
+  function birthdayToAge(birthday) {
+    if (!birthday) return 8;
+    var parts = birthday.split('-');
+    var bYear = parseInt(parts[0]);
+    var bMonth = parseInt(parts[1]);
+    var bDay = parseInt(parts[2]);
+    var now = new Date();
+    var age = now.getFullYear() - bYear;
+    var mDiff = (now.getMonth() + 1) - bMonth;
+    if (mDiff < 0 || (mDiff === 0 && now.getDate() < bDay)) {
+      age--;
+    }
+    return Math.max(4, Math.min(age, 18));
+  }
+
+  function updateAgeFromBirthday() {
+    var state = Storage.load();
+    if (state.playerBirthday) {
+      var age = birthdayToAge(state.playerBirthday);
+      if (age !== state.playerAge) {
+        state.playerAge = age;
+        state.quizDifficulty = ageToDifficulty(age);
+        Storage.save(state);
+      }
+    }
   }
 
   // ---- Firebase Auth UI ----
@@ -5284,6 +5578,23 @@ const App = (() => {
     }
   }
 
+  function handleForgotPassword() {
+    var email = document.getElementById('login-email').value.trim();
+    setAuthError('login-error', '');
+    if (!email) {
+      setAuthError('login-error', 'Enter your email above, then tap Forgot Password.');
+      return;
+    }
+    auth.sendPasswordResetEmail(email)
+      .then(function() {
+        App.showToast('Password reset email sent!');
+        setAuthError('login-error', '');
+      })
+      .catch(function(error) {
+        setAuthError('login-error', firebaseErrorMsg(error.code));
+      });
+  }
+
   function handleLogin() {
     var email = document.getElementById('login-email').value.trim();
     var password = document.getElementById('login-password').value;
@@ -5306,7 +5617,7 @@ const App = (() => {
 
   function handleRegister() {
     var name = document.getElementById('register-name').value.trim();
-    var age = parseInt(document.getElementById('register-age').value) || 8;
+    var birthday = document.getElementById('register-birthday').value;
     var email = document.getElementById('register-email').value.trim();
     var password = document.getElementById('register-password').value;
     setAuthError('register-error', '');
@@ -5315,10 +5626,16 @@ const App = (() => {
       setAuthError('register-error', 'Please enter your name.');
       return;
     }
+    if (!birthday) {
+      setAuthError('register-error', 'Please enter your birthday.');
+      return;
+    }
     if (!email || !password) {
       setAuthError('register-error', 'Please enter email and password.');
       return;
     }
+
+    var age = birthdayToAge(birthday);
 
     auth.createUserWithEmailAndPassword(email, password)
       .then(function(cred) {
@@ -5328,6 +5645,7 @@ const App = (() => {
           Storage.setCurrentAccount(cred.user.uid);
           var state = createDefaultState();
           state.playerName = name;
+          state.playerBirthday = birthday;
           state.playerAge = age;
           state.quizDifficulty = ageToDifficulty(age);
           Storage.save(state);
@@ -5467,8 +5785,34 @@ const App = (() => {
 
   // ---- Game lifecycle ----
 
+  function promptBirthdayIfMissing() {
+    var state = Storage.load();
+    if (state.playerBirthday) return;
+
+    var modal = document.getElementById('birthday-modal');
+    modal.style.display = 'flex';
+
+    document.getElementById('btn-birthday-save').onclick = function() {
+      var val = document.getElementById('birthday-prompt-input').value;
+      if (!val) {
+        App.showToast('Please pick your birthday!');
+        return;
+      }
+      var s = Storage.load();
+      s.playerBirthday = val;
+      s.playerAge = birthdayToAge(val);
+      s.quizDifficulty = ageToDifficulty(s.playerAge);
+      Storage.save(s);
+      modal.style.display = 'none';
+      Sound.click();
+      App.showToast('Birthday saved!');
+    };
+  }
+
   function startGame() {
     dailyCycle();
+    updateAgeFromBirthday();
+    promptBirthdayIfMissing();
     trackLogin();
     Wallet.processInterest();
     Chat.initListeners();
@@ -5529,6 +5873,9 @@ const App = (() => {
 
     // ---- Firebase Auth buttons ----
     document.getElementById('btn-login').addEventListener('click', handleLogin);
+    document.getElementById('btn-forgot-password').addEventListener('click', function() {
+      handleForgotPassword();
+    });
     document.getElementById('btn-show-register').addEventListener('click', function() {
       Sound.click();
       showRegisterForm();

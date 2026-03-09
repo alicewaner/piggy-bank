@@ -35,6 +35,7 @@
           <input type="password" id="login-password" placeholder="Enter your password">
           <p id="login-error" class="error-text" style="display:none"></p>
           <button id="btn-login" class="btn btn-primary btn-large">Sign In</button>
+          <button id="btn-forgot-password" class="btn-link">Forgot Password?</button>
           <button id="btn-show-register" class="btn btn-accent btn-large">Create Account</button>
         </div>
 
@@ -42,16 +43,8 @@
         <div id="register-form" class="login-form" style="display:none">
           <label for="register-name">Your Name</label>
           <input type="text" id="register-name" placeholder="Enter your name" maxlength="20">
-          <label for="register-age">Your Age</label>
-          <select id="register-age">
-            <option value="6">6 years old</option>
-            <option value="7">7 years old</option>
-            <option value="8" selected>8 years old</option>
-            <option value="9">9 years old</option>
-            <option value="10">10 years old</option>
-            <option value="11">11 years old</option>
-            <option value="12">12 years old</option>
-          </select>
+          <label for="register-birthday">Your Birthday</label>
+          <input type="date" id="register-birthday">
           <label for="register-email">Email</label>
           <input type="email" id="register-email" placeholder="Enter your email">
           <label for="register-password">Password</label>
@@ -68,6 +61,7 @@
       <div class="screen-header">
         <h2>My Barn</h2>
         <div class="resource-bar">
+          <span class="resource" id="points-count">Points: 0</span>
           <span class="resource" id="food-count">Food: 0</span>
           <span class="resource" id="water-count">Water: 0</span>
         </div>
@@ -84,7 +78,14 @@
     <div id="screen-market" class="screen">
       <div class="screen-header">
         <h2>Market</h2>
-        <div class="balance-display" id="market-balance">$0.00</div>
+        <div class="market-header-stats">
+          <div class="balance-display" id="market-balance">$0.00</div>
+          <span class="resource" id="market-points">Points: 0</span>
+        </div>
+      </div>
+      <div class="market-section">
+        <h3>Buy Supplies</h3>
+        <div id="supply-shop" class="supply-shop"></div>
       </div>
       <div class="market-section">
         <h3 id="buy-price-label">Buy a Baby Animal - $5.00</h3>
@@ -241,6 +242,8 @@
             <input type="number" id="setting-quiz-food" class="setting-input" min="0" max="20">
             <label>Quiz Reward Water:</label>
             <input type="number" id="setting-quiz-water" class="setting-input" min="0" max="20">
+            <label>Questions per Quiz:</label>
+            <input type="number" id="setting-questions-per-quiz" class="setting-input" min="1" max="20">
             <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
           </div>
         </div>
@@ -372,6 +375,16 @@
         </div>
         <div id="modal-status" class="modal-status"></div>
         <button id="btn-modal-done" class="btn btn-primary" style="margin-top:12px;width:100%">Done</button>
+      </div>
+    </div>
+
+    <!-- Birthday Prompt Modal -->
+    <div id="birthday-modal" class="modal" style="display:none">
+      <div class="modal-content" style="text-align:center;padding:24px">
+        <h3 style="margin-bottom:12px;color:var(--primary)">When is your birthday?</h3>
+        <p style="font-size:0.85rem;color:var(--stone-dark);margin-bottom:12px">We need your birthday to pick the right quiz level for you!</p>
+        <input type="date" id="birthday-prompt-input" style="width:100%;padding:10px;border:2px solid var(--slot-border-light);border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.9rem;margin-bottom:12px">
+        <button id="btn-birthday-save" class="btn btn-primary btn-large">Save</button>
       </div>
     </div>
 

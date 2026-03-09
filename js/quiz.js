@@ -1,5 +1,5 @@
 // ============================================================
-// quiz.js — Quiz engine: math + encyclopedia, 3 questions each
+// quiz.js — Quiz engine: math + encyclopedia, 5 questions each
 // ============================================================
 
 const Quiz = (() => {
@@ -8,7 +8,10 @@ const Quiz = (() => {
   let score = 0;
   let streak = 0;
   let quizType = 'math';
-  const QUESTIONS_PER_QUIZ = 3;
+  function getQuestionsPerQuiz() {
+    var state = Storage.load();
+    return (state.settings && state.settings.questionsPerQuiz) || 5;
+  }
 
   // 200+ math questions across 5 difficulty levels
   const QUESTIONS = {
@@ -180,7 +183,7 @@ const Quiz = (() => {
       pool = QUESTIONS[difficulty] || QUESTIONS[1];
     }
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, QUESTIONS_PER_QUIZ);
+    return shuffled.slice(0, getQuestionsPerQuiz());
   }
 
   function start(type) {
@@ -201,14 +204,14 @@ const Quiz = (() => {
   }
 
   function showQuestion() {
-    if (currentIndex >= QUESTIONS_PER_QUIZ) {
+    if (currentIndex >= getQuestionsPerQuiz()) {
       finishQuiz();
       return;
     }
 
     const q = currentQuestions[currentIndex];
     document.getElementById('quiz-progress').textContent =
-      `Question ${currentIndex + 1}/${QUESTIONS_PER_QUIZ}`;
+      `Question ${currentIndex + 1}/${getQuestionsPerQuiz()}`;
     document.getElementById('quiz-score').textContent = `Score: ${score}`;
     document.getElementById('quiz-question').textContent = q.q;
     document.getElementById('quiz-feedback').textContent = '';
@@ -262,7 +265,7 @@ const Quiz = (() => {
     state.stats.totalQuizzesTaken++;
 
     // Adaptive difficulty
-    if (score >= QUESTIONS_PER_QUIZ) {
+    if (score >= getQuestionsPerQuiz()) {
       state.quizDifficulty = Math.min(5, state.quizDifficulty + 1);
     } else if (score === 0) {
       state.quizDifficulty = Math.max(1, state.quizDifficulty - 1);
@@ -273,11 +276,11 @@ const Quiz = (() => {
     // Show results
     const typeLabel = quizType === 'math' ? 'Math' : 'Encyclopedia';
     document.getElementById('quiz-question').textContent =
-      `${typeLabel} Quiz Complete! You got ${score}/${QUESTIONS_PER_QUIZ}!`;
+      `${typeLabel} Quiz Complete! You got ${score}/${getQuestionsPerQuiz()}!`;
     document.getElementById('quiz-answers').innerHTML =
       `<button class="btn btn-primary" id="quiz-done">Back to Tasks</button>`;
     document.getElementById('quiz-feedback').textContent =
-      score >= QUESTIONS_PER_QUIZ ? 'Perfect!' : score >= 2 ? 'Good effort!' : 'Keep practicing!';
+      score >= getQuestionsPerQuiz() ? 'Perfect!' : score >= 2 ? 'Good effort!' : 'Keep practicing!';
     document.getElementById('quiz-feedback').className = 'quiz-feedback feedback-correct';
 
     document.getElementById('quiz-done').addEventListener('click', () => {

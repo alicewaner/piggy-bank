@@ -58,8 +58,7 @@ function createDefaultState() {
       tasksCompleted: [false, false, false, false],
       quizMathCompleted: false,
       quizEncyclopediaCompleted: false,
-      foodEarned: 0,
-      waterEarned: 0,
+      pointsEarned: 0,
       taskRewardsEarned: 0,
       quizRewardEarned: false
     },
@@ -67,6 +66,7 @@ function createDefaultState() {
       chores: [].concat(DEFAULT_CHORES)
     },
     playerName: '',
+    playerBirthday: '',
     playerAge: 8,
     parentPassword: '1234',
     quizDifficulty: 1,
@@ -85,7 +85,8 @@ function createDefaultState() {
     },
     inventory: {
       food: 2,
-      water: 2
+      water: 2,
+      points: 0
     },
     nextAnimalId: 1,
     // Parent-configurable settings
@@ -101,6 +102,7 @@ function createDefaultState() {
       dailyRewardCap: 0,     // 0 = unlimited
       quizRewardFood: 1,
       quizRewardWater: 1,
+      questionsPerQuiz: 5,
       customDepositCategories: [],
       customWithdrawCategories: []
     },
@@ -290,6 +292,8 @@ function createAnimal(type, isBred) {
     happyHeartToday: false,    // auto-granted when fed+watered
     happyHeartRemoved: false,  // parent removed it
     heartsToday: 0,
+    feedCount: 0,
+    mood: 'happy',
     bornDate: todayString()
   };
   state.animals.push(animal);

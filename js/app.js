@@ -72,6 +72,7 @@ const App = (() => {
         animal.heartsToday = 0;
         animal.happyHeartToday = false;
         animal.happyHeartRemoved = false;
+        animal.feedCount = 0;
       });
 
       if (state.breedingPen.active && state.breedingPen.startDate) {
@@ -89,6 +90,7 @@ const App = (() => {
               fedToday: false, wateredToday: false,
               parentVoteToday: false, heartsToday: 0,
               happyHeartToday: false, happyHeartRemoved: false,
+              feedCount: 0, mood: 'happy',
               bornDate: today
             });
             showToast('A new baby ' + ANIMAL_NAMES[babyType].singular + ' was born from breeding!');
@@ -104,8 +106,7 @@ const App = (() => {
       tasksCompleted: new Array(state.tasks.chores.length).fill(false),
       quizMathCompleted: false,
       quizEncyclopediaCompleted: false,
-      foodEarned: 0,
-      waterEarned: 0,
+      pointsEarned: 0,
       taskRewardsEarned: 0,
       quizRewardEarned: false,
       parentVoteDone: false
@@ -137,6 +138,33 @@ const App = (() => {
     if (age <= 10) return 3;
     if (age <= 11) return 4;
     return 5;
+  }
+
+  function birthdayToAge(birthday) {
+    if (!birthday) return 8;
+    var parts = birthday.split('-');
+    var bYear = parseInt(parts[0]);
+    var bMonth = parseInt(parts[1]);
+    var bDay = parseInt(parts[2]);
+    var now = new Date();
+    var age = now.getFullYear() - bYear;
+    var mDiff = (now.getMonth() + 1) - bMonth;
+    if (mDiff < 0 || (mDiff === 0 && now.getDate() < bDay)) {
+      age--;
+    }
+    return Math.max(4, Math.min(age, 18));
+  }
+
+  function updateAgeFromBirthday() {
+    var state = Storage.load();
+    if (state.playerBirthday) {
+      var age = birthdayToAge(state.playerBirthday);
+      if (age !== state.playerAge) {
+        state.playerAge = age;
+        state.quizDifficulty = ageToDifficulty(age);
+        Storage.save(state);
+      }
+    }
   }
 
   // ---- Firebase Auth UI ----
@@ -172,6 +200,23 @@ const App = (() => {
     }
   }
 
+  function handleForgotPassword() {
+    var email = document.getElementById('login-email').value.trim();
+    setAuthError('login-error', '');
+    if (!email) {
+      setAuthError('login-error', 'Enter your email above, then tap Forgot Password.');
+      return;
+    }
+    auth.sendPasswordResetEmail(email)
+      .then(function() {
+        App.showToast('Password reset email sent!');
+        setAuthError('login-error', '');
+      })
+      .catch(function(error) {
+        setAuthError('login-error', firebaseErrorMsg(error.code));
+      });
+  }
+
   function handleLogin() {
     var email = document.getElementById('login-email').value.trim();
     var password = document.getElementById('login-password').value;
@@ -194,7 +239,7 @@ const App = (() => {
 
   function handleRegister() {
     var name = document.getElementById('register-name').value.trim();
-    var age = parseInt(document.getElementById('register-age').value) || 8;
+    var birthday = document.getElementById('register-birthday').value;
     var email = document.getElementById('register-email').value.trim();
     var password = document.getElementById('register-password').value;
     setAuthError('register-error', '');
@@ -203,10 +248,16 @@ const App = (() => {
       setAuthError('register-error', 'Please enter your name.');
       return;
     }
+    if (!birthday) {
+      setAuthError('register-error', 'Please enter your birthday.');
+      return;
+    }
     if (!email || !password) {
       setAuthError('register-error', 'Please enter email and password.');
       return;
     }
+
+    var age = birthdayToAge(birthday);
 
     auth.createUserWithEmailAndPassword(email, password)
       .then(function(cred) {
@@ -216,6 +267,7 @@ const App = (() => {
           Storage.setCurrentAccount(cred.user.uid);
           var state = createDefaultState();
           state.playerName = name;
+          state.playerBirthday = birthday;
           state.playerAge = age;
           state.quizDifficulty = ageToDifficulty(age);
           Storage.save(state);
@@ -355,8 +407,34 @@ const App = (() => {
 
   // ---- Game lifecycle ----
 
+  function promptBirthdayIfMissing() {
+    var state = Storage.load();
+    if (state.playerBirthday) return;
+
+    var modal = document.getElementById('birthday-modal');
+    modal.style.display = 'flex';
+
+    document.getElementById('btn-birthday-save').onclick = function() {
+      var val = document.getElementById('birthday-prompt-input').value;
+      if (!val) {
+        App.showToast('Please pick your birthday!');
+        return;
+      }
+      var s = Storage.load();
+      s.playerBirthday = val;
+      s.playerAge = birthdayToAge(val);
+      s.quizDifficulty = ageToDifficulty(s.playerAge);
+      Storage.save(s);
+      modal.style.display = 'none';
+      Sound.click();
+      App.showToast('Birthday saved!');
+    };
+  }
+
   function startGame() {
     dailyCycle();
+    updateAgeFromBirthday();
+    promptBirthdayIfMissing();
     trackLogin();
     Wallet.processInterest();
     Chat.initListeners();
@@ -417,6 +495,9 @@ const App = (() => {
 
     // ---- Firebase Auth buttons ----
     document.getElementById('btn-login').addEventListener('click', handleLogin);
+    document.getElementById('btn-forgot-password').addEventListener('click', function() {
+      handleForgotPassword();
+    });
     document.getElementById('btn-show-register').addEventListener('click', function() {
       Sound.click();
       showRegisterForm();
