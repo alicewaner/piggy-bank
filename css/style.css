@@ -1341,6 +1341,36 @@ body {
   color: var(--text);
 }
 
+/* ---- Group Chat Banner ---- */
+.group-chat-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #EDE9FE;
+  border: 1px solid #C4B5FD;
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #7C3AED;
+}
+
+/* ---- Friend Group Checkbox ---- */
+.friend-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  flex: 1;
+}
+.friend-group-check {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
 /* ---- Animations ---- */
 @keyframes pulse {
   0%, 100% { opacity: 1; }

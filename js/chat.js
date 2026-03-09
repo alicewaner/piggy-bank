@@ -5,6 +5,8 @@
 const Chat = (() => {
   let unsubscribe = null;
   let userList = [];
+  let groupFilter = null;   // { groupId, groupNames }
+
 
   function escapeHtml(str) {
     var div = document.createElement('div');
@@ -78,6 +80,8 @@ const Chat = (() => {
       senderName: me.name,
       recipientUid: priv ? priv.recipientUid : null,
       recipientName: priv ? priv.recipientName : null,
+      groupId: groupFilter ? groupFilter.groupId : null,
+      groupNames: groupFilter ? groupFilter.groupNames : null,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
@@ -95,7 +99,11 @@ const Chat = (() => {
     var me = getCurrentUser();
     if (!me) return;
 
-    unsubscribe = db.collection('messages')
+    var query = db.collection('messages');
+    if (groupFilter) {
+      query = query.where('groupId', '==', groupFilter.groupId);
+    }
+    unsubscribe = query
       .orderBy('createdAt', 'desc')
       .limit(50)
       .onSnapshot(function(snapshot) {
@@ -120,9 +128,15 @@ const Chat = (() => {
 
     var html = '';
     messages.forEach(function(msg) {
-      // Client-side filter: show if public OR I'm sender OR I'm recipient
-      if (msg.recipientUid && msg.senderUid !== me.uid && msg.recipientUid !== me.uid) {
-        return;
+      // Group mode: only show group messages for this group
+      if (groupFilter) {
+        if (msg.groupId !== groupFilter.groupId) return;
+      } else {
+        // Normal mode: skip group messages, filter private messages
+        if (msg.groupId) return;
+        if (msg.recipientUid && msg.senderUid !== me.uid && msg.recipientUid !== me.uid) {
+          return;
+        }
       }
 
       var isPrivate = !!msg.recipientUid;
@@ -159,7 +173,27 @@ const Chat = (() => {
     container.scrollTop = container.scrollHeight;
   }
 
+  function setGroupFilter(groupId, groupNames) {
+    groupFilter = { groupId: groupId, groupNames: groupNames };
+    var banner = document.getElementById('group-chat-banner');
+    if (banner) {
+      banner.style.display = '';
+      var nameEl = document.getElementById('group-chat-names');
+      if (nameEl) nameEl.textContent = groupNames;
+    }
+    render();
+  }
+
+  function clearGroupFilter() {
+    groupFilter = null;
+    var banner = document.getElementById('group-chat-banner');
+    if (banner) banner.style.display = 'none';
+    render();
+  }
+
   function render() {
+    var banner = document.getElementById('group-chat-banner');
+    if (banner) banner.style.display = groupFilter ? '' : 'none';
     loadUserList().then(function() {
       subscribe();
     });
@@ -182,6 +216,14 @@ const Chat = (() => {
         }
       });
     }
+
+    var backBtn = document.getElementById('btn-group-chat-back');
+    if (backBtn) {
+      backBtn.addEventListener('click', function() {
+        Sound.click();
+        clearGroupFilter();
+      });
+    }
   }
 
   function cleanup() {
@@ -190,13 +232,18 @@ const Chat = (() => {
       unsubscribe = null;
     }
     userList = [];
+    groupFilter = null;
     var container = document.getElementById('chat-messages');
     if (container) container.innerHTML = '';
+    var banner = document.getElementById('group-chat-banner');
+    if (banner) banner.style.display = 'none';
   }
 
   return {
     render: render,
     initListeners: initListeners,
-    cleanup: cleanup
+    cleanup: cleanup,
+    setGroupFilter: setGroupFilter,
+    clearGroupFilter: clearGroupFilter
   };
 })();

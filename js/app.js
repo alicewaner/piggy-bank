@@ -284,6 +284,7 @@ const App = (() => {
           });
         }
         entries.push({
+          uid: u.uid,
           name: state.playerName || u.profile.name || 'Player',
           bank: bank,
           animals: animalValue,
@@ -314,7 +315,7 @@ const App = (() => {
           details = '<span class="lb-detail">Total: ' + formatMoney(e.total) + '</span>' +
             '<span class="lb-detail">Bank: ' + formatMoney(e.bank) + '</span>';
         }
-        return '<div class="leaderboard-row ' + rankClass + '">' +
+        return '<div class="leaderboard-row ' + rankClass + '" data-uid="' + e.uid + '" data-name="' + e.name + '">' +
           '<span class="lb-rank">#' + (i + 1) + '</span>' +
           '<span class="lb-name">' + e.name + '</span>' +
           '<span class="lb-stats">' +
@@ -334,6 +335,16 @@ const App = (() => {
         btn.addEventListener('click', function() {
           Sound.click();
           renderLeaderboard(btn.dataset.sort);
+        });
+      });
+
+      var me = auth.currentUser;
+      container.querySelectorAll('.leaderboard-row').forEach(function(row) {
+        if (!row.dataset.uid || (me && row.dataset.uid === me.uid)) return;
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', function() {
+          Sound.click();
+          Friends.sendRequest(row.dataset.uid, row.dataset.name);
         });
       });
     }).catch(function(err) {
