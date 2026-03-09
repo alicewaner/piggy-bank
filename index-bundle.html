@@ -1461,6 +1461,35 @@ body {
   gap: 8px;
 }
 
+/* ---- How to Play ---- */
+.howtoplay-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.htp-section {
+  background: #FFFFFF;
+  border: 1px solid var(--slot-border-light);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 12px 14px;
+}
+.htp-section h3 {
+  font-size: 0.95rem;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.htp-section p {
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+.htp-section p:last-child {
+  margin-bottom: 0;
+}
+
 /* ---- Animations ---- */
 @keyframes pulse {
   0%, 100% { opacity: 1; }
@@ -2240,6 +2269,58 @@ body {
       </div>
     </div>
 
+    <!-- How to Play Screen -->
+    <div id="screen-howtoplay" class="screen">
+      <div class="screen-header">
+        <h2>How to Play</h2>
+      </div>
+      <div class="howtoplay-content">
+        <div class="htp-section">
+          <h3>Welcome!</h3>
+          <p>Hey there! In Piggy Bank you get to take care of cute animals, do fun quizzes, hang out with friends, and learn all about saving money. Here's everything you need to know!</p>
+        </div>
+        <div class="htp-section">
+          <h3>Daily Tasks</h3>
+          <p>Every day you'll have a list of tasks to do. Finish them and check them off to earn <strong>points</strong>! The more tasks you complete, the more points you get. You can use your points to buy yummy food and water for your animals.</p>
+        </div>
+        <div class="htp-section">
+          <h3>Quizzes</h3>
+          <p>Want even more points? Try taking a <strong>Math Quiz</strong> or an <strong>Encyclopedia Quiz</strong> from the Tasks screen! The questions are made just for your age, so they'll always be a fun challenge.</p>
+        </div>
+        <div class="htp-section">
+          <h3>The Market</h3>
+          <p>The Market is where all the shopping happens!</p>
+          <p><strong>Buy Supplies:</strong> Use your points to stock up on Food and Water.</p>
+          <p><strong>Buy a Baby Animal:</strong> Spend money from your bank to bring home an adorable new baby!</p>
+          <p><strong>Sell an Adult Animal:</strong> Once your animal grows up, you can sell it to earn money back.</p>
+        </div>
+        <div class="htp-section">
+          <h3>Your Barn</h3>
+          <p>This is where all your animals live! Tap on any animal to see it up close. Hit the <strong>Feed</strong> button to give it 1 Food + 1 Water &mdash; that earns your animal <strong>1 heart</strong>. You can feed each animal up to <strong>2 times a day</strong>. If your animal is happy, feeding gives a bonus heart too!</p>
+        </div>
+        <div class="htp-section">
+          <h3>Mood</h3>
+          <p>Your animals can be <strong>Happy</strong> or <strong>Sad</strong>. When they're happy, they earn an extra heart every time you feed them! Only a parent can change an animal's mood using the Parent PIN.</p>
+        </div>
+        <div class="htp-section">
+          <h3>Hearts &amp; Growing Up</h3>
+          <p>Every time you feed your animal, it gets hearts. Once a baby collects <strong>15 hearts</strong>, it grows into an adult &mdash; how cool is that? You'll see a shiny golden border around grown-up animals in your barn.</p>
+        </div>
+        <div class="htp-section">
+          <h3>Your Bank</h3>
+          <p>The Bank keeps your money safe! You can <strong>deposit</strong> money you earn or receive, and <strong>withdraw</strong> it when you want to buy something. The best part? Your savings earn <strong>interest</strong> over time, so the longer you save, the more your money grows!</p>
+        </div>
+        <div class="htp-section">
+          <h3>Friends &amp; Chat</h3>
+          <p>Playing with friends is way more fun! Find other players on the <strong>Friends</strong> screen and add them. Once you're friends, you can peek at their barn, chat together, or even start a group chat. Type <strong>@Name</strong> in chat to send someone a private message!</p>
+        </div>
+        <div class="htp-section">
+          <h3>Breeding Pen</h3>
+          <p>Got two adult animals of the same type? Take them to the <strong>Breeding Pen</strong> and they'll have a brand-new baby together! After breeding, your animals need a little rest before they can do it again.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- More Menu Screen -->
     <div id="screen-more" class="screen">
       <div class="screen-header">
@@ -2257,6 +2338,10 @@ body {
         <button class="more-item" data-screen="breeding">
           <span class="more-icon">&#x1F423;</span>
           <span>Breeding Pen</span>
+        </button>
+        <button class="more-item" data-screen="howtoplay">
+          <span class="more-icon">&#x2753;</span>
+          <span>How to Play</span>
         </button>
         <button class="more-item" data-screen="parent">
           <span class="more-icon">&#x1F512;</span>

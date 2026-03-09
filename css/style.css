@@ -1454,6 +1454,35 @@ body {
   gap: 8px;
 }
 
+/* ---- How to Play ---- */
+.howtoplay-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.htp-section {
+  background: #FFFFFF;
+  border: 1px solid var(--slot-border-light);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 12px 14px;
+}
+.htp-section h3 {
+  font-size: 0.95rem;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.htp-section p {
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+.htp-section p:last-child {
+  margin-bottom: 0;
+}
+
 /* ---- Animations ---- */
 @keyframes pulse {
   0%, 100% { opacity: 1; }
