@@ -88,76 +88,6 @@ const Friends = (() => {
     });
   }
 
-  function renderFriendsScreen(container, me, pending, friends, addable) {
-    var html = '';
-
-    // Pending requests
-    if (pending.length > 0) {
-      html += '<div class="friends-section"><h3 class="friends-section-title">Pending Requests</h3>';
-      pending.forEach(function(req) {
-        html += '<div class="friend-request-card" data-id="' + req.id + '">' +
-          '<span class="friend-req-name">' + escapeHtml(req.data.fromName || 'Player') + '</span>' +
-          '<div class="friend-req-actions">' +
-            '<button class="btn btn-accent btn-small btn-accept-friend" data-id="' + req.id + '">Accept</button>' +
-            '<button class="btn btn-danger btn-small btn-decline-friend" data-id="' + req.id + '">Decline</button>' +
-          '</div>' +
-        '</div>';
-      });
-      html += '</div>';
-    }
-
-    // Friend list
-    html += '<div class="friends-section"><h3 class="friends-section-title">My Friends</h3>';
-    if (friends.length === 0) {
-      html += '<p class="empty-msg">No friends yet. Add someone below!</p>';
-    } else {
-      // Build a set of friend UIDs for lookup
-      friends.forEach(function(fr) {
-        var d = fr.data;
-        var friendUid = d.fromUid === me.uid ? d.toUid : d.fromUid;
-        var friendName = d.fromUid === me.uid ? d.toName : d.fromName;
-        html += '<div class="friend-card">' +
-          '<span class="friend-name">' + escapeHtml(friendName || 'Player') + '</span>' +
-          '<div class="friend-actions">' +
-            '<button class="btn btn-primary btn-small btn-view-stable" data-uid="' + friendUid + '" data-name="' + escapeHtml(friendName || 'Player') + '">View Stable</button>' +
-            '<button class="btn btn-accent btn-small btn-chat-friend" data-name="' + escapeHtml(friendName || 'Player') + '">Chat</button>' +
-          '</div>' +
-        '</div>';
-      });
-    }
-    html += '</div>';
-
-    // Add friend section
-    var friendUids = {};
-    friends.forEach(function(fr) {
-      var d = fr.data;
-      friendUids[d.fromUid] = true;
-      friendUids[d.toUid] = true;
-    });
-    // Also exclude pending outgoing
-    var pendingToUids = {};
-    // We need to also check outgoing requests
-    html += '<div class="friends-section"><h3 class="friends-section-title">Add Friend</h3>';
-    var filteredAddable = addable.filter(function(u) {
-      return !friendUids[u.uid];
-    });
-    if (filteredAddable.length === 0) {
-      html += '<p class="empty-msg">No new players to add.</p>';
-    } else {
-      filteredAddable.forEach(function(u) {
-        var uName = u.state.playerName || u.profile.name || 'Player';
-        html += '<div class="friend-add-row">' +
-          '<span class="friend-add-name">' + escapeHtml(uName) + '</span>' +
-          '<button class="btn btn-primary btn-small btn-send-request" data-uid="' + u.uid + '" data-name="' + escapeHtml(uName) + '">Add</button>' +
-        '</div>';
-      });
-    }
-    html += '</div>';
-
-    container.innerHTML = html;
-    bindFriendButtons(container);
-  }
-
   function bindFriendButtons(container) {
     container.querySelectorAll('.btn-accept-friend').forEach(function(btn) {
       btn.addEventListener('click', function() {
@@ -401,9 +331,7 @@ const Friends = (() => {
     });
   }
 
-  // Override renderFriendsScreen to support group selection
-  var _origRenderFriendsScreen = renderFriendsScreen;
-  renderFriendsScreen = function(container, me, pending, friends, addable) {
+  function renderFriendsScreen(container, me, pending, friends, addable) {
     var html = '';
 
     // Pending requests
@@ -524,7 +452,7 @@ const Friends = (() => {
         }
       });
     });
-  };
+  }
 
   return {
     render: render,
