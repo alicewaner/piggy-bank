@@ -2,7 +2,7 @@
 // data.js — Constants, default state, Animal class
 // ============================================================
 
-var ANIMAL_TYPES = ['pig', 'sheep', 'cat', 'dog', 'dragon', 'axolotl', 'hedgehog', 'platypus'];
+var ANIMAL_TYPES = ['pig', 'sheep', 'cat', 'dog', 'dragon', 'axolotl', 'hedgehog', 'platypus', 'panda'];
 
 var ANIMAL_NAMES = {
   pig:       { singular: 'Pig' },
@@ -12,7 +12,8 @@ var ANIMAL_NAMES = {
   dragon:    { singular: 'Dragon' },
   axolotl:   { singular: 'Axolotl' },
   hedgehog:  { singular: 'Hedgehog' },
-  platypus:  { singular: 'Platypus' }
+  platypus:  { singular: 'Platypus' },
+  panda:     { singular: 'Panda' }
 };
 
 // Default prices (can be overridden by parent)
