@@ -374,6 +374,17 @@
           <button id="btn-water" class="btn btn-action">Water</button>
         </div>
         <div id="modal-status" class="modal-status"></div>
+        <div class="modal-mood-section">
+          <button id="btn-mood-toggle" class="btn btn-small btn-secondary">Mood: Happy</button>
+          <div id="mood-pin-area" style="display:none">
+            <div class="mood-pin-row">
+              <input type="password" id="mood-pin-input" class="pin-input" placeholder="Parent PIN" maxlength="8">
+              <button class="btn btn-primary btn-small" id="btn-mood-pin-ok">OK</button>
+              <button class="btn btn-secondary btn-small" id="btn-mood-pin-cancel">Cancel</button>
+            </div>
+            <p id="mood-pin-error" class="error-text" style="display:none">Wrong PIN.</p>
+          </div>
+        </div>
         <button id="btn-modal-done" class="btn btn-primary" style="margin-top:12px;width:100%">Done</button>
       </div>
     </div>

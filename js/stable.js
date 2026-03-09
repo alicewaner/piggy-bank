@@ -83,11 +83,51 @@ var Stable = (function() {
     heartsHTML += '<div class="hearts-today">Today: ' + (todayInfo.length ? todayInfo.join(', ') : 'none yet') + '</div>';
     document.getElementById('modal-hearts').innerHTML = heartsHTML;
 
-    // Mood display
+    // Stage display (no mood here — moved to mood button)
+    document.getElementById('modal-stage').textContent =
+      animal.stage === 'adult' ? 'ADULT - Ready to sell or breed!' : 'Baby - Keep feeding to grow!';
+
+    // Mood toggle button
+    var btnMood = document.getElementById('btn-mood-toggle');
+    var moodPinArea = document.getElementById('mood-pin-area');
     var moodClass = mood === 'happy' ? 'mood-happy' : 'mood-sad';
-    document.getElementById('modal-stage').innerHTML =
-      (animal.stage === 'adult' ? 'ADULT - Ready to sell or breed!' : 'Baby - Keep feeding to grow!') +
-      '<br><span class="mood-badge ' + moodClass + '">Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>';
+    btnMood.textContent = 'Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad');
+    btnMood.className = 'btn btn-small mood-badge ' + moodClass;
+    moodPinArea.style.display = 'none';
+    document.getElementById('mood-pin-input').value = '';
+    document.getElementById('mood-pin-error').style.display = 'none';
+
+    btnMood.onclick = function() {
+      Sound.click();
+      moodPinArea.style.display = '';
+      document.getElementById('mood-pin-input').focus();
+    };
+
+    document.getElementById('btn-mood-pin-ok').onclick = function() {
+      var pin = document.getElementById('mood-pin-input').value;
+      var s = Storage.load();
+      if (pin === s.parentPassword) {
+        var a = s.animals.find(function(x) { return x.id === animalId; });
+        if (a) {
+          a.mood = (a.mood || 'happy') === 'happy' ? 'sad' : 'happy';
+          Storage.save(s);
+          Sound.click();
+          App.showToast('Mood set to ' + a.mood + '!');
+          moodPinArea.style.display = 'none';
+          openAnimalModal(animalId);
+          render();
+        }
+      } else {
+        document.getElementById('mood-pin-error').style.display = '';
+        Sound.wrong();
+      }
+    };
+
+    document.getElementById('btn-mood-pin-cancel').onclick = function() {
+      moodPinArea.style.display = 'none';
+      document.getElementById('mood-pin-input').value = '';
+      document.getElementById('mood-pin-error').style.display = 'none';
+    };
 
     // Combined Feed button (replaces separate feed/water)
     var btnFeed = document.getElementById('btn-feed');

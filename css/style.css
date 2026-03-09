@@ -1406,6 +1406,22 @@ body {
   color: #DC2626;
 }
 
+.modal-mood-section {
+  margin-top: 8px;
+  text-align: center;
+}
+.mood-pin-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+}
+.mood-pin-row .pin-input {
+  width: 100px;
+  margin: 0;
+}
+
 /* ---- Supply Shop ---- */
 .supply-shop {
   display: flex;

@@ -1413,6 +1413,22 @@ body {
   color: #DC2626;
 }
 
+.modal-mood-section {
+  margin-top: 8px;
+  text-align: center;
+}
+.mood-pin-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+}
+.mood-pin-row .pin-input {
+  width: 100px;
+  margin: 0;
+}
+
 /* ---- Supply Shop ---- */
 .supply-shop {
   display: flex;
@@ -2276,6 +2292,17 @@ body {
           <button id="btn-water" class="btn btn-action">Water</button>
         </div>
         <div id="modal-status" class="modal-status"></div>
+        <div class="modal-mood-section">
+          <button id="btn-mood-toggle" class="btn btn-small btn-secondary">Mood: Happy</button>
+          <div id="mood-pin-area" style="display:none">
+            <div class="mood-pin-row">
+              <input type="password" id="mood-pin-input" class="pin-input" placeholder="Parent PIN" maxlength="8">
+              <button class="btn btn-primary btn-small" id="btn-mood-pin-ok">OK</button>
+              <button class="btn btn-secondary btn-small" id="btn-mood-pin-cancel">Cancel</button>
+            </div>
+            <p id="mood-pin-error" class="error-text" style="display:none">Wrong PIN.</p>
+          </div>
+        </div>
         <button id="btn-modal-done" class="btn btn-primary" style="margin-top:12px;width:100%">Done</button>
       </div>
     </div>
@@ -3445,11 +3472,51 @@ var Stable = (function() {
     heartsHTML += '<div class="hearts-today">Today: ' + (todayInfo.length ? todayInfo.join(', ') : 'none yet') + '</div>';
     document.getElementById('modal-hearts').innerHTML = heartsHTML;
 
-    // Mood display
+    // Stage display (no mood here — moved to mood button)
+    document.getElementById('modal-stage').textContent =
+      animal.stage === 'adult' ? 'ADULT - Ready to sell or breed!' : 'Baby - Keep feeding to grow!';
+
+    // Mood toggle button
+    var btnMood = document.getElementById('btn-mood-toggle');
+    var moodPinArea = document.getElementById('mood-pin-area');
     var moodClass = mood === 'happy' ? 'mood-happy' : 'mood-sad';
-    document.getElementById('modal-stage').innerHTML =
-      (animal.stage === 'adult' ? 'ADULT - Ready to sell or breed!' : 'Baby - Keep feeding to grow!') +
-      '<br><span class="mood-badge ' + moodClass + '">Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>';
+    btnMood.textContent = 'Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad');
+    btnMood.className = 'btn btn-small mood-badge ' + moodClass;
+    moodPinArea.style.display = 'none';
+    document.getElementById('mood-pin-input').value = '';
+    document.getElementById('mood-pin-error').style.display = 'none';
+
+    btnMood.onclick = function() {
+      Sound.click();
+      moodPinArea.style.display = '';
+      document.getElementById('mood-pin-input').focus();
+    };
+
+    document.getElementById('btn-mood-pin-ok').onclick = function() {
+      var pin = document.getElementById('mood-pin-input').value;
+      var s = Storage.load();
+      if (pin === s.parentPassword) {
+        var a = s.animals.find(function(x) { return x.id === animalId; });
+        if (a) {
+          a.mood = (a.mood || 'happy') === 'happy' ? 'sad' : 'happy';
+          Storage.save(s);
+          Sound.click();
+          App.showToast('Mood set to ' + a.mood + '!');
+          moodPinArea.style.display = 'none';
+          openAnimalModal(animalId);
+          render();
+        }
+      } else {
+        document.getElementById('mood-pin-error').style.display = '';
+        Sound.wrong();
+      }
+    };
+
+    document.getElementById('btn-mood-pin-cancel').onclick = function() {
+      moodPinArea.style.display = 'none';
+      document.getElementById('mood-pin-input').value = '';
+      document.getElementById('mood-pin-error').style.display = 'none';
+    };
 
     // Combined Feed button (replaces separate feed/water)
     var btnFeed = document.getElementById('btn-feed');
@@ -4454,8 +4521,6 @@ var Parent = (function() {
       var btnText = hasHappy ? 'Remove Happy Heart' : (a.happyHeartRemoved ? 'Already removed' : 'No happy heart yet');
       var canRemove = hasHappy;
       var mood = a.mood || 'happy';
-      var moodBtnText = mood === 'happy' ? 'Set Sad' : 'Set Happy';
-      var moodBtnClass = mood === 'happy' ? 'btn-danger' : 'btn-accent';
       var fc = a.feedCount || 0;
 
       return '<div class="parent-animal-row">' +
@@ -4463,8 +4528,6 @@ var Parent = (function() {
         '<span>' + name + ' (' + a.hearts + '/' + HEARTS.maxHearts + ')' +
         ' Fed ' + fc + '/2' +
         ' | Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>' +
-        '<button class="btn btn-small ' + moodBtnClass + ' mood-toggle-btn" data-id="' + a.id + '">' +
-        moodBtnText + '</button>' +
         '<button class="btn btn-small ' + (canRemove ? 'btn-danger' : 'btn-secondary') + ' remove-happy-btn" ' +
         'data-id="' + a.id + '"' + (canRemove ? '' : ' disabled') + '>' +
         btnText + '</button></div>';
@@ -4479,26 +4542,6 @@ var Parent = (function() {
         renderAnimalHearts();
       });
     });
-
-    container.querySelectorAll('.mood-toggle-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var id = parseInt(btn.dataset.id);
-        toggleMood(id);
-      });
-    });
-  }
-
-  function toggleMood(animalId) {
-    var state = Storage.load();
-    var animal = state.animals.find(function(a) { return a.id === animalId; });
-    if (!animal) return;
-
-    var currentMood = animal.mood || 'happy';
-    animal.mood = currentMood === 'happy' ? 'sad' : 'happy';
-    Storage.save(state);
-    Sound.click();
-    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' mood set to ' + animal.mood + '!');
-    renderAnimalHearts();
   }
 
   function renderProgressDashboard() {

@@ -204,8 +204,6 @@ var Parent = (function() {
       var btnText = hasHappy ? 'Remove Happy Heart' : (a.happyHeartRemoved ? 'Already removed' : 'No happy heart yet');
       var canRemove = hasHappy;
       var mood = a.mood || 'happy';
-      var moodBtnText = mood === 'happy' ? 'Set Sad' : 'Set Happy';
-      var moodBtnClass = mood === 'happy' ? 'btn-danger' : 'btn-accent';
       var fc = a.feedCount || 0;
 
       return '<div class="parent-animal-row">' +
@@ -213,8 +211,6 @@ var Parent = (function() {
         '<span>' + name + ' (' + a.hearts + '/' + HEARTS.maxHearts + ')' +
         ' Fed ' + fc + '/2' +
         ' | Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>' +
-        '<button class="btn btn-small ' + moodBtnClass + ' mood-toggle-btn" data-id="' + a.id + '">' +
-        moodBtnText + '</button>' +
         '<button class="btn btn-small ' + (canRemove ? 'btn-danger' : 'btn-secondary') + ' remove-happy-btn" ' +
         'data-id="' + a.id + '"' + (canRemove ? '' : ' disabled') + '>' +
         btnText + '</button></div>';
@@ -229,26 +225,6 @@ var Parent = (function() {
         renderAnimalHearts();
       });
     });
-
-    container.querySelectorAll('.mood-toggle-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var id = parseInt(btn.dataset.id);
-        toggleMood(id);
-      });
-    });
-  }
-
-  function toggleMood(animalId) {
-    var state = Storage.load();
-    var animal = state.animals.find(function(a) { return a.id === animalId; });
-    if (!animal) return;
-
-    var currentMood = animal.mood || 'happy';
-    animal.mood = currentMood === 'happy' ? 'sad' : 'happy';
-    Storage.save(state);
-    Sound.click();
-    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' mood set to ' + animal.mood + '!');
-    renderAnimalHearts();
   }
 
   function renderProgressDashboard() {
