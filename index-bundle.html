@@ -2150,16 +2150,8 @@ body {
             <input type="number" id="setting-sell-price" class="setting-input" min="0.01" step="0.01">
             <label>Tasks per Reward Batch:</label>
             <input type="number" id="setting-tasks-per-reward" class="setting-input" min="1" max="20">
-            <label>Food per Reward Batch:</label>
-            <input type="number" id="setting-reward-food" class="setting-input" min="0" max="20">
-            <label>Water per Reward Batch:</label>
-            <input type="number" id="setting-reward-water" class="setting-input" min="0" max="20">
             <label>Daily Reward Cap (0 = unlimited):</label>
             <input type="number" id="setting-daily-cap" class="setting-input" min="0" max="100">
-            <label>Quiz Reward Food:</label>
-            <input type="number" id="setting-quiz-food" class="setting-input" min="0" max="20">
-            <label>Quiz Reward Water:</label>
-            <input type="number" id="setting-quiz-water" class="setting-input" min="0" max="20">
             <label>Questions per Quiz:</label>
             <input type="number" id="setting-questions-per-quiz" class="setting-input" min="1" max="20">
             <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
@@ -2289,7 +2281,6 @@ body {
         <div id="modal-stage" class="modal-stage"></div>
         <div class="modal-actions">
           <button id="btn-feed" class="btn btn-action">Feed</button>
-          <button id="btn-water" class="btn btn-action">Water</button>
         </div>
         <div id="modal-status" class="modal-status"></div>
         <div class="modal-mood-section">
@@ -2372,16 +2363,10 @@ var ANIMAL_NAMES = {
   panda:     { singular: 'Panda' }
 };
 
-// Default prices (can be overridden by parent)
-var DEFAULT_PRICES = {
-  buyBaby: 500,    // $5.00
-  sellAdult: 1000  // $10.00
-};
-
 var HEARTS = {
   maxHearts: 15,
   adultThreshold: 15,
-  maxPerDayBought: 3,   // feed(1) + water(1) + happy(1)
+  maxPerDayBought: 3,   // feed1(1) + feed2(1) + happy(1)
   maxPerDayBred: 5
 };
 
@@ -2450,14 +2435,8 @@ function createDefaultState() {
       interestRate: 5,       // Annual interest rate (%)
       buyBabyPrice: 500,     // cents
       sellAdultPrice: 1000,  // cents
-      taskFoodReward: 2,
-      taskWaterReward: 2,
-      tasksPerReward: 2,     // every N tasks = 1 reward batch
-      taskRewardFood: 1,     // food per batch
-      taskRewardWater: 1,    // water per batch
+      tasksPerReward: 2,     // every N tasks = 1 reward batch (10 points)
       dailyRewardCap: 0,     // 0 = unlimited
-      quizRewardFood: 1,
-      quizRewardWater: 1,
       questionsPerQuiz: 5,
       customDepositCategories: [],
       customWithdrawCategories: []
@@ -2864,14 +2843,8 @@ var Storage = {
     if (state.playerBirthday === undefined) state.playerBirthday = '';
     if (!state.settings) state.settings = defaults.settings;
     if (!state.lastInterestDate) state.lastInterestDate = state.dailyState.lastDate || todayString();
-    if (state.settings.taskFoodReward === undefined) state.settings.taskFoodReward = 2;
-    if (state.settings.taskWaterReward === undefined) state.settings.taskWaterReward = 2;
     if (state.settings.tasksPerReward === undefined) state.settings.tasksPerReward = 2;
-    if (state.settings.taskRewardFood === undefined) state.settings.taskRewardFood = 1;
-    if (state.settings.taskRewardWater === undefined) state.settings.taskRewardWater = 1;
     if (state.settings.dailyRewardCap === undefined) state.settings.dailyRewardCap = 0;
-    if (state.settings.quizRewardFood === undefined) state.settings.quizRewardFood = 1;
-    if (state.settings.quizRewardWater === undefined) state.settings.quizRewardWater = 1;
 
     if (state.dailyState.quizMathCompleted === undefined) {
       state.dailyState.quizMathCompleted = state.dailyState.quizCompleted || false;
@@ -3518,11 +3491,7 @@ var Stable = (function() {
       document.getElementById('mood-pin-error').style.display = 'none';
     };
 
-    // Combined Feed button (replaces separate feed/water)
     var btnFeed = document.getElementById('btn-feed');
-    var btnWater = document.getElementById('btn-water');
-    // Hide the water button, repurpose feed button
-    btnWater.style.display = 'none';
 
     var canFeed = state.inventory.food >= 1 && state.inventory.water >= 1 && fc < 2;
     btnFeed.disabled = !canFeed;
@@ -3810,7 +3779,6 @@ var Tasks = (function() {
 
     // Progress text
     var choresDone = ds.tasksCompleted.filter(Boolean).length;
-    var quizDone = (ds.quizMathCompleted ? 1 : 0) + (ds.quizEncyclopediaCompleted ? 1 : 0);
     var capText = s.dailyRewardCap > 0 ? ' (cap: ' + s.dailyRewardCap + ')' : '';
     document.getElementById('tasks-progress').textContent =
       choresDone + ' tasks done | ' + ds.taskRewardsEarned + ' rewards earned' + capText +
@@ -3911,9 +3879,9 @@ const Quiz = (() => {
   let score = 0;
   let streak = 0;
   let quizType = 'math';
+  let questionsPerQuiz = 5;
   function getQuestionsPerQuiz() {
-    var state = Storage.load();
-    return (state.settings && state.settings.questionsPerQuiz) || 5;
+    return questionsPerQuiz;
   }
 
   // 200+ math questions across 5 difficulty levels
@@ -4092,6 +4060,7 @@ const Quiz = (() => {
   function start(type) {
     quizType = type || 'math';
     const state = Storage.load();
+    questionsPerQuiz = (state.settings && state.settings.questionsPerQuiz) || 5;
     currentQuestions = pickQuestions(state.quizDifficulty, quizType);
     currentIndex = 0;
     score = 0;
@@ -4423,11 +4392,7 @@ var Parent = (function() {
     document.getElementById('setting-buy-price').value = (s.buyBabyPrice / 100).toFixed(2);
     document.getElementById('setting-sell-price').value = (s.sellAdultPrice / 100).toFixed(2);
     document.getElementById('setting-tasks-per-reward').value = s.tasksPerReward;
-    document.getElementById('setting-reward-food').value = s.taskRewardFood;
-    document.getElementById('setting-reward-water').value = s.taskRewardWater;
     document.getElementById('setting-daily-cap').value = s.dailyRewardCap;
-    document.getElementById('setting-quiz-food').value = s.quizRewardFood;
-    document.getElementById('setting-quiz-water').value = s.quizRewardWater;
     document.getElementById('setting-questions-per-quiz').value = s.questionsPerQuiz || 5;
 
     document.getElementById('btn-save-settings').onclick = function() {
@@ -4436,11 +4401,7 @@ var Parent = (function() {
       st.settings.buyBabyPrice = Math.round(parseFloat(document.getElementById('setting-buy-price').value) * 100) || 500;
       st.settings.sellAdultPrice = Math.round(parseFloat(document.getElementById('setting-sell-price').value) * 100) || 1000;
       st.settings.tasksPerReward = parseInt(document.getElementById('setting-tasks-per-reward').value) || 2;
-      st.settings.taskRewardFood = parseInt(document.getElementById('setting-reward-food').value) || 1;
-      st.settings.taskRewardWater = parseInt(document.getElementById('setting-reward-water').value) || 1;
       st.settings.dailyRewardCap = parseInt(document.getElementById('setting-daily-cap').value) || 0;
-      st.settings.quizRewardFood = parseInt(document.getElementById('setting-quiz-food').value) || 1;
-      st.settings.quizRewardWater = parseInt(document.getElementById('setting-quiz-water').value) || 1;
       st.settings.questionsPerQuiz = parseInt(document.getElementById('setting-questions-per-quiz').value) || 5;
       Storage.save(st);
       Sound.click();
@@ -4855,9 +4816,6 @@ const Chat = (() => {
 // ============================================================
 
 const Friends = (() => {
-  let unsubPending = null;
-  let unsubFriends = null;
-
   function escapeHtml(str) {
     var div = document.createElement('div');
     div.textContent = str;
@@ -5037,14 +4995,11 @@ const Friends = (() => {
 
   // ---- View Friend's Stable ----
 
-  var currentFriendUid = null;
-
   function viewFriendStable(uid, name) {
     var header = document.getElementById('friend-stable-name');
     var grid = document.getElementById('friend-stable-grid');
     if (!header || !grid) return;
 
-    currentFriendUid = uid;
     header.textContent = name + "'s Barn";
     grid.innerHTML = '<p class="empty-msg">Loading...</p>';
 
@@ -5214,8 +5169,7 @@ const Friends = (() => {
   }
 
   function cleanup() {
-    if (unsubPending) { unsubPending(); unsubPending = null; }
-    if (unsubFriends) { unsubFriends(); unsubFriends = null; }
+    // Reserved for future subscription cleanup
   }
 
   // ---- Group Chat ----

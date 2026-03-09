@@ -163,14 +163,8 @@ var Storage = {
     if (state.playerBirthday === undefined) state.playerBirthday = '';
     if (!state.settings) state.settings = defaults.settings;
     if (!state.lastInterestDate) state.lastInterestDate = state.dailyState.lastDate || todayString();
-    if (state.settings.taskFoodReward === undefined) state.settings.taskFoodReward = 2;
-    if (state.settings.taskWaterReward === undefined) state.settings.taskWaterReward = 2;
     if (state.settings.tasksPerReward === undefined) state.settings.tasksPerReward = 2;
-    if (state.settings.taskRewardFood === undefined) state.settings.taskRewardFood = 1;
-    if (state.settings.taskRewardWater === undefined) state.settings.taskRewardWater = 1;
     if (state.settings.dailyRewardCap === undefined) state.settings.dailyRewardCap = 0;
-    if (state.settings.quizRewardFood === undefined) state.settings.quizRewardFood = 1;
-    if (state.settings.quizRewardWater === undefined) state.settings.quizRewardWater = 1;
 
     if (state.dailyState.quizMathCompleted === undefined) {
       state.dailyState.quizMathCompleted = state.dailyState.quizCompleted || false;

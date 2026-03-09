@@ -16,16 +16,10 @@ var ANIMAL_NAMES = {
   panda:     { singular: 'Panda' }
 };
 
-// Default prices (can be overridden by parent)
-var DEFAULT_PRICES = {
-  buyBaby: 500,    // $5.00
-  sellAdult: 1000  // $10.00
-};
-
 var HEARTS = {
   maxHearts: 15,
   adultThreshold: 15,
-  maxPerDayBought: 3,   // feed(1) + water(1) + happy(1)
+  maxPerDayBought: 3,   // feed1(1) + feed2(1) + happy(1)
   maxPerDayBred: 5
 };
 
@@ -94,14 +88,8 @@ function createDefaultState() {
       interestRate: 5,       // Annual interest rate (%)
       buyBabyPrice: 500,     // cents
       sellAdultPrice: 1000,  // cents
-      taskFoodReward: 2,
-      taskWaterReward: 2,
-      tasksPerReward: 2,     // every N tasks = 1 reward batch
-      taskRewardFood: 1,     // food per batch
-      taskRewardWater: 1,    // water per batch
+      tasksPerReward: 2,     // every N tasks = 1 reward batch (10 points)
       dailyRewardCap: 0,     // 0 = unlimited
-      quizRewardFood: 1,
-      quizRewardWater: 1,
       questionsPerQuiz: 5,
       customDepositCategories: [],
       customWithdrawCategories: []

@@ -106,11 +106,7 @@ var Parent = (function() {
     document.getElementById('setting-buy-price').value = (s.buyBabyPrice / 100).toFixed(2);
     document.getElementById('setting-sell-price').value = (s.sellAdultPrice / 100).toFixed(2);
     document.getElementById('setting-tasks-per-reward').value = s.tasksPerReward;
-    document.getElementById('setting-reward-food').value = s.taskRewardFood;
-    document.getElementById('setting-reward-water').value = s.taskRewardWater;
     document.getElementById('setting-daily-cap').value = s.dailyRewardCap;
-    document.getElementById('setting-quiz-food').value = s.quizRewardFood;
-    document.getElementById('setting-quiz-water').value = s.quizRewardWater;
     document.getElementById('setting-questions-per-quiz').value = s.questionsPerQuiz || 5;
 
     document.getElementById('btn-save-settings').onclick = function() {
@@ -119,11 +115,7 @@ var Parent = (function() {
       st.settings.buyBabyPrice = Math.round(parseFloat(document.getElementById('setting-buy-price').value) * 100) || 500;
       st.settings.sellAdultPrice = Math.round(parseFloat(document.getElementById('setting-sell-price').value) * 100) || 1000;
       st.settings.tasksPerReward = parseInt(document.getElementById('setting-tasks-per-reward').value) || 2;
-      st.settings.taskRewardFood = parseInt(document.getElementById('setting-reward-food').value) || 1;
-      st.settings.taskRewardWater = parseInt(document.getElementById('setting-reward-water').value) || 1;
       st.settings.dailyRewardCap = parseInt(document.getElementById('setting-daily-cap').value) || 0;
-      st.settings.quizRewardFood = parseInt(document.getElementById('setting-quiz-food').value) || 1;
-      st.settings.quizRewardWater = parseInt(document.getElementById('setting-quiz-water').value) || 1;
       st.settings.questionsPerQuiz = parseInt(document.getElementById('setting-questions-per-quiz').value) || 5;
       Storage.save(st);
       Sound.click();

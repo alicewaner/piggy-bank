@@ -129,11 +129,7 @@ var Stable = (function() {
       document.getElementById('mood-pin-error').style.display = 'none';
     };
 
-    // Combined Feed button (replaces separate feed/water)
     var btnFeed = document.getElementById('btn-feed');
-    var btnWater = document.getElementById('btn-water');
-    // Hide the water button, repurpose feed button
-    btnWater.style.display = 'none';
 
     var canFeed = state.inventory.food >= 1 && state.inventory.water >= 1 && fc < 2;
     btnFeed.disabled = !canFeed;

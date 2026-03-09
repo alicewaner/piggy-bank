@@ -3,9 +3,6 @@
 // ============================================================
 
 const Friends = (() => {
-  let unsubPending = null;
-  let unsubFriends = null;
-
   function escapeHtml(str) {
     var div = document.createElement('div');
     div.textContent = str;
@@ -185,14 +182,11 @@ const Friends = (() => {
 
   // ---- View Friend's Stable ----
 
-  var currentFriendUid = null;
-
   function viewFriendStable(uid, name) {
     var header = document.getElementById('friend-stable-name');
     var grid = document.getElementById('friend-stable-grid');
     if (!header || !grid) return;
 
-    currentFriendUid = uid;
     header.textContent = name + "'s Barn";
     grid.innerHTML = '<p class="empty-msg">Loading...</p>';
 
@@ -362,8 +356,7 @@ const Friends = (() => {
   }
 
   function cleanup() {
-    if (unsubPending) { unsubPending(); unsubPending = null; }
-    if (unsubFriends) { unsubFriends(); unsubFriends = null; }
+    // Reserved for future subscription cleanup
   }
 
   // ---- Group Chat ----

@@ -45,7 +45,6 @@ var Tasks = (function() {
 
     // Progress text
     var choresDone = ds.tasksCompleted.filter(Boolean).length;
-    var quizDone = (ds.quizMathCompleted ? 1 : 0) + (ds.quizEncyclopediaCompleted ? 1 : 0);
     var capText = s.dailyRewardCap > 0 ? ' (cap: ' + s.dailyRewardCap + ')' : '';
     document.getElementById('tasks-progress').textContent =
       choresDone + ' tasks done | ' + ds.taskRewardsEarned + ' rewards earned' + capText +

@@ -8,9 +8,9 @@ const Quiz = (() => {
   let score = 0;
   let streak = 0;
   let quizType = 'math';
+  let questionsPerQuiz = 5;
   function getQuestionsPerQuiz() {
-    var state = Storage.load();
-    return (state.settings && state.settings.questionsPerQuiz) || 5;
+    return questionsPerQuiz;
   }
 
   // 200+ math questions across 5 difficulty levels
@@ -189,6 +189,7 @@ const Quiz = (() => {
   function start(type) {
     quizType = type || 'math';
     const state = Storage.load();
+    questionsPerQuiz = (state.settings && state.settings.questionsPerQuiz) || 5;
     currentQuestions = pickQuestions(state.quizDifficulty, quizType);
     currentIndex = 0;
     score = 0;
