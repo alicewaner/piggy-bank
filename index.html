@@ -303,12 +303,36 @@
       </div>
     </div>
 
+    <!-- Friends Screen -->
+    <div id="screen-friends" class="screen">
+      <div class="screen-header">
+        <h2>Friends</h2>
+      </div>
+      <div id="friends-content"></div>
+    </div>
+
+    <!-- Friend's Stable Screen (read-only) -->
+    <div id="screen-friend-stable" class="screen">
+      <div class="screen-header">
+        <button class="btn btn-secondary btn-small" id="btn-friend-stable-back">Back</button>
+        <h2 id="friend-stable-name">Friend's Stable</h2>
+        <span class="resource" id="friend-stable-count">0 animals</span>
+      </div>
+      <div id="friend-stable-grid" class="animal-grid">
+        <div class="empty-stable"><p>Loading...</p></div>
+      </div>
+    </div>
+
     <!-- More Menu Screen -->
     <div id="screen-more" class="screen">
       <div class="screen-header">
         <h2>More</h2>
       </div>
       <div class="more-menu">
+        <button class="more-item" data-screen="friends">
+          <span class="more-icon">&#x1F465;</span>
+          <span>Friends</span>
+        </button>
         <button class="more-item" data-screen="chat">
           <span class="more-icon">&#x1F4AC;</span>
           <span>Chat</span>
@@ -394,6 +418,7 @@
   <script src="js/breeding.js"></script>
   <script src="js/parent.js"></script>
   <script src="js/chat.js"></script>
+  <script src="js/friends.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

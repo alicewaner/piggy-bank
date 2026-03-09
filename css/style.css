@@ -1273,6 +1273,74 @@ body {
   .account-name { font-size: 1rem; }
 }
 
+/* ---- Friends ---- */
+.friends-section {
+  margin-bottom: 16px;
+}
+.friends-section-title {
+  font-size: 0.8rem;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.friend-request-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #FDF2F8;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  margin-bottom: 4px;
+}
+.friend-req-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.friend-req-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.friend-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--slot-border-light);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  margin-bottom: 4px;
+}
+.friend-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.friend-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.friend-add-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--inventory-slot);
+  border: 1px solid var(--slot-border-light);
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+.friend-add-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
 /* ---- Animations ---- */
 @keyframes pulse {
   0%, 100% { opacity: 1; }

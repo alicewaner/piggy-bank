@@ -30,6 +30,8 @@ const App = (() => {
       case 'breeding': Breeding.render(); break;
       case 'parent': Parent.render(); break;
       case 'chat': Chat.render(); break;
+      case 'friends': Friends.render(); break;
+      case 'friend-stable': break;
       case 'leaderboard': renderLeaderboard('total'); break;
     }
   }
@@ -347,12 +349,14 @@ const App = (() => {
     trackLogin();
     Wallet.processInterest();
     Chat.initListeners();
+    Friends.initListeners();
     document.getElementById('bottom-nav').style.display = '';
     showScreen('stable');
   }
 
   function logout() {
     Chat.cleanup();
+    Friends.cleanup();
     auth.signOut().then(function() {
       currentAccountId = null;
       document.getElementById('bottom-nav').style.display = 'none';
