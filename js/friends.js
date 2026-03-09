@@ -190,14 +190,14 @@ const Friends = (() => {
     var grid = document.getElementById('friend-stable-grid');
     if (!header || !grid) return;
 
-    header.textContent = name + "'s Stable";
+    header.textContent = name + "'s Barn";
     grid.innerHTML = '<p class="empty-msg">Loading...</p>';
 
     App.showScreen('friend-stable');
 
     db.collection('users').doc(uid).get().then(function(doc) {
       if (!doc.exists || !doc.data().gameState) {
-        grid.innerHTML = '<p class="empty-msg">Could not load stable.</p>';
+        grid.innerHTML = '<p class="empty-msg">Could not load barn.</p>';
         return;
       }
       var state = doc.data().gameState;
@@ -229,7 +229,7 @@ const Friends = (() => {
       }).join('');
     }).catch(function(err) {
       console.error('Load friend stable error:', err);
-      grid.innerHTML = '<p class="empty-msg">Could not load stable.</p>';
+      grid.innerHTML = '<p class="empty-msg">Could not load barn.</p>';
     });
   }
 
@@ -382,7 +382,7 @@ const Friends = (() => {
           html += '<div class="friend-card">' +
             '<span class="friend-name">' + escapeHtml(friendName || 'Player') + '</span>' +
             '<div class="friend-actions">' +
-              '<button class="btn btn-primary btn-small btn-view-stable" data-uid="' + friendUid + '" data-name="' + escapeHtml(friendName || 'Player') + '">View Stable</button>' +
+              '<button class="btn btn-primary btn-small btn-view-stable" data-uid="' + friendUid + '" data-name="' + escapeHtml(friendName || 'Player') + '">View Barn</button>' +
               '<button class="btn btn-accent btn-small btn-chat-friend" data-name="' + escapeHtml(friendName || 'Player') + '">Chat</button>' +
             '</div>' +
           '</div>';
