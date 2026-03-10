@@ -196,12 +196,14 @@ var Parent = (function() {
       var btnText = hasHappy ? 'Remove Happy Heart' : (a.happyHeartRemoved ? 'Already removed' : 'No happy heart yet');
       var canRemove = hasHappy;
       var mood = a.mood || 'happy';
-      var fc = a.feedCount || 0;
+      var today = (a.heartsToday || 0) + '/3';
+      var waterIcon = a.wateredToday ? 'W' : '-';
+      var foodIcon = a.fedToday ? 'F' : '-';
 
       return '<div class="parent-animal-row">' +
         '<div class="pixel-art ' + a.type + '-' + a.stage + '"></div>' +
         '<span>' + name + ' (' + a.hearts + '/' + HEARTS.maxHearts + ')' +
-        ' Fed ' + fc + '/1' +
+        ' Today: ' + today + ' [' + waterIcon + '/' + foodIcon + ']' +
         ' | Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>' +
         '<button class="btn btn-small ' + (canRemove ? 'btn-danger' : 'btn-secondary') + ' remove-happy-btn" ' +
         'data-id="' + a.id + '"' + (canRemove ? '' : ' disabled') + '>' +

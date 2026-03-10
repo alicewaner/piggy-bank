@@ -446,7 +446,61 @@ body {
   font-weight: 700;
 }
 
-/* Heart bar */
+/* Daily hearts (3 icons) */
+.daily-hearts {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+.heart-icon {
+  font-size: 1.1rem;
+  display: inline-block;
+}
+.heart-icon-water { color: #06B6D4; }
+.heart-icon-food { color: #F59E0B; }
+.heart-icon-happy { color: var(--red-heart); }
+.heart-icon-empty { color: #E5E7EB; }
+
+.daily-hearts-labels {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.6rem;
+  color: var(--stone-dark);
+  margin-bottom: 4px;
+}
+.daily-hearts-labels span {
+  width: 1.1rem;
+  text-align: center;
+}
+
+/* Maturity progress bar */
+.maturity-bar {
+  background: #E5E7EB;
+  border: none;
+  border-radius: 7px;
+  height: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.maturity-fill {
+  background: linear-gradient(90deg, var(--accent), var(--red-heart));
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.4s ease;
+}
+.maturity-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.6rem;
+  color: #FFF;
+  font-weight: 700;
+}
+
+/* Heart bar (legacy, kept for compatibility) */
 .heart-bar {
   background: #E5E7EB;
   border: none;
@@ -469,6 +523,14 @@ body {
   font-size: 0.6rem;
   color: #FFF;
   font-weight: 700;
+}
+
+/* Friend feed buttons */
+.friend-feed-btns {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 4px;
 }
 
 .animal-status {

@@ -211,33 +211,61 @@ const Friends = (() => {
 
       grid.innerHTML = alive.map(function(animal) {
         var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
-        var heartPct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
         var cssClass = animal.type + '-' + animal.stage;
-        var fc = animal.feedCount || 0;
         var statusIcons = '';
-        if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/1</span>';
         if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
 
-        var canFeed = myState.inventory.food >= 1 && myState.inventory.water >= 1 && fc < 1;
-        var feedBtn = '<button class="btn btn-accent btn-small btn-feed-friend" data-animal-id="' + animal.id + '"' +
-          (canFeed ? '' : ' disabled') + '>' +
-          (fc >= 1 ? 'Full' : 'Feed') + '</button>';
+        // Daily hearts display
+        var hasWater = !!animal.wateredToday;
+        var hasFood = !!animal.fedToday;
+        var hasHappy = animal.happyHeartToday && !animal.happyHeartRemoved;
+        var dailyHearts = '<div class="daily-hearts">' +
+          '<span class="heart-icon ' + (hasWater ? 'heart-icon-water' : 'heart-icon-empty') + '">&#9829;</span>' +
+          '<span class="heart-icon ' + (hasFood ? 'heart-icon-food' : 'heart-icon-empty') + '">&#9829;</span>' +
+          '<span class="heart-icon ' + (hasHappy ? 'heart-icon-happy' : 'heart-icon-empty') + '">&#9829;</span>' +
+          '</div>';
+
+        // Maturity bar
+        var maturityBar;
+        if (animal.stage === 'adult') {
+          maturityBar = '<div class="maturity-bar"><div class="maturity-fill" style="width:100%"></div>' +
+            '<span class="maturity-text">Grown up!</span></div>';
+        } else {
+          var pct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
+          maturityBar = '<div class="maturity-bar"><div class="maturity-fill" style="width:' + pct + '%"></div>' +
+            '<span class="maturity-text">' + animal.hearts + '/' + HEARTS.maxHearts + '</span></div>';
+        }
+
+        // Feed buttons — water and food separately
+        var canWater = myState.inventory.water >= 1 && !animal.wateredToday;
+        var canFood = myState.inventory.food >= 1 && !animal.fedToday;
+        var feedBtns = '<div class="friend-feed-btns">' +
+          '<button class="btn btn-accent btn-small btn-friend-water" data-animal-id="' + animal.id + '"' +
+          (canWater ? '' : ' disabled') + '>' + (hasWater ? 'Watered' : 'Water') + '</button>' +
+          '<button class="btn btn-accent btn-small btn-friend-food" data-animal-id="' + animal.id + '"' +
+          (canFood ? '' : ' disabled') + '>' + (hasFood ? 'Fed' : 'Food') + '</button>' +
+          '</div>';
 
         return '<div class="animal-card ' + (animal.stage === 'adult' ? 'adult-card' : '') + '">' +
           '<div class="sprite-wrap"><div class="pixel-art ' + cssClass + ' idle-bounce"></div></div>' +
           '<div class="animal-info">' +
           '<div class="animal-name">' + escapeHtml(aName) + '</div>' +
-          '<div class="heart-bar"><div class="heart-fill" style="width:' + heartPct + '%"></div>' +
-          '<span class="heart-text">' + animal.hearts + '/' + HEARTS.maxHearts + '</span></div>' +
+          dailyHearts + maturityBar +
           '<div class="animal-status">' + statusIcons + '</div>' +
-          feedBtn +
+          feedBtns +
           '</div></div>';
       }).join('');
 
-      grid.querySelectorAll('.btn-feed-friend').forEach(function(btn) {
+      grid.querySelectorAll('.btn-friend-water').forEach(function(btn) {
         btn.addEventListener('click', function() {
           Sound.click();
-          feedFriendAnimal(uid, parseInt(btn.dataset.animalId), name);
+          feedFriendWater(uid, parseInt(btn.dataset.animalId), name);
+        });
+      });
+      grid.querySelectorAll('.btn-friend-food').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          Sound.click();
+          feedFriendFood(uid, parseInt(btn.dataset.animalId), name);
         });
       });
     }).catch(function(err) {
@@ -246,15 +274,13 @@ const Friends = (() => {
     });
   }
 
-  function feedFriendAnimal(friendUid, animalId, friendName) {
-    // Check local inventory
+  function feedFriendSupply(friendUid, animalId, friendName, type) {
     var myState = Storage.load();
-    if (myState.inventory.food < 1 || myState.inventory.water < 1) {
-      App.showToast('You need 1 food + 1 water to feed!');
+    if (myState.inventory[type] < 1) {
+      App.showToast('You need ' + type + ' to feed!');
       return;
     }
 
-    // Load friend's data from Firestore
     db.collection('users').doc(friendUid).get().then(function(doc) {
       if (!doc.exists || !doc.data().gameState) {
         App.showToast('Could not load friend data.');
@@ -267,18 +293,23 @@ const Friends = (() => {
         return;
       }
 
-      var fc = animal.feedCount || 0;
-      if (fc >= 1) {
-        App.showToast('This animal has been fed enough today!');
+      if (type === 'water' && animal.wateredToday) {
+        App.showToast('Already watered today!');
+        return;
+      }
+      if (type === 'food' && animal.fedToday) {
+        App.showToast('Already fed today!');
         return;
       }
 
       // Update friend's animal
-      animal.feedCount = fc + 1;
-      animal.fedToday = true;
-      animal.wateredToday = true;
-      animal.daysWithoutFood = 0;
-      animal.daysWithoutWater = 0;
+      if (type === 'water') {
+        animal.wateredToday = true;
+        animal.daysWithoutWater = 0;
+      } else {
+        animal.fedToday = true;
+        animal.daysWithoutFood = 0;
+      }
 
       // Give heart
       var maxDay = animal.isBred ? HEARTS.maxPerDayBred : HEARTS.maxPerDayBought;
@@ -290,8 +321,8 @@ const Friends = (() => {
         }
       }
 
-      // After 1st feed: check mood for bonus heart
-      if (animal.feedCount >= 1) {
+      // Check happy: both watered and fed + happy mood
+      if (animal.wateredToday && animal.fedToday) {
         var mood = animal.mood || 'happy';
         if (mood === 'happy' && !animal.happyHeartToday) {
           animal.happyHeartToday = true;
@@ -306,30 +337,35 @@ const Friends = (() => {
         }
       }
 
-      // Save friend's state to Firestore
       return db.collection('users').doc(friendUid).update({
         'gameState': friendState
       }).then(function() {
-        // Deduct from my inventory
         var ms = Storage.load();
-        ms.inventory.food--;
-        ms.inventory.water--;
+        ms.inventory[type]--;
         Storage.save(ms);
 
-        // Sync my state to cloud
         if (typeof CloudSync !== 'undefined' && CloudSync.saveToCloud) {
           CloudSync.saveToCloud();
         }
 
         Sound.feed();
         var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
-        App.showToast('You fed ' + friendName + "'s " + aName + '!');
+        var action = type === 'water' ? 'gave water to' : 'fed';
+        App.showToast('You ' + action + ' ' + friendName + "'s " + aName + '!');
         viewFriendStable(friendUid, friendName);
       });
     }).catch(function(err) {
       console.error('Feed friend animal error:', err);
       App.showToast('Could not feed animal. ' + (err.message || ''));
     });
+  }
+
+  function feedFriendWater(friendUid, animalId, friendName) {
+    feedFriendSupply(friendUid, animalId, friendName, 'water');
+  }
+
+  function feedFriendFood(friendUid, animalId, friendName) {
+    feedFriendSupply(friendUid, animalId, friendName, 'food');
   }
 
   // ---- Chat shortcut ----

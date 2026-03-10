@@ -1,11 +1,31 @@
 // ============================================================
 // stable.js — My Stable screen
-// Hearts: combined feed (1 food + 1 water = 1 heart), max 1/day
-// 2nd heart auto if mood === 'happy' after feed
+// Hearts: water(1) + food(1) + happy auto(1) = max 3/day
 // ============================================================
 
 var Stable = (function() {
   var selectedAnimalId = null;
+
+  function dailyHeartsHTML(animal) {
+    var hasWater = !!animal.wateredToday;
+    var hasFood = !!animal.fedToday;
+    var hasHappy = animal.happyHeartToday && !animal.happyHeartRemoved;
+    return '<div class="daily-hearts">' +
+      '<span class="heart-icon ' + (hasWater ? 'heart-icon-water' : 'heart-icon-empty') + '" title="Water">&#9829;</span>' +
+      '<span class="heart-icon ' + (hasFood ? 'heart-icon-food' : 'heart-icon-empty') + '" title="Food">&#9829;</span>' +
+      '<span class="heart-icon ' + (hasHappy ? 'heart-icon-happy' : 'heart-icon-empty') + '" title="Happy">&#9829;</span>' +
+      '</div>';
+  }
+
+  function maturityHTML(animal) {
+    if (animal.stage === 'adult') {
+      return '<div class="maturity-bar"><div class="maturity-fill" style="width:100%"></div>' +
+        '<span class="maturity-text">Grown up!</span></div>';
+    }
+    var pct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
+    return '<div class="maturity-bar"><div class="maturity-fill" style="width:' + pct + '%"></div>' +
+      '<span class="maturity-text">' + animal.hearts + '/' + HEARTS.maxHearts + '</span></div>';
+  }
 
   function render() {
     var state = Storage.load();
@@ -23,12 +43,9 @@ var Stable = (function() {
 
     grid.innerHTML = alive.map(function(animal) {
       var name = animal.name || ANIMAL_NAMES[animal.type].singular;
-      var heartPct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
       var cssClass = animal.type + '-' + animal.stage;
-      var fc = animal.feedCount || 0;
       var mood = animal.mood || 'happy';
       var statusIcons = '';
-      if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/1</span>';
       var moodClass = mood === 'happy' ? 'mood-happy' : 'mood-sad';
       statusIcons += '<span class="mood-badge ' + moodClass + '">' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>';
       if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
@@ -37,8 +54,8 @@ var Stable = (function() {
         '<div class="sprite-wrap"><div class="pixel-art ' + cssClass + ' idle-bounce"></div></div>' +
         '<div class="animal-info">' +
         '<div class="animal-name">' + name + '</div>' +
-        '<div class="heart-bar"><div class="heart-fill" style="width:' + heartPct + '%"></div>' +
-        '<span class="heart-text">' + animal.hearts + '/' + HEARTS.maxHearts + '</span></div>' +
+        dailyHeartsHTML(animal) +
+        maturityHTML(animal) +
         '<div class="animal-status">' + statusIcons + '</div>' +
         '</div></div>';
     }).join('');
@@ -60,7 +77,6 @@ var Stable = (function() {
     var modal = document.getElementById('animal-modal');
     var name = animal.name || ANIMAL_NAMES[animal.type].singular;
     var cssClass = animal.type + '-' + animal.stage;
-    var fc = animal.feedCount || 0;
     var mood = animal.mood || 'happy';
 
     document.getElementById('modal-animal-art').innerHTML =
@@ -68,20 +84,18 @@ var Stable = (function() {
     document.getElementById('modal-animal-name').textContent = name;
     document.getElementById('modal-name-input').value = animal.name;
 
-    // Hearts display
-    var heartsHTML = '';
-    for (var i = 0; i < HEARTS.maxHearts; i++) {
-      heartsHTML += '<span class="heart ' + (i < animal.hearts ? 'heart-full' : 'heart-empty') + '">&#9829;</span>';
-    }
-    // Show today's heart breakdown
-    var todayInfo = [];
-    if (fc >= 1) todayInfo.push('Fed +1');
-    if (animal.happyHeartToday && !animal.happyHeartRemoved) todayInfo.push('Happy +1');
-    if (animal.happyHeartRemoved) todayInfo.push('Happy removed');
-    heartsHTML += '<div class="hearts-today">Today: ' + (todayInfo.length ? todayInfo.join(', ') : 'none yet') + '</div>';
+    // Daily hearts display (3 icons)
+    var heartsHTML = dailyHeartsHTML(animal);
+    var labels = '<div class="daily-hearts-labels">' +
+      '<span>Water</span><span>Food</span><span>Happy</span></div>';
+    heartsHTML += labels;
+
+    // Maturity progress
+    heartsHTML += maturityHTML(animal);
+
     document.getElementById('modal-hearts').innerHTML = heartsHTML;
 
-    // Stage display (no mood here — moved to mood button)
+    // Stage display
     document.getElementById('modal-stage').textContent =
       animal.stage === 'adult' ? 'ADULT - Ready to sell or breed!' : 'Baby - Keep feeding to grow!';
 
@@ -127,15 +141,18 @@ var Stable = (function() {
       document.getElementById('mood-pin-error').style.display = 'none';
     };
 
-    var btnFeed = document.getElementById('btn-feed');
+    // Feed buttons — separate water and food
+    var btnFeedWater = document.getElementById('btn-feed-water');
+    var btnFeedFood = document.getElementById('btn-feed-food');
 
-    var canFeed = state.inventory.food >= 1 && state.inventory.water >= 1 && fc < 1;
-    btnFeed.disabled = !canFeed;
-    if (fc >= 1) {
-      btnFeed.textContent = 'Fed 1/1';
-    } else {
-      btnFeed.textContent = 'Feed (1 food + 1 water)';
-    }
+    var canWater = state.inventory.water >= 1 && !animal.wateredToday;
+    var canFood = state.inventory.food >= 1 && !animal.fedToday;
+
+    btnFeedWater.disabled = !canWater;
+    btnFeedWater.textContent = animal.wateredToday ? 'Watered' : 'Feed Water';
+
+    btnFeedFood.disabled = !canFood;
+    btnFeedFood.textContent = animal.fedToday ? 'Fed' : 'Feed Food';
 
     // Status warnings
     var status = '';
@@ -149,33 +166,51 @@ var Stable = (function() {
 
     modal.style.display = 'flex';
 
-    btnFeed.onclick = function() { feedAnimal(animalId); };
+    btnFeedWater.onclick = function() { feedWater(animalId); };
+    btnFeedFood.onclick = function() { feedFood(animalId); };
     document.getElementById('btn-save-name').onclick = function() { saveName(animalId); };
   }
 
-  function feedAnimal(id) {
+  function feedWater(id) {
     var state = Storage.load();
     var animal = state.animals.find(function(a) { return a.id === id; });
-    if (!animal) return;
-    var fc = animal.feedCount || 0;
-    if (fc >= 1 || state.inventory.food < 1 || state.inventory.water < 1) return;
+    if (!animal || animal.wateredToday || state.inventory.water < 1) return;
 
-    // Consume 1 food + 1 water
-    state.inventory.food--;
     state.inventory.water--;
-    animal.feedCount = fc + 1;
-
-    // Mark fed/watered for death tracking
-    animal.fedToday = true;
     animal.wateredToday = true;
-    animal.daysWithoutFood = 0;
     animal.daysWithoutWater = 0;
 
-    // Give 1 heart
     giveHeart(animal);
+    checkHappy(animal);
 
-    // After 1st feed: check mood for bonus heart
-    if (animal.feedCount >= 1) {
+    Storage.save(state);
+    Sound.feed();
+    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' drank water!');
+    openAnimalModal(id);
+    render();
+  }
+
+  function feedFood(id) {
+    var state = Storage.load();
+    var animal = state.animals.find(function(a) { return a.id === id; });
+    if (!animal || animal.fedToday || state.inventory.food < 1) return;
+
+    state.inventory.food--;
+    animal.fedToday = true;
+    animal.daysWithoutFood = 0;
+
+    giveHeart(animal);
+    checkHappy(animal);
+
+    Storage.save(state);
+    Sound.feed();
+    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' ate food!');
+    openAnimalModal(id);
+    render();
+  }
+
+  function checkHappy(animal) {
+    if (animal.wateredToday && animal.fedToday) {
       var mood = animal.mood || 'happy';
       if (mood === 'happy' && !animal.happyHeartToday) {
         animal.happyHeartToday = true;
@@ -184,12 +219,6 @@ var Stable = (function() {
         Sound.heart();
       }
     }
-
-    Storage.save(state);
-    Sound.feed();
-    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' enjoyed the meal!');
-    openAnimalModal(id);
-    render();
   }
 
   function giveHeart(animal) {
@@ -212,11 +241,9 @@ var Stable = (function() {
     if (!animal || !animal.happyHeartToday || animal.happyHeartRemoved) return;
 
     animal.happyHeartRemoved = true;
-    // Take back the heart
     if (animal.hearts > 0) {
       animal.hearts--;
       animal.heartsToday--;
-      // Check if we need to revert adult stage
       if (animal.hearts < HEARTS.adultThreshold) {
         animal.stage = 'baby';
       }

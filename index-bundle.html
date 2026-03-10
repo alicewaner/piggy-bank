@@ -453,7 +453,61 @@ body {
   font-weight: 700;
 }
 
-/* Heart bar */
+/* Daily hearts (3 icons) */
+.daily-hearts {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+.heart-icon {
+  font-size: 1.1rem;
+  display: inline-block;
+}
+.heart-icon-water { color: #06B6D4; }
+.heart-icon-food { color: #F59E0B; }
+.heart-icon-happy { color: var(--red-heart); }
+.heart-icon-empty { color: #E5E7EB; }
+
+.daily-hearts-labels {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.6rem;
+  color: var(--stone-dark);
+  margin-bottom: 4px;
+}
+.daily-hearts-labels span {
+  width: 1.1rem;
+  text-align: center;
+}
+
+/* Maturity progress bar */
+.maturity-bar {
+  background: #E5E7EB;
+  border: none;
+  border-radius: 7px;
+  height: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.maturity-fill {
+  background: linear-gradient(90deg, var(--accent), var(--red-heart));
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.4s ease;
+}
+.maturity-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.6rem;
+  color: #FFF;
+  font-weight: 700;
+}
+
+/* Heart bar (legacy, kept for compatibility) */
 .heart-bar {
   background: #E5E7EB;
   border: none;
@@ -476,6 +530,14 @@ body {
   font-size: 0.6rem;
   color: #FFF;
   font-weight: 700;
+}
+
+/* Friend feed buttons */
+.friend-feed-btns {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 4px;
 }
 
 .animal-status {
@@ -2354,7 +2416,8 @@ body {
         <div id="modal-hearts" class="modal-hearts"></div>
         <div id="modal-stage" class="modal-stage"></div>
         <div class="modal-actions">
-          <button id="btn-feed" class="btn btn-action">Feed</button>
+          <button id="btn-feed-water" class="btn btn-action">Feed Water</button>
+          <button id="btn-feed-food" class="btn btn-action">Feed Food</button>
         </div>
         <div id="modal-status" class="modal-status"></div>
         <div class="modal-mood-section">
@@ -2440,7 +2503,7 @@ var ANIMAL_NAMES = {
 var HEARTS = {
   maxHearts: 15,
   adultThreshold: 15,
-  maxPerDayBought: 2,   // feed(1) + happy(1)
+  maxPerDayBought: 3,   // water(1) + food(1) + happy(1)
   maxPerDayBred: 5
 };
 
@@ -3444,12 +3507,32 @@ var Wallet = (function() {
 
 // ============================================================
 // stable.js — My Stable screen
-// Hearts: combined feed (1 food + 1 water = 1 heart), max 1/day
-// 2nd heart auto if mood === 'happy' after feed
+// Hearts: water(1) + food(1) + happy auto(1) = max 3/day
 // ============================================================
 
 var Stable = (function() {
   var selectedAnimalId = null;
+
+  function dailyHeartsHTML(animal) {
+    var hasWater = !!animal.wateredToday;
+    var hasFood = !!animal.fedToday;
+    var hasHappy = animal.happyHeartToday && !animal.happyHeartRemoved;
+    return '<div class="daily-hearts">' +
+      '<span class="heart-icon ' + (hasWater ? 'heart-icon-water' : 'heart-icon-empty') + '" title="Water">&#9829;</span>' +
+      '<span class="heart-icon ' + (hasFood ? 'heart-icon-food' : 'heart-icon-empty') + '" title="Food">&#9829;</span>' +
+      '<span class="heart-icon ' + (hasHappy ? 'heart-icon-happy' : 'heart-icon-empty') + '" title="Happy">&#9829;</span>' +
+      '</div>';
+  }
+
+  function maturityHTML(animal) {
+    if (animal.stage === 'adult') {
+      return '<div class="maturity-bar"><div class="maturity-fill" style="width:100%"></div>' +
+        '<span class="maturity-text">Grown up!</span></div>';
+    }
+    var pct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
+    return '<div class="maturity-bar"><div class="maturity-fill" style="width:' + pct + '%"></div>' +
+      '<span class="maturity-text">' + animal.hearts + '/' + HEARTS.maxHearts + '</span></div>';
+  }
 
   function render() {
     var state = Storage.load();
@@ -3467,12 +3550,9 @@ var Stable = (function() {
 
     grid.innerHTML = alive.map(function(animal) {
       var name = animal.name || ANIMAL_NAMES[animal.type].singular;
-      var heartPct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
       var cssClass = animal.type + '-' + animal.stage;
-      var fc = animal.feedCount || 0;
       var mood = animal.mood || 'happy';
       var statusIcons = '';
-      if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/1</span>';
       var moodClass = mood === 'happy' ? 'mood-happy' : 'mood-sad';
       statusIcons += '<span class="mood-badge ' + moodClass + '">' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>';
       if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
@@ -3481,8 +3561,8 @@ var Stable = (function() {
         '<div class="sprite-wrap"><div class="pixel-art ' + cssClass + ' idle-bounce"></div></div>' +
         '<div class="animal-info">' +
         '<div class="animal-name">' + name + '</div>' +
-        '<div class="heart-bar"><div class="heart-fill" style="width:' + heartPct + '%"></div>' +
-        '<span class="heart-text">' + animal.hearts + '/' + HEARTS.maxHearts + '</span></div>' +
+        dailyHeartsHTML(animal) +
+        maturityHTML(animal) +
         '<div class="animal-status">' + statusIcons + '</div>' +
         '</div></div>';
     }).join('');
@@ -3504,7 +3584,6 @@ var Stable = (function() {
     var modal = document.getElementById('animal-modal');
     var name = animal.name || ANIMAL_NAMES[animal.type].singular;
     var cssClass = animal.type + '-' + animal.stage;
-    var fc = animal.feedCount || 0;
     var mood = animal.mood || 'happy';
 
     document.getElementById('modal-animal-art').innerHTML =
@@ -3512,20 +3591,18 @@ var Stable = (function() {
     document.getElementById('modal-animal-name').textContent = name;
     document.getElementById('modal-name-input').value = animal.name;
 
-    // Hearts display
-    var heartsHTML = '';
-    for (var i = 0; i < HEARTS.maxHearts; i++) {
-      heartsHTML += '<span class="heart ' + (i < animal.hearts ? 'heart-full' : 'heart-empty') + '">&#9829;</span>';
-    }
-    // Show today's heart breakdown
-    var todayInfo = [];
-    if (fc >= 1) todayInfo.push('Fed +1');
-    if (animal.happyHeartToday && !animal.happyHeartRemoved) todayInfo.push('Happy +1');
-    if (animal.happyHeartRemoved) todayInfo.push('Happy removed');
-    heartsHTML += '<div class="hearts-today">Today: ' + (todayInfo.length ? todayInfo.join(', ') : 'none yet') + '</div>';
+    // Daily hearts display (3 icons)
+    var heartsHTML = dailyHeartsHTML(animal);
+    var labels = '<div class="daily-hearts-labels">' +
+      '<span>Water</span><span>Food</span><span>Happy</span></div>';
+    heartsHTML += labels;
+
+    // Maturity progress
+    heartsHTML += maturityHTML(animal);
+
     document.getElementById('modal-hearts').innerHTML = heartsHTML;
 
-    // Stage display (no mood here — moved to mood button)
+    // Stage display
     document.getElementById('modal-stage').textContent =
       animal.stage === 'adult' ? 'ADULT - Ready to sell or breed!' : 'Baby - Keep feeding to grow!';
 
@@ -3571,15 +3648,18 @@ var Stable = (function() {
       document.getElementById('mood-pin-error').style.display = 'none';
     };
 
-    var btnFeed = document.getElementById('btn-feed');
+    // Feed buttons — separate water and food
+    var btnFeedWater = document.getElementById('btn-feed-water');
+    var btnFeedFood = document.getElementById('btn-feed-food');
 
-    var canFeed = state.inventory.food >= 1 && state.inventory.water >= 1 && fc < 1;
-    btnFeed.disabled = !canFeed;
-    if (fc >= 1) {
-      btnFeed.textContent = 'Fed 1/1';
-    } else {
-      btnFeed.textContent = 'Feed (1 food + 1 water)';
-    }
+    var canWater = state.inventory.water >= 1 && !animal.wateredToday;
+    var canFood = state.inventory.food >= 1 && !animal.fedToday;
+
+    btnFeedWater.disabled = !canWater;
+    btnFeedWater.textContent = animal.wateredToday ? 'Watered' : 'Feed Water';
+
+    btnFeedFood.disabled = !canFood;
+    btnFeedFood.textContent = animal.fedToday ? 'Fed' : 'Feed Food';
 
     // Status warnings
     var status = '';
@@ -3593,33 +3673,51 @@ var Stable = (function() {
 
     modal.style.display = 'flex';
 
-    btnFeed.onclick = function() { feedAnimal(animalId); };
+    btnFeedWater.onclick = function() { feedWater(animalId); };
+    btnFeedFood.onclick = function() { feedFood(animalId); };
     document.getElementById('btn-save-name').onclick = function() { saveName(animalId); };
   }
 
-  function feedAnimal(id) {
+  function feedWater(id) {
     var state = Storage.load();
     var animal = state.animals.find(function(a) { return a.id === id; });
-    if (!animal) return;
-    var fc = animal.feedCount || 0;
-    if (fc >= 1 || state.inventory.food < 1 || state.inventory.water < 1) return;
+    if (!animal || animal.wateredToday || state.inventory.water < 1) return;
 
-    // Consume 1 food + 1 water
-    state.inventory.food--;
     state.inventory.water--;
-    animal.feedCount = fc + 1;
-
-    // Mark fed/watered for death tracking
-    animal.fedToday = true;
     animal.wateredToday = true;
-    animal.daysWithoutFood = 0;
     animal.daysWithoutWater = 0;
 
-    // Give 1 heart
     giveHeart(animal);
+    checkHappy(animal);
 
-    // After 1st feed: check mood for bonus heart
-    if (animal.feedCount >= 1) {
+    Storage.save(state);
+    Sound.feed();
+    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' drank water!');
+    openAnimalModal(id);
+    render();
+  }
+
+  function feedFood(id) {
+    var state = Storage.load();
+    var animal = state.animals.find(function(a) { return a.id === id; });
+    if (!animal || animal.fedToday || state.inventory.food < 1) return;
+
+    state.inventory.food--;
+    animal.fedToday = true;
+    animal.daysWithoutFood = 0;
+
+    giveHeart(animal);
+    checkHappy(animal);
+
+    Storage.save(state);
+    Sound.feed();
+    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' ate food!');
+    openAnimalModal(id);
+    render();
+  }
+
+  function checkHappy(animal) {
+    if (animal.wateredToday && animal.fedToday) {
       var mood = animal.mood || 'happy';
       if (mood === 'happy' && !animal.happyHeartToday) {
         animal.happyHeartToday = true;
@@ -3628,12 +3726,6 @@ var Stable = (function() {
         Sound.heart();
       }
     }
-
-    Storage.save(state);
-    Sound.feed();
-    App.showToast((animal.name || ANIMAL_NAMES[animal.type].singular) + ' enjoyed the meal!');
-    openAnimalModal(id);
-    render();
   }
 
   function giveHeart(animal) {
@@ -3656,11 +3748,9 @@ var Stable = (function() {
     if (!animal || !animal.happyHeartToday || animal.happyHeartRemoved) return;
 
     animal.happyHeartRemoved = true;
-    // Take back the heart
     if (animal.hearts > 0) {
       animal.hearts--;
       animal.heartsToday--;
-      // Check if we need to revert adult stage
       if (animal.hearts < HEARTS.adultThreshold) {
         animal.stage = 'baby';
       }
@@ -4528,12 +4618,14 @@ var Parent = (function() {
       var btnText = hasHappy ? 'Remove Happy Heart' : (a.happyHeartRemoved ? 'Already removed' : 'No happy heart yet');
       var canRemove = hasHappy;
       var mood = a.mood || 'happy';
-      var fc = a.feedCount || 0;
+      var today = (a.heartsToday || 0) + '/3';
+      var waterIcon = a.wateredToday ? 'W' : '-';
+      var foodIcon = a.fedToday ? 'F' : '-';
 
       return '<div class="parent-animal-row">' +
         '<div class="pixel-art ' + a.type + '-' + a.stage + '"></div>' +
         '<span>' + name + ' (' + a.hearts + '/' + HEARTS.maxHearts + ')' +
-        ' Fed ' + fc + '/1' +
+        ' Today: ' + today + ' [' + waterIcon + '/' + foodIcon + ']' +
         ' | Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>' +
         '<button class="btn btn-small ' + (canRemove ? 'btn-danger' : 'btn-secondary') + ' remove-happy-btn" ' +
         'data-id="' + a.id + '"' + (canRemove ? '' : ' disabled') + '>' +
@@ -5148,33 +5240,61 @@ const Friends = (() => {
 
       grid.innerHTML = alive.map(function(animal) {
         var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
-        var heartPct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
         var cssClass = animal.type + '-' + animal.stage;
-        var fc = animal.feedCount || 0;
         var statusIcons = '';
-        if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/1</span>';
         if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
 
-        var canFeed = myState.inventory.food >= 1 && myState.inventory.water >= 1 && fc < 1;
-        var feedBtn = '<button class="btn btn-accent btn-small btn-feed-friend" data-animal-id="' + animal.id + '"' +
-          (canFeed ? '' : ' disabled') + '>' +
-          (fc >= 1 ? 'Full' : 'Feed') + '</button>';
+        // Daily hearts display
+        var hasWater = !!animal.wateredToday;
+        var hasFood = !!animal.fedToday;
+        var hasHappy = animal.happyHeartToday && !animal.happyHeartRemoved;
+        var dailyHearts = '<div class="daily-hearts">' +
+          '<span class="heart-icon ' + (hasWater ? 'heart-icon-water' : 'heart-icon-empty') + '">&#9829;</span>' +
+          '<span class="heart-icon ' + (hasFood ? 'heart-icon-food' : 'heart-icon-empty') + '">&#9829;</span>' +
+          '<span class="heart-icon ' + (hasHappy ? 'heart-icon-happy' : 'heart-icon-empty') + '">&#9829;</span>' +
+          '</div>';
+
+        // Maturity bar
+        var maturityBar;
+        if (animal.stage === 'adult') {
+          maturityBar = '<div class="maturity-bar"><div class="maturity-fill" style="width:100%"></div>' +
+            '<span class="maturity-text">Grown up!</span></div>';
+        } else {
+          var pct = Math.round((animal.hearts / HEARTS.maxHearts) * 100);
+          maturityBar = '<div class="maturity-bar"><div class="maturity-fill" style="width:' + pct + '%"></div>' +
+            '<span class="maturity-text">' + animal.hearts + '/' + HEARTS.maxHearts + '</span></div>';
+        }
+
+        // Feed buttons — water and food separately
+        var canWater = myState.inventory.water >= 1 && !animal.wateredToday;
+        var canFood = myState.inventory.food >= 1 && !animal.fedToday;
+        var feedBtns = '<div class="friend-feed-btns">' +
+          '<button class="btn btn-accent btn-small btn-friend-water" data-animal-id="' + animal.id + '"' +
+          (canWater ? '' : ' disabled') + '>' + (hasWater ? 'Watered' : 'Water') + '</button>' +
+          '<button class="btn btn-accent btn-small btn-friend-food" data-animal-id="' + animal.id + '"' +
+          (canFood ? '' : ' disabled') + '>' + (hasFood ? 'Fed' : 'Food') + '</button>' +
+          '</div>';
 
         return '<div class="animal-card ' + (animal.stage === 'adult' ? 'adult-card' : '') + '">' +
           '<div class="sprite-wrap"><div class="pixel-art ' + cssClass + ' idle-bounce"></div></div>' +
           '<div class="animal-info">' +
           '<div class="animal-name">' + escapeHtml(aName) + '</div>' +
-          '<div class="heart-bar"><div class="heart-fill" style="width:' + heartPct + '%"></div>' +
-          '<span class="heart-text">' + animal.hearts + '/' + HEARTS.maxHearts + '</span></div>' +
+          dailyHearts + maturityBar +
           '<div class="animal-status">' + statusIcons + '</div>' +
-          feedBtn +
+          feedBtns +
           '</div></div>';
       }).join('');
 
-      grid.querySelectorAll('.btn-feed-friend').forEach(function(btn) {
+      grid.querySelectorAll('.btn-friend-water').forEach(function(btn) {
         btn.addEventListener('click', function() {
           Sound.click();
-          feedFriendAnimal(uid, parseInt(btn.dataset.animalId), name);
+          feedFriendWater(uid, parseInt(btn.dataset.animalId), name);
+        });
+      });
+      grid.querySelectorAll('.btn-friend-food').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          Sound.click();
+          feedFriendFood(uid, parseInt(btn.dataset.animalId), name);
         });
       });
     }).catch(function(err) {
@@ -5183,15 +5303,13 @@ const Friends = (() => {
     });
   }
 
-  function feedFriendAnimal(friendUid, animalId, friendName) {
-    // Check local inventory
+  function feedFriendSupply(friendUid, animalId, friendName, type) {
     var myState = Storage.load();
-    if (myState.inventory.food < 1 || myState.inventory.water < 1) {
-      App.showToast('You need 1 food + 1 water to feed!');
+    if (myState.inventory[type] < 1) {
+      App.showToast('You need ' + type + ' to feed!');
       return;
     }
 
-    // Load friend's data from Firestore
     db.collection('users').doc(friendUid).get().then(function(doc) {
       if (!doc.exists || !doc.data().gameState) {
         App.showToast('Could not load friend data.');
@@ -5204,18 +5322,23 @@ const Friends = (() => {
         return;
       }
 
-      var fc = animal.feedCount || 0;
-      if (fc >= 1) {
-        App.showToast('This animal has been fed enough today!');
+      if (type === 'water' && animal.wateredToday) {
+        App.showToast('Already watered today!');
+        return;
+      }
+      if (type === 'food' && animal.fedToday) {
+        App.showToast('Already fed today!');
         return;
       }
 
       // Update friend's animal
-      animal.feedCount = fc + 1;
-      animal.fedToday = true;
-      animal.wateredToday = true;
-      animal.daysWithoutFood = 0;
-      animal.daysWithoutWater = 0;
+      if (type === 'water') {
+        animal.wateredToday = true;
+        animal.daysWithoutWater = 0;
+      } else {
+        animal.fedToday = true;
+        animal.daysWithoutFood = 0;
+      }
 
       // Give heart
       var maxDay = animal.isBred ? HEARTS.maxPerDayBred : HEARTS.maxPerDayBought;
@@ -5227,8 +5350,8 @@ const Friends = (() => {
         }
       }
 
-      // After 1st feed: check mood for bonus heart
-      if (animal.feedCount >= 1) {
+      // Check happy: both watered and fed + happy mood
+      if (animal.wateredToday && animal.fedToday) {
         var mood = animal.mood || 'happy';
         if (mood === 'happy' && !animal.happyHeartToday) {
           animal.happyHeartToday = true;
@@ -5243,30 +5366,35 @@ const Friends = (() => {
         }
       }
 
-      // Save friend's state to Firestore
       return db.collection('users').doc(friendUid).update({
         'gameState': friendState
       }).then(function() {
-        // Deduct from my inventory
         var ms = Storage.load();
-        ms.inventory.food--;
-        ms.inventory.water--;
+        ms.inventory[type]--;
         Storage.save(ms);
 
-        // Sync my state to cloud
         if (typeof CloudSync !== 'undefined' && CloudSync.saveToCloud) {
           CloudSync.saveToCloud();
         }
 
         Sound.feed();
         var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
-        App.showToast('You fed ' + friendName + "'s " + aName + '!');
+        var action = type === 'water' ? 'gave water to' : 'fed';
+        App.showToast('You ' + action + ' ' + friendName + "'s " + aName + '!');
         viewFriendStable(friendUid, friendName);
       });
     }).catch(function(err) {
       console.error('Feed friend animal error:', err);
       App.showToast('Could not feed animal. ' + (err.message || ''));
     });
+  }
+
+  function feedFriendWater(friendUid, animalId, friendName) {
+    feedFriendSupply(friendUid, animalId, friendName, 'water');
+  }
+
+  function feedFriendFood(friendUid, animalId, friendName) {
+    feedFriendSupply(friendUid, animalId, friendName, 'food');
   }
 
   // ---- Chat shortcut ----

@@ -19,7 +19,7 @@ var ANIMAL_NAMES = {
 var HEARTS = {
   maxHearts: 15,
   adultThreshold: 15,
-  maxPerDayBought: 2,   // feed(1) + happy(1)
+  maxPerDayBought: 3,   // water(1) + food(1) + happy(1)
   maxPerDayBred: 5
 };
 
