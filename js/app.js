@@ -298,6 +298,21 @@ const App = (() => {
       });
   }
 
+  function handleGoogleLogin() {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    setAuthError('login-error', '');
+
+    auth.signInWithPopup(provider)
+      .then(function(result) {
+        // If this is a brand new Google user (no Firestore data yet),
+        // onAuthStateChanged will handle creating default state
+      })
+      .catch(function(error) {
+        setAuthError('login-error', error.message);
+        Sound.wrong();
+      });
+  }
+
   // ---- Usage tracking ----
 
   function trackLogin() {
@@ -528,6 +543,7 @@ const App = (() => {
 
     // ---- Firebase Auth buttons ----
     document.getElementById('btn-login').addEventListener('click', handleLogin);
+    document.getElementById('btn-google-login').addEventListener('click', handleGoogleLogin);
     document.getElementById('btn-forgot-password').addEventListener('click', function() {
       handleForgotPassword();
     });
@@ -561,11 +577,20 @@ const App = (() => {
             localStorage.setItem(getSaveKey(), JSON.stringify(migrated));
           }
           // Init from localStorage (either cloud-synced or fresh)
-          Storage.init();
+          var state = Storage.init();
+          // For Google sign-in users: fill name from Google profile if empty
+          if (!state.playerName && user.displayName) {
+            state.playerName = user.displayName;
+            Storage.save(state);
+          }
           startGame();
         }).catch(function(err) {
           console.error('Cloud load error, using local:', err);
-          Storage.init();
+          var state = Storage.init();
+          if (!state.playerName && user.displayName) {
+            state.playerName = user.displayName;
+            Storage.save(state);
+          }
           startGame();
         });
       } else {

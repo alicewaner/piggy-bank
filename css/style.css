@@ -844,6 +844,33 @@ body {
   text-align: center;
   text-decoration: underline;
 }
+.login-divider {
+  display: flex;
+  align-items: center;
+  margin: 12px 0;
+  gap: 12px;
+}
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--slot-border-light);
+}
+.login-divider span {
+  font-size: 0.75rem;
+  color: var(--stone-light);
+}
+.btn-google {
+  background: #FFFFFF;
+  color: #334155;
+  border: 2px solid var(--slot-border-light);
+}
+.btn-google:hover,
+.btn-google:active {
+  background: #F8FAFC;
+  border-color: var(--slot-border-dark);
+}
 
 .chore-edit-row { margin-bottom: 6px; }
 .chore-edit-row label { display: block; font-size: 0.75rem; color: var(--stone-dark); margin-bottom: 2px; }
