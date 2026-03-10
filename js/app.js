@@ -482,6 +482,8 @@ const App = (() => {
     var st = Storage.load();
     var cur = st.localCurrency || 'CAD';
     currentCurrencySymbol = FX_RATES[cur] ? FX_RATES[cur].symbol : 'CA$';
+    // Force cloud sync to ensure profile.email is up to date
+    CloudSync.saveToCloud(st);
     promptBirthdayIfMissing();
     trackLogin();
     Wallet.processInterest();
