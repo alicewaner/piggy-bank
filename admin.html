@@ -29,12 +29,25 @@
       text-align: center;
       padding: 40px 20px;
     }
-    .admin-login .pin-input {
-      margin: 12px auto;
+    .admin-login label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--stone-light);
+      margin-bottom: 4px;
+      text-align: left;
+      max-width: 260px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .admin-login input {
+      display: block;
+      margin: 0 auto 10px;
+      max-width: 260px;
+      width: 100%;
     }
     .summary-cards {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
       gap: 8px;
       margin-bottom: 16px;
     }
@@ -46,7 +59,7 @@
       text-align: center;
     }
     .summary-card .card-value {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: var(--emerald);
       font-weight: 700;
     }
@@ -89,22 +102,47 @@
     .user-table tr:nth-child(even) td {
       background: rgba(0,0,0,0.05);
     }
-    .recent-login-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 4px 8px;
-      background: var(--obsidian);
-      border: 1px solid var(--stone-dark);
-      margin-bottom: 3px;
-      font-size: 0.6rem;
-      color: var(--text-white);
-    }
-    .recent-login-name { color: var(--gold); }
-    .recent-login-time { color: var(--stone-light); font-size: 0.55rem; }
     .admin-back {
       text-align: center;
       margin-top: 16px;
+      margin-bottom: 24px;
     }
+    .btn-delete-user {
+      font-size: 0.55rem;
+      padding: 3px 6px;
+      background: #DC2626;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-delete-user:hover { background: #B91C1C; }
+    .btn-reset-pw {
+      font-size: 0.55rem;
+      padding: 3px 6px;
+      background: #2563EB;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-reset-pw:hover { background: #1D4ED8; }
+    .action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+    .admin-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #334155;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 999;
+    }
+    .admin-toast.show { opacity: 1; }
   </style>
 </head>
 <body>
@@ -114,42 +152,50 @@
     </div>
 
     <div id="admin-login" class="admin-login">
-      <p style="color:var(--stone-light);font-size:0.75rem;margin-bottom:12px;">Enter Admin Password</p>
-      <input type="password" id="admin-pin" class="pin-input" placeholder="PIN" maxlength="8" inputmode="numeric">
-      <p id="admin-pin-error" class="error-text" style="display:none">Wrong PIN!</p>
-      <button id="btn-admin-login" class="btn btn-primary btn-large" style="max-width:200px;margin:8px auto;">Enter</button>
+      <p style="color:var(--stone-light);font-size:0.75rem;margin-bottom:12px;">Sign in with your account to access admin</p>
+      <label>Email</label>
+      <input type="email" id="admin-email" class="pin-input" placeholder="Email">
+      <label>Password</label>
+      <input type="password" id="admin-password" class="pin-input" placeholder="Password">
+      <label>Admin PIN</label>
+      <input type="password" id="admin-pin" class="pin-input" placeholder="Admin PIN" maxlength="20">
+      <p id="admin-pin-error" class="error-text" style="display:none"></p>
+      <button id="btn-admin-login" class="btn btn-primary btn-large" style="max-width:260px;margin:8px auto;">Sign In</button>
     </div>
 
     <div id="admin-dashboard" style="display:none">
       <div id="summary-cards" class="summary-cards"></div>
+
       <div class="admin-section">
-        <h3>User Details</h3>
+        <h3>All Users</h3>
         <div style="overflow-x:auto;">
           <table class="user-table" id="user-table">
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Balance</th>
+                <th>Email</th>
+                <th>Bank</th>
+                <th>PC</th>
+                <th>Currency</th>
                 <th>Animals</th>
                 <th>Days</th>
-                <th>Logins</th>
-                <th>Active</th>
-                <th>Last Login</th>
+                <th>Last Active</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="user-table-body"></tbody>
           </table>
         </div>
       </div>
-      <div class="admin-section">
-        <h3>Recent Logins</h3>
-        <div id="recent-logins"></div>
-      </div>
+
       <div class="admin-back">
+        <button id="btn-admin-refresh" class="btn btn-accent" style="margin-right:8px;">Refresh</button>
         <a href="index.html" class="btn btn-secondary">Back to Game</a>
       </div>
     </div>
   </div>
+
+  <div id="admin-toast" class="admin-toast"></div>
 
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
@@ -164,23 +210,36 @@
       appId: "1:1012332227997:web:2788d48e43ff48b28ad374"
     });
     var db = firebase.firestore();
+    var authInstance = firebase.auth();
+    var MASTER_PIN = 'chris';
+
+    function showToast(msg) {
+      var t = document.getElementById('admin-toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(function() { t.classList.remove('show'); }, 3000);
+    }
 
     function formatMoney(cents) {
       return '$' + (cents / 100).toFixed(2);
     }
 
+    function formatPC(cents) {
+      return (cents / 100).toFixed(2) + ' PC';
+    }
+
     function formatDate(isoStr) {
-      if (!isoStr) return 'Never';
+      if (!isoStr) return '-';
       var d = new Date(isoStr);
       return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     }
 
     function renderDashboard() {
-      // Load all users from Firestore
       db.collection('users').get().then(function(snapshot) {
         var totalUsers = 0;
         var totalAnimals = 0;
         var totalBalance = 0;
+        var totalPC = 0;
         var userRows = [];
 
         snapshot.forEach(function(doc) {
@@ -190,66 +249,135 @@
           totalUsers++;
 
           var balance = state.wallet ? state.wallet.balance : 0;
+          var pc = state.piggyCoins || 0;
           var aliveAnimals = state.animals ? state.animals.filter(function(a) { return a.alive; }).length : 0;
+          var currency = state.localCurrency || 'CAD';
           totalBalance += balance;
           totalAnimals += aliveAnimals;
+          totalPC += pc;
 
           userRows.push({
+            uid: doc.id,
             name: state.playerName || (data.profile && data.profile.name) || 'Player',
+            email: (data.profile && data.profile.email) || '',
             balance: balance,
+            pc: pc,
+            currency: currency,
             animals: aliveAnimals,
             days: state.stats ? state.stats.daysPlayed : 0,
-            logins: 0,
-            activeDays: 0,
             lastLogin: data.updatedAt ? data.updatedAt.toDate().toISOString() : null
           });
         });
 
-        // Summary cards
+        // Summary
         document.getElementById('summary-cards').innerHTML =
-          '<div class="summary-card"><div class="card-value">' + totalUsers + '</div><div class="card-label">Total Users</div></div>' +
-          '<div class="summary-card"><div class="card-value">' + totalAnimals + '</div><div class="card-label">Total Animals</div></div>' +
-          '<div class="summary-card"><div class="card-value">' + formatMoney(totalBalance) + '</div><div class="card-label">Total Balance</div></div>';
+          '<div class="summary-card"><div class="card-value">' + totalUsers + '</div><div class="card-label">Users</div></div>' +
+          '<div class="summary-card"><div class="card-value">' + totalAnimals + '</div><div class="card-label">Animals</div></div>' +
+          '<div class="summary-card"><div class="card-value">' + formatMoney(totalBalance) + '</div><div class="card-label">Total Cash</div></div>' +
+          '<div class="summary-card"><div class="card-value">' + formatPC(totalPC) + '</div><div class="card-label">Total PC</div></div>';
 
         // User table
         var tbody = document.getElementById('user-table-body');
         tbody.innerHTML = userRows.map(function(r) {
           return '<tr>' +
             '<td>' + r.name + '</td>' +
+            '<td>' + (r.email || '<span style="color:#999">-</span>') + '</td>' +
             '<td>' + formatMoney(r.balance) + '</td>' +
+            '<td>' + formatPC(r.pc) + '</td>' +
+            '<td>' + r.currency + '</td>' +
             '<td>' + r.animals + '</td>' +
             '<td>' + r.days + '</td>' +
-            '<td>-</td>' +
-            '<td>-</td>' +
             '<td>' + formatDate(r.lastLogin) + '</td>' +
+            '<td><div class="action-btns">' +
+              (r.email ? '<button class="btn-reset-pw" data-email="' + r.email + '">Reset PW</button>' : '') +
+              '<button class="btn-delete-user" data-uid="' + r.uid + '" data-name="' + r.name + '">Delete</button>' +
+            '</div></td>' +
           '</tr>';
         }).join('');
 
-        // Recent logins placeholder
-        var recentDiv = document.getElementById('recent-logins');
-        recentDiv.innerHTML = '<p class="empty-msg">Login tracking available via local admin.</p>';
+        if (userRows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;">No users found.</td></tr>';
+        }
+
+        // Bind action buttons
+        tbody.querySelectorAll('.btn-reset-pw').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var email = btn.dataset.email;
+            if (!confirm('Send password reset email to ' + email + '?')) return;
+            authInstance.sendPasswordResetEmail(email).then(function() {
+              showToast('Password reset email sent to ' + email);
+            }).catch(function(err) {
+              showToast('Error: ' + err.message);
+            });
+          });
+        });
+
+        tbody.querySelectorAll('.btn-delete-user').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var uid = btn.dataset.uid;
+            var name = btn.dataset.name;
+            if (!confirm('Delete ALL data for "' + name + '"? This cannot be undone!')) return;
+            if (!confirm('Are you really sure? This will permanently delete "' + name + '"\'s game data.')) return;
+            db.collection('users').doc(uid).delete().then(function() {
+              showToast('Deleted data for ' + name);
+              renderDashboard();
+            }).catch(function(err) {
+              showToast('Error: ' + err.message);
+            });
+          });
+        });
+
       }).catch(function(err) {
         console.error('Failed to load users:', err);
         document.getElementById('summary-cards').innerHTML =
-          '<p class="empty-msg">Failed to load data. Check Firestore rules.</p>';
+          '<p class="empty-msg">Failed to load data: ' + err.message + '</p>';
       });
     }
 
-    // Login handler
+    // Login handler — Firebase auth + master PIN
     document.getElementById('btn-admin-login').addEventListener('click', function() {
+      var email = document.getElementById('admin-email').value.trim();
+      var password = document.getElementById('admin-password').value;
       var pin = document.getElementById('admin-pin').value;
-      var MASTER_PASSWORD = 'chris';
-      if (pin === MASTER_PASSWORD) {
-        document.getElementById('admin-login').style.display = 'none';
-        document.getElementById('admin-dashboard').style.display = '';
-        renderDashboard();
-      } else {
-        document.getElementById('admin-pin-error').style.display = '';
+      var errEl = document.getElementById('admin-pin-error');
+      errEl.style.display = 'none';
+
+      if (!email || !password) {
+        errEl.textContent = 'Enter email and password.';
+        errEl.style.display = '';
+        return;
       }
+      if (pin !== MASTER_PIN) {
+        errEl.textContent = 'Wrong admin PIN.';
+        errEl.style.display = '';
+        return;
+      }
+
+      authInstance.signInWithEmailAndPassword(email, password)
+        .then(function() {
+          document.getElementById('admin-login').style.display = 'none';
+          document.getElementById('admin-dashboard').style.display = '';
+          renderDashboard();
+        })
+        .catch(function(err) {
+          errEl.textContent = err.message;
+          errEl.style.display = '';
+        });
     });
 
-    document.getElementById('admin-pin').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') document.getElementById('btn-admin-login').click();
+    // Enter key support
+    ['admin-email', 'admin-password', 'admin-pin'].forEach(function(id) {
+      document.getElementById(id).addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') document.getElementById('btn-admin-login').click();
+      });
+    });
+
+    // Refresh button
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.id === 'btn-admin-refresh') {
+        renderDashboard();
+        showToast('Refreshed!');
+      }
     });
   </script>
 </body>

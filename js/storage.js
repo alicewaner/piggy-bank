@@ -25,8 +25,11 @@ var CloudSync = {
         gameState: state,
         profile: {
           name: state.playerName || '',
+          email: user.email || '',
           balance: state.wallet ? state.wallet.balance : 0,
-          animalCount: state.animals ? state.animals.filter(function(a) { return a.alive; }).length : 0
+          piggyCoins: state.piggyCoins || 0,
+          animalCount: state.animals ? state.animals.filter(function(a) { return a.alive; }).length : 0,
+          currency: state.localCurrency || 'CAD'
         },
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true }).catch(function(e) {
