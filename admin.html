@@ -152,15 +152,15 @@
     </div>
 
     <div id="admin-login" class="admin-login">
-      <p style="color:var(--stone-light);font-size:0.75rem;margin-bottom:12px;">Sign in with your account to access admin</p>
-      <label>Email</label>
-      <input type="email" id="admin-email" class="pin-input" placeholder="Email">
-      <label>Password</label>
-      <input type="password" id="admin-password" class="pin-input" placeholder="Password">
-      <label>Admin PIN</label>
-      <input type="password" id="admin-pin" class="pin-input" placeholder="Admin PIN" maxlength="20">
+      <p style="color:var(--stone-light);font-size:0.75rem;margin-bottom:12px;">Sign in with Google, then enter Admin PIN</p>
+      <button id="btn-google-login" class="btn btn-primary btn-large" style="max-width:260px;margin:8px auto;">Sign in with Google</button>
+      <div id="pin-step" style="display:none;margin-top:16px;">
+        <p id="admin-user-info" style="color:var(--stone-light);font-size:0.7rem;margin-bottom:8px;"></p>
+        <label>Admin PIN</label>
+        <input type="password" id="admin-pin" class="pin-input" placeholder="Admin PIN" maxlength="20" style="display:block;margin:0 auto 10px;max-width:260px;width:100%;">
+        <button id="btn-pin-submit" class="btn btn-accent btn-large" style="max-width:260px;margin:8px auto;">Enter</button>
+      </div>
       <p id="admin-pin-error" class="error-text" style="display:none"></p>
-      <button id="btn-admin-login" class="btn btn-primary btn-large" style="max-width:260px;margin:8px auto;">Sign In</button>
     </div>
 
     <div id="admin-dashboard" style="display:none">
@@ -334,30 +334,20 @@
       });
     }
 
-    // Login handler — Firebase auth + master PIN
-    document.getElementById('btn-admin-login').addEventListener('click', function() {
-      var email = document.getElementById('admin-email').value.trim();
-      var password = document.getElementById('admin-password').value;
-      var pin = document.getElementById('admin-pin').value;
+    // Step 1: Google Sign-In
+    var googleProvider = new firebase.auth.GoogleAuthProvider();
+
+    document.getElementById('btn-google-login').addEventListener('click', function() {
       var errEl = document.getElementById('admin-pin-error');
       errEl.style.display = 'none';
 
-      if (!email || !password) {
-        errEl.textContent = 'Enter email and password.';
-        errEl.style.display = '';
-        return;
-      }
-      if (pin !== MASTER_PIN) {
-        errEl.textContent = 'Wrong admin PIN.';
-        errEl.style.display = '';
-        return;
-      }
-
-      authInstance.signInWithEmailAndPassword(email, password)
-        .then(function() {
-          document.getElementById('admin-login').style.display = 'none';
-          document.getElementById('admin-dashboard').style.display = '';
-          renderDashboard();
+      authInstance.signInWithPopup(googleProvider)
+        .then(function(result) {
+          // Show PIN step
+          document.getElementById('btn-google-login').style.display = 'none';
+          document.getElementById('pin-step').style.display = '';
+          document.getElementById('admin-user-info').textContent = 'Signed in as: ' + (result.user.email || result.user.displayName);
+          document.getElementById('admin-pin').focus();
         })
         .catch(function(err) {
           errEl.textContent = err.message;
@@ -365,11 +355,34 @@
         });
     });
 
-    // Enter key support
-    ['admin-email', 'admin-password', 'admin-pin'].forEach(function(id) {
-      document.getElementById(id).addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') document.getElementById('btn-admin-login').click();
-      });
+    // Step 2: Admin PIN check
+    document.getElementById('btn-pin-submit').addEventListener('click', function() {
+      var pin = document.getElementById('admin-pin').value;
+      var errEl = document.getElementById('admin-pin-error');
+      errEl.style.display = 'none';
+
+      if (pin !== MASTER_PIN) {
+        errEl.textContent = 'Wrong admin PIN.';
+        errEl.style.display = '';
+        return;
+      }
+
+      document.getElementById('admin-login').style.display = 'none';
+      document.getElementById('admin-dashboard').style.display = '';
+      renderDashboard();
+    });
+
+    document.getElementById('admin-pin').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') document.getElementById('btn-pin-submit').click();
+    });
+
+    // Auto-detect if already signed in
+    authInstance.onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('btn-google-login').style.display = 'none';
+        document.getElementById('pin-step').style.display = '';
+        document.getElementById('admin-user-info').textContent = 'Signed in as: ' + (user.email || user.displayName);
+      }
     });
 
     // Refresh button
