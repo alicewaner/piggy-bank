@@ -202,8 +202,39 @@ var Storage = {
 
     if (!state.localCurrency) state.localCurrency = 'CAD';
 
-    // Piggy Coins migration
-    if (state.piggyCoins === undefined) state.piggyCoins = 0;
+    // Piggy Coins migration — move welcome bonus + animal buy/sell from cash to PC
+    if (state.piggyCoins === undefined) {
+      var pcBalance = 0;
+      var pcSpent = 0;
+      var pcEarned = 0;
+      var keepTx = [];
+      if (state.wallet && state.wallet.transactions) {
+        state.wallet.transactions.forEach(function(t) {
+          var cat = t.category || '';
+          var desc = (t.desc || '').toLowerCase();
+          if (cat === 'Gift' || desc.indexOf('welcome bonus') !== -1) {
+            // Welcome bonus: reverse from cash, give as PC
+            state.wallet.balance -= t.amount;
+            pcBalance += t.amount;
+          } else if (cat === 'Buy Animal' || desc.indexOf('bought baby') !== -1) {
+            // Animal purchase: was withdrawn from cash, reverse it
+            state.wallet.balance += t.amount;
+            pcSpent += t.amount;
+          } else if (cat === 'Sell Animal' || desc.indexOf('sold ') === 0) {
+            // Animal sale: was deposited to cash, reverse it
+            state.wallet.balance -= t.amount;
+            pcEarned += t.amount;
+          } else {
+            keepTx.push(t);
+          }
+        });
+        state.wallet.transactions = keepTx;
+      }
+      state.piggyCoins = pcBalance - pcSpent + pcEarned;
+      if (state.piggyCoins < 0) state.piggyCoins = 0;
+      state.stats.totalPCSpentOnAnimals = pcSpent;
+      state.stats.totalPCEarnedFromAnimals = pcEarned;
+    }
     if (state.stats.totalPCSpentOnAnimals === undefined) state.stats.totalPCSpentOnAnimals = 0;
     if (state.stats.totalPCEarnedFromAnimals === undefined) state.stats.totalPCEarnedFromAnimals = 0;
 
