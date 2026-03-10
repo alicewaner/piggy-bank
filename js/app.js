@@ -482,8 +482,15 @@ const App = (() => {
     var st = Storage.load();
     var cur = st.localCurrency || 'CAD';
     currentCurrencySymbol = FX_RATES[cur] ? FX_RATES[cur].symbol : 'CA$';
-    // Force cloud sync to ensure profile.email is up to date
-    CloudSync.saveToCloud(st);
+    // Directly write profile.email to Firestore (bypass debounce)
+    var user = auth.currentUser;
+    if (user) {
+      db.collection('users').doc(user.uid).set({
+        profile: { email: user.email || '' }
+      }, { merge: true }).catch(function(e) {
+        console.error('Email sync error:', e);
+      });
+    }
     promptBirthdayIfMissing();
     trackLogin();
     Wallet.processInterest();
