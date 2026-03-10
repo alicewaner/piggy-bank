@@ -262,7 +262,7 @@
           userRows.push({
             uid: doc.id,
             name: state.playerName || (data.profile && data.profile.name) || 'Player',
-            email: (data.profile && data.profile.email) || '',
+            email: (data.profile && data.profile.email) || state.email || '',
             balance: balance,
             pc: pc,
             currency: currency,

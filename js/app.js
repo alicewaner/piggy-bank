@@ -482,14 +482,11 @@ const App = (() => {
     var st = Storage.load();
     var cur = st.localCurrency || 'CAD';
     currentCurrencySymbol = FX_RATES[cur] ? FX_RATES[cur].symbol : 'CA$';
-    // Directly write profile.email to Firestore (bypass debounce)
+    // Save email into gameState so admin can always find it
     var user = auth.currentUser;
-    if (user) {
-      db.collection('users').doc(user.uid).set({
-        profile: { email: user.email || '' }
-      }, { merge: true }).catch(function(e) {
-        console.error('Email sync error:', e);
-      });
+    if (user && user.email && st.email !== user.email) {
+      st.email = user.email;
+      Storage.save(st);
     }
     promptBirthdayIfMissing();
     trackLogin();
