@@ -81,7 +81,7 @@ const Friends = (() => {
 
   function loadAllUsersForAdd(me) {
     return CloudSync.loadAllUsers().then(function(users) {
-      return users.filter(function(u) { return u.uid !== me.uid; });
+      return users.filter(function(u) { return u.uid !== me.uid && ADMIN_UIDS.indexOf(u.uid) === -1; });
     });
   }
 
