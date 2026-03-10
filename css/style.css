@@ -1549,10 +1549,34 @@ body {
   font-weight: 700;
   text-decoration: underline;
 }
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-box {
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  padding: 16px;
+  width: 92%;
+  max-width: 420px;
+  text-align: center;
+  position: relative;
+  max-height: 85vh;
+  overflow-y: auto;
+}
 .pc-modal-box {
   max-width: 340px;
   width: 90%;
   padding: 20px;
+}
+.pc-transfer-reverse {
+  background: #FFF7ED;
 }
 .pc-balance-big {
   font-size: 1.6rem;
