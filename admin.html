@@ -152,14 +152,8 @@
     </div>
 
     <div id="admin-login" class="admin-login">
-      <p style="color:var(--stone-light);font-size:0.75rem;margin-bottom:12px;">Sign in with Google, then enter Admin PIN</p>
+      <p style="color:var(--stone-light);font-size:0.75rem;margin-bottom:12px;">Sign in with your authorized Google account</p>
       <button id="btn-google-login" class="btn btn-primary btn-large" style="max-width:260px;margin:8px auto;">Sign in with Google</button>
-      <div id="pin-step" style="display:none;margin-top:16px;">
-        <p id="admin-user-info" style="color:var(--stone-light);font-size:0.7rem;margin-bottom:8px;"></p>
-        <label>Admin PIN</label>
-        <input type="password" id="admin-pin" class="pin-input" placeholder="Admin PIN" maxlength="20" style="display:block;margin:0 auto 10px;max-width:260px;width:100%;">
-        <button id="btn-pin-submit" class="btn btn-accent btn-large" style="max-width:260px;margin:8px auto;">Enter</button>
-      </div>
       <p id="admin-pin-error" class="error-text" style="display:none"></p>
     </div>
 
@@ -219,7 +213,7 @@
     });
     var db = firebase.firestore();
     var authInstance = firebase.auth();
-    var MASTER_PIN = 'chris';
+    var ADMIN_UIDS = ['yTVdAZRdzrYyaXqVdxpyUO33kQh1'];
 
     function showToast(msg) {
       var t = document.getElementById('admin-toast');
@@ -342,8 +336,20 @@
       });
     }
 
-    // Step 1: Google Sign-In
     var googleProvider = new firebase.auth.GoogleAuthProvider();
+
+    function tryAdminAccess(user) {
+      var errEl = document.getElementById('admin-pin-error');
+      if (ADMIN_UIDS.indexOf(user.uid) === -1) {
+        errEl.textContent = 'Access denied. This account is not authorized.';
+        errEl.style.display = '';
+        authInstance.signOut();
+        return;
+      }
+      document.getElementById('admin-login').style.display = 'none';
+      document.getElementById('admin-dashboard').style.display = '';
+      renderDashboard();
+    }
 
     document.getElementById('btn-google-login').addEventListener('click', function() {
       var errEl = document.getElementById('admin-pin-error');
@@ -351,11 +357,7 @@
 
       authInstance.signInWithPopup(googleProvider)
         .then(function(result) {
-          // Show PIN step
-          document.getElementById('btn-google-login').style.display = 'none';
-          document.getElementById('pin-step').style.display = '';
-          document.getElementById('admin-user-info').textContent = 'Signed in as: ' + (result.user.email || result.user.displayName);
-          document.getElementById('admin-pin').focus();
+          tryAdminAccess(result.user);
         })
         .catch(function(err) {
           errEl.textContent = err.message;
@@ -363,33 +365,10 @@
         });
     });
 
-    // Step 2: Admin PIN check
-    document.getElementById('btn-pin-submit').addEventListener('click', function() {
-      var pin = document.getElementById('admin-pin').value;
-      var errEl = document.getElementById('admin-pin-error');
-      errEl.style.display = 'none';
-
-      if (pin !== MASTER_PIN) {
-        errEl.textContent = 'Wrong admin PIN.';
-        errEl.style.display = '';
-        return;
-      }
-
-      document.getElementById('admin-login').style.display = 'none';
-      document.getElementById('admin-dashboard').style.display = '';
-      renderDashboard();
-    });
-
-    document.getElementById('admin-pin').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') document.getElementById('btn-pin-submit').click();
-    });
-
     // Auto-detect if already signed in
     authInstance.onAuthStateChanged(function(user) {
       if (user) {
-        document.getElementById('btn-google-login').style.display = 'none';
-        document.getElementById('pin-step').style.display = '';
-        document.getElementById('admin-user-info').textContent = 'Signed in as: ' + (user.email || user.displayName);
+        tryAdminAccess(user);
       }
     });
 
