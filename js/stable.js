@@ -35,6 +35,12 @@ var Stable = (function() {
     document.getElementById('food-count').textContent = 'Food: ' + state.inventory.food;
     document.getElementById('water-count').textContent = 'Water: ' + state.inventory.water;
 
+    var pcEl = document.getElementById('pc-balance');
+    if (pcEl) {
+      pcEl.textContent = formatPC(state.piggyCoins);
+      pcEl.onclick = function() { Sound.click(); openPCModal(); };
+    }
+
     if (alive.length === 0) {
       grid.innerHTML = '<div class="empty-stable">' +
         '<p>No animals yet!</p><p>Visit the Market to buy your first baby animal.</p></div>';
@@ -154,13 +160,16 @@ var Stable = (function() {
     btnFeedFood.disabled = !canFood;
     btnFeedFood.textContent = animal.fedToday ? 'Fed' : 'Feed Food';
 
-    // Status warnings
+    // Status warnings — runaway risk
     var status = '';
     if (animal.daysWithoutFood > 0) {
       status += '<p class="warning">Hungry! ' + animal.daysWithoutFood + ' day(s) without food!</p>';
     }
     if (animal.daysWithoutWater > 0) {
       status += '<p class="warning">Thirsty! ' + animal.daysWithoutWater + ' day(s) without water!</p>';
+    }
+    if (animal.daysWithoutFood >= 1 && animal.daysWithoutWater >= 1) {
+      status += '<p class="warning" style="color:#DC2626;font-weight:700;">Might run away tomorrow if not fed!</p>';
     }
     document.getElementById('modal-status').innerHTML = status;
 
@@ -264,5 +273,344 @@ var Stable = (function() {
     render();
   }
 
-  return { render: render, openAnimalModal: openAnimalModal, removeHappyHeart: removeHappyHeart, giveHeart: giveHeart };
+  // ---- Piggy Coin Modal ----
+
+  function openPCModal() {
+    var state = Storage.load();
+    var rate = state.settings.exchangeRate || 1;
+
+    // Create or reuse modal
+    var modal = document.getElementById('pc-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'pc-modal';
+      modal.className = 'modal-overlay';
+      document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = '<div class="modal-box pc-modal-box">' +
+      '<h3>Piggy Coin Wallet</h3>' +
+      '<div class="pc-balance-big">' + formatPC(state.piggyCoins) + '</div>' +
+      '<div class="pc-stats">' +
+        '<div class="pc-stat-row"><span>Total spent buying animals</span><span>' + formatPC(state.stats.totalPCSpentOnAnimals) + '</span></div>' +
+        '<div class="pc-stat-row"><span>Total earned selling animals</span><span>' + formatPC(state.stats.totalPCEarnedFromAnimals) + '</span></div>' +
+        '<div class="pc-stat-row pc-rate-row"><span>Exchange rate</span><span>' + rate + ' PC = $1.00</span></div>' +
+      '</div>' +
+      '<div class="pc-transfer">' +
+        '<h4>PC → Bank</h4>' +
+        '<div class="pc-transfer-row">' +
+          '<input type="number" id="pc-transfer-amount" class="amount-input" placeholder="PC amount" min="0.01" step="0.01">' +
+          '<button class="btn btn-primary btn-small" id="btn-pc-transfer">Transfer</button>' +
+        '</div>' +
+        '<p class="pc-transfer-hint">You will receive <span id="pc-transfer-preview">$0.00</span> in your bank.</p>' +
+      '</div>' +
+      '<div class="pc-transfer pc-transfer-reverse">' +
+        '<h4>Bank → PC</h4>' +
+        '<div class="pc-transfer-row">' +
+          '<input type="number" id="pc-buy-amount" class="amount-input" placeholder="$ amount" min="0.01" step="0.01">' +
+          '<button class="btn btn-accent btn-small" id="btn-pc-buy">Buy PC</button>' +
+        '</div>' +
+        '<p class="pc-transfer-hint">You will get <span id="pc-buy-preview">0.00 PC</span>. Bank: ' + formatMoney(state.wallet.balance) + '</p>' +
+      '</div>' +
+      '<button class="btn btn-secondary" id="btn-pc-close">Close</button>' +
+    '</div>';
+
+    modal.style.display = 'flex';
+
+    // Preview calculation
+    var input = document.getElementById('pc-transfer-amount');
+    var preview = document.getElementById('pc-transfer-preview');
+    input.addEventListener('input', function() {
+      var pcAmount = Math.round(parseFloat(input.value) * 100) || 0;
+      var cashAmount = Math.round(pcAmount / rate);
+      preview.textContent = formatMoney(cashAmount);
+    });
+
+    // Transfer button
+    document.getElementById('btn-pc-transfer').onclick = function() {
+      var pcDollars = parseFloat(input.value);
+      if (!pcDollars || pcDollars <= 0) {
+        App.showToast('Enter a valid amount!');
+        return;
+      }
+      var pcCents = Math.round(pcDollars * 100);
+      var s = Storage.load();
+      if (pcCents > s.piggyCoins) {
+        App.showToast('Not enough Piggy Coins!');
+        return;
+      }
+      var cashCents = Math.round(pcCents / (s.settings.exchangeRate || 1));
+      s.piggyCoins -= pcCents;
+      Storage.save(s);
+      Wallet.addTransaction('deposit', cashCents, 'Transfer ' + formatPC(pcCents) + ' to cash', 'Transfer from Piggy Coin');
+      Sound.coin();
+      App.showToast('Transferred ' + formatPC(pcCents) + ' → ' + formatMoney(cashCents) + ' to bank!');
+      modal.style.display = 'none';
+      render();
+    };
+
+    // Buy PC with cash
+    var buyInput = document.getElementById('pc-buy-amount');
+    var buyPreview = document.getElementById('pc-buy-preview');
+    buyInput.addEventListener('input', function() {
+      var cashAmount = Math.round(parseFloat(buyInput.value) * 100) || 0;
+      var pcAmount = Math.round(cashAmount * rate);
+      buyPreview.textContent = formatPC(pcAmount);
+    });
+
+    document.getElementById('btn-pc-buy').onclick = function() {
+      var cashDollars = parseFloat(buyInput.value);
+      if (!cashDollars || cashDollars <= 0) {
+        App.showToast('Enter a valid amount!');
+        return;
+      }
+      var cashCents = Math.round(cashDollars * 100);
+      var s = Storage.load();
+      if (cashCents > s.wallet.balance) {
+        App.showToast('Not enough cash in bank!');
+        return;
+      }
+      var pcCents = Math.round(cashCents * (s.settings.exchangeRate || 1));
+      s.piggyCoins += pcCents;
+      Storage.save(s);
+      Wallet.addTransaction('withdraw', cashCents, 'Buy ' + formatPC(pcCents), 'Transfer to Piggy Coin');
+      Sound.coin();
+      App.showToast('Bought ' + formatPC(pcCents) + ' for ' + formatMoney(cashCents) + '!');
+      modal.style.display = 'none';
+      render();
+    };
+
+    // Close
+    document.getElementById('btn-pc-close').onclick = function() {
+      modal.style.display = 'none';
+    };
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+  }
+
+  // ---- Stray / Runaway System ----
+
+  function sendAnimalAway(animal, state) {
+    var me = Friends.getCurrentUser();
+    if (!me) return;
+
+    // Pick recipient: prefer friends, then random user
+    Friends.loadAccepted(me).then(function(friends) {
+      var candidates = [];
+      friends.forEach(function(fr) {
+        var d = fr.data;
+        var friendUid = d.fromUid === me.uid ? d.toUid : d.fromUid;
+        var friendName = d.fromUid === me.uid ? d.toName : d.fromName;
+        candidates.push({ uid: friendUid, name: friendName });
+      });
+
+      if (candidates.length > 0) {
+        // Pick random friend
+        var pick = candidates[Math.floor(Math.random() * candidates.length)];
+        createStrayDoc(animal, me, pick);
+        return;
+      }
+
+      // No friends — try random user
+      CloudSync.loadAllUsers().then(function(users) {
+        var others = users.filter(function(u) { return u.uid !== me.uid; });
+        if (others.length === 0) return; // No one to send to
+        var pick = others[Math.floor(Math.random() * others.length)];
+        createStrayDoc(animal, me, { uid: pick.uid, name: pick.state.playerName || pick.profile.name || 'Player' });
+      });
+    });
+  }
+
+  function createStrayDoc(animal, owner, target) {
+    // Clean copy of animal for stray doc
+    var animalCopy = JSON.parse(JSON.stringify(animal));
+    animalCopy.alive = true;
+    animalCopy.ranAway = false;
+    animalCopy.daysWithoutWater = 0;
+    animalCopy.daysWithoutFood = 0;
+    animalCopy.fedToday = false;
+    animalCopy.wateredToday = false;
+    animalCopy.heartsToday = 0;
+    animalCopy.happyHeartToday = false;
+    animalCopy.happyHeartRemoved = false;
+
+    db.collection('strayAnimals').add({
+      animal: animalCopy,
+      ownerUid: owner.uid,
+      ownerName: owner.name,
+      targetUid: target.uid,
+      targetName: target.name,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function(err) {
+      console.error('Failed to create stray doc:', err);
+    });
+  }
+
+  function loadStrays(callback) {
+    var user = auth.currentUser;
+    if (!user) { callback([]); return; }
+
+    db.collection('strayAnimals')
+      .where('targetUid', '==', user.uid)
+      .get()
+      .then(function(snap) {
+        var strays = [];
+        snap.forEach(function(doc) {
+          strays.push({ id: doc.id, data: doc.data() });
+        });
+        callback(strays);
+      })
+      .catch(function(err) {
+        console.error('Load strays error:', err);
+        callback([]);
+      });
+  }
+
+  function renderStrays(container, strays) {
+    if (strays.length === 0) return;
+
+    var html = '<div class="stray-section">' +
+      '<h3 class="stray-section-title">Stray Animals</h3>' +
+      '<p class="stray-section-desc">These animals ran away from their owners and found your barn!</p>';
+
+    html += strays.map(function(stray) {
+      var animal = stray.data.animal;
+      var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
+      var cssClass = animal.type + '-' + animal.stage;
+      var ownerName = stray.data.ownerName || 'Someone';
+
+      return '<div class="stray-card" data-stray-id="' + stray.id + '">' +
+        '<div class="sprite-wrap"><div class="pixel-art ' + cssClass + ' idle-bounce"></div></div>' +
+        '<div class="animal-info">' +
+        '<div class="animal-name">' + aName + '</div>' +
+        '<div class="stray-badge">From ' + ownerName + '</div>' +
+        maturityHTML(animal) +
+        '<div class="stray-actions">' +
+        '<button class="btn btn-accent btn-small btn-adopt-stray" data-stray-id="' + stray.id + '">Adopt</button>' +
+        '<button class="btn btn-secondary btn-small btn-send-home" data-stray-id="' + stray.id + '">Send Home</button>' +
+        '</div></div></div>';
+    }).join('');
+
+    html += '</div>';
+    container.insertAdjacentHTML('beforeend', html);
+
+    // Bind buttons
+    container.querySelectorAll('.btn-adopt-stray').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        Sound.click();
+        adoptStray(btn.dataset.strayId);
+      });
+    });
+    container.querySelectorAll('.btn-send-home').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        Sound.click();
+        sendStrayHome(btn.dataset.strayId);
+      });
+    });
+  }
+
+  function adoptStray(strayDocId) {
+    var state = Storage.load();
+    var needed = state.settings.tasksPerReward;
+    if (state.dailyState.totalTaskCredits < needed) {
+      App.showToast('You need ' + needed + ' task credits to adopt a stray! (Have: ' + state.dailyState.totalTaskCredits + ')');
+      return;
+    }
+
+    db.collection('strayAnimals').doc(strayDocId).get().then(function(doc) {
+      if (!doc.exists) {
+        App.showToast('Stray not found.');
+        return;
+      }
+      var strayData = doc.data();
+      var animal = strayData.animal;
+
+      // Deduct task credits
+      var s = Storage.load();
+      s.dailyState.totalTaskCredits -= needed;
+
+      // Add animal to my barn
+      animal.id = s.nextAnimalId++;
+      animal.isAdopted = true;
+      animal.originalOwner = strayData.ownerUid;
+      animal.alive = true;
+      animal.ranAway = false;
+      s.animals.push(animal);
+      Storage.save(s);
+
+      // Delete stray doc
+      return db.collection('strayAnimals').doc(strayDocId).delete().then(function() {
+        Sound.heart();
+        var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
+        App.showToast('You adopted ' + aName + '!');
+        render();
+      });
+    }).catch(function(err) {
+      console.error('Adopt stray error:', err);
+      App.showToast('Could not adopt stray.');
+    });
+  }
+
+  function sendStrayHome(strayDocId) {
+    db.collection('strayAnimals').doc(strayDocId).get().then(function(doc) {
+      if (!doc.exists) {
+        App.showToast('Stray not found.');
+        return;
+      }
+      var strayData = doc.data();
+      var animal = strayData.animal;
+      var ownerUid = strayData.ownerUid;
+
+      // Load owner's state from Firestore
+      return db.collection('users').doc(ownerUid).get().then(function(userDoc) {
+        if (!userDoc.exists || !userDoc.data().gameState) {
+          App.showToast('Owner not found. Releasing animal.');
+          return db.collection('strayAnimals').doc(strayDocId).delete();
+        }
+
+        var ownerState = userDoc.data().gameState;
+
+        // Heart penalty
+        animal.hearts = Math.max(0, animal.hearts - RUNAWAY.heartPenalty);
+        if (animal.hearts < HEARTS.adultThreshold) {
+          animal.stage = 'baby';
+        }
+        animal.daysWithoutWater = 0;
+        animal.daysWithoutFood = 0;
+        animal.ranAway = false;
+        animal.alive = true;
+
+        // Re-add to owner's animals
+        ownerState.animals.push(animal);
+
+        // Write owner state back
+        return db.collection('users').doc(ownerUid).update({
+          'gameState': ownerState
+        }).then(function() {
+          return db.collection('strayAnimals').doc(strayDocId).delete();
+        }).then(function() {
+          Sound.click();
+          var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
+          App.showToast(aName + ' was sent home! (Lost ' + RUNAWAY.heartPenalty + ' hearts)');
+          render();
+        });
+      });
+    }).catch(function(err) {
+      console.error('Send home error:', err);
+      App.showToast('Could not send animal home.');
+    });
+  }
+
+  // Updated render to include strays
+  var originalRender = render;
+  render = function() {
+    originalRender();
+    var grid = document.getElementById('stable-grid');
+    loadStrays(function(strays) {
+      renderStrays(grid, strays);
+    });
+  };
+
+  return { render: render, openAnimalModal: openAnimalModal, removeHappyHeart: removeHappyHeart, giveHeart: giveHeart, sendAnimalAway: sendAnimalAway };
 })();

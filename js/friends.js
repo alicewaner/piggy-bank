@@ -592,6 +592,8 @@ const Friends = (() => {
     render: render,
     initListeners: initListeners,
     cleanup: cleanup,
-    sendRequest: sendRequest
+    sendRequest: sendRequest,
+    loadAccepted: loadAccepted,
+    getCurrentUser: getCurrentUser
   };
 })();

@@ -108,6 +108,10 @@ var Parent = (function() {
     document.getElementById('setting-tasks-per-reward').value = s.tasksPerReward;
     document.getElementById('setting-chat-time-limit').value = Math.round((s.chatTimeLimitSeconds || 120) / 60);
     document.getElementById('setting-questions-per-quiz').value = s.questionsPerQuiz || 5;
+    document.getElementById('setting-exchange-rate').value = s.exchangeRate || 1;
+
+    var currSel = document.getElementById('setting-currency');
+    if (currSel) currSel.value = state.localCurrency || 'CAD';
 
     document.getElementById('btn-save-settings').onclick = function() {
       var st = Storage.load();
@@ -117,6 +121,12 @@ var Parent = (function() {
       st.settings.tasksPerReward = parseInt(document.getElementById('setting-tasks-per-reward').value) || 3;
       st.settings.chatTimeLimitSeconds = (parseInt(document.getElementById('setting-chat-time-limit').value) || 2) * 60;
       st.settings.questionsPerQuiz = parseInt(document.getElementById('setting-questions-per-quiz').value) || 5;
+      st.settings.exchangeRate = parseFloat(document.getElementById('setting-exchange-rate').value) || 1;
+      var newCurrency = document.getElementById('setting-currency').value;
+      if (newCurrency && FX_RATES[newCurrency]) {
+        st.localCurrency = newCurrency;
+        currentCurrencySymbol = FX_RATES[newCurrency].symbol;
+      }
       Storage.save(st);
       Sound.click();
       App.showToast('Settings saved!');
@@ -233,7 +243,8 @@ var Parent = (function() {
       '<div class="progress-stat"><div class="stat-value">' + state.stats.daysPlayed + '</div><div class="stat-label">Days Played</div></div>' +
       '<div class="progress-stat"><div class="stat-value">' + alive.length + '</div><div class="stat-label">Animals</div></div>' +
       '<div class="progress-stat"><div class="stat-value">' + adults.length + '</div><div class="stat-label">Adults</div></div>' +
-      '<div class="progress-stat"><div class="stat-value">' + formatMoney(state.wallet.balance) + '</div><div class="stat-label">Balance</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">' + formatPC(state.piggyCoins) + '</div><div class="stat-label">Piggy Coins</div></div>' +
+      '<div class="progress-stat"><div class="stat-value">' + formatMoney(state.wallet.balance) + '</div><div class="stat-label">Cash</div></div>' +
       '<div class="progress-stat"><div class="stat-value">' + state.stats.totalAnimalsRaised + '</div><div class="stat-label">Raised</div></div>' +
       '<div class="progress-stat"><div class="stat-value">' + state.stats.totalQuizzesTaken + '</div><div class="stat-label">Quizzes</div></div>' +
       '<div class="progress-stat"><div class="stat-value">' + choresDone + '/' + state.tasks.chores.length + '</div><div class="stat-label">Chores Today</div></div>' +

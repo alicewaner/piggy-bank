@@ -1542,6 +1542,101 @@ body {
   margin-bottom: 0;
 }
 
+/* ---- Piggy Coin ---- */
+.pc-balance {
+  cursor: pointer;
+  color: #D97706;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.pc-modal-box {
+  max-width: 340px;
+  width: 90%;
+  padding: 20px;
+}
+.pc-balance-big {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #D97706;
+  text-align: center;
+  margin: 8px 0 16px;
+}
+.pc-stats {
+  margin-bottom: 16px;
+}
+.pc-stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #E2E8F0;
+  font-size: 0.9rem;
+}
+.pc-rate-row {
+  font-weight: 600;
+  color: #6366F1;
+}
+.pc-transfer {
+  background: #F0FDF4;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.pc-transfer h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+.pc-transfer-row {
+  display: flex;
+  gap: 8px;
+}
+.pc-transfer-row .amount-input {
+  flex: 1;
+}
+.pc-transfer-hint {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 6px 0 0;
+}
+
+/* ---- Stray Animals ---- */
+.stray-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px dashed var(--stone);
+}
+.stray-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--stone-dark);
+  margin: 0 0 4px;
+}
+.stray-section-desc {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 12px;
+}
+.stray-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 2px dashed #F59E0B;
+  border-radius: 12px;
+  background: #FFFBEB;
+}
+.stray-badge {
+  font-size: 0.75rem;
+  color: #D97706;
+  font-weight: 600;
+  margin: 2px 0 6px;
+}
+.stray-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
 /* ---- Animations ---- */
 @keyframes pulse {
   0%, 100% { opacity: 1; }

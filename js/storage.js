@@ -198,15 +198,25 @@ var Storage = {
     }
 
     if (state.settings.questionsPerQuiz === undefined) state.settings.questionsPerQuiz = 5;
+    if (state.settings.exchangeRate === undefined) state.settings.exchangeRate = 1;
+
+    if (!state.localCurrency) state.localCurrency = 'CAD';
+
+    // Piggy Coins migration
+    if (state.piggyCoins === undefined) state.piggyCoins = 0;
+    if (state.stats.totalPCSpentOnAnimals === undefined) state.stats.totalPCSpentOnAnimals = 0;
+    if (state.stats.totalPCEarnedFromAnimals === undefined) state.stats.totalPCEarnedFromAnimals = 0;
 
     // Remove deprecated points from inventory
     delete state.inventory.points;
 
-    // Animal feedCount + mood migration
+    // Animal feedCount + mood + runaway migration
     if (state.animals) {
       state.animals.forEach(function(a) {
         if (a.feedCount === undefined) a.feedCount = 0;
         if (a.mood === undefined) a.mood = 'happy';
+        if (a.ranAway === undefined) a.ranAway = false;
+        if (a.isAdopted === undefined) a.isAdopted = false;
       });
     }
 

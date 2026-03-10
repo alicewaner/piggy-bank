@@ -70,11 +70,15 @@ const App = (() => {
           animal.daysWithoutWater = 0;
         }
 
-        if (animal.daysWithoutWater >= DEATH.daysWithoutWater ||
-            animal.daysWithoutFood >= DEATH.daysWithoutFood) {
+        // Runaway: ZERO feeding (no water AND no food) for 2 consecutive days
+        if (animal.daysWithoutWater >= RUNAWAY.daysNeglected &&
+            animal.daysWithoutFood >= RUNAWAY.daysNeglected) {
           animal.alive = false;
-          showToast('Oh no! ' + (animal.name || ANIMAL_NAMES[animal.type].singular) + ' has passed away...');
-          Sound.death();
+          animal.ranAway = true;
+          var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
+          showToast('Oh no! ' + aName + ' ran away!');
+          Sound.wrong();
+          Stable.sendAnimalAway(animal, state);
         }
 
         animal.fedToday = false;
@@ -270,6 +274,7 @@ const App = (() => {
     }
 
     var age = birthdayToAge(birthday);
+    var currency = document.getElementById('register-currency').value || 'CAD';
 
     auth.createUserWithEmailAndPassword(email, password)
       .then(function(cred) {
@@ -282,6 +287,7 @@ const App = (() => {
           state.playerBirthday = birthday;
           state.playerAge = age;
           state.quizDifficulty = ageToDifficulty(age);
+          state.localCurrency = currency;
           Storage.save(state);
           // onAuthStateChanged will start the game
         });
@@ -329,12 +335,21 @@ const App = (() => {
 
     container.innerHTML = '<p class="empty-msg">Loading...</p>';
 
+    // Viewer's currency for leaderboard conversion
+    var myState = Storage.load();
+    var myCurrency = (myState && myState.localCurrency) || 'CAD';
+
     CloudSync.loadAllUsers().then(function(users) {
       var entries = [];
       users.forEach(function(u) {
         var state = u.state;
-        var bank = state.wallet ? state.wallet.balance : 0;
-        var animalValue = 0;
+        var theirCurrency = (state.localCurrency) || 'CAD';
+        var rate = (state.settings && state.settings.exchangeRate) || 1;
+        var bankLocal = state.wallet ? state.wallet.balance : 0;
+        var bank = convertCurrency(bankLocal, theirCurrency, myCurrency);
+        var pcInTheirCurrency = Math.round((state.piggyCoins || 0) / rate);
+        var pcValue = convertCurrency(pcInTheirCurrency, theirCurrency, myCurrency);
+        var animalValueLocal = 0;
         var animalCount = 0;
         if (state.animals) {
           state.animals.forEach(function(a) {
@@ -344,16 +359,18 @@ const App = (() => {
             var sellPrice = (state.settings && state.settings.sellAdultPrice) || 1000;
             var maxH = HEARTS.maxHearts;
             var val = buyPrice + (sellPrice - buyPrice) * (a.hearts / maxH);
-            animalValue += Math.round(val);
+            animalValueLocal += Math.round(val / rate);
           });
         }
+        var animalValue = convertCurrency(animalValueLocal, theirCurrency, myCurrency);
         entries.push({
           uid: u.uid,
           name: state.playerName || u.profile.name || 'Player',
           bank: bank,
           animals: animalValue,
-          total: bank + animalValue,
-          animalCount: animalCount
+          total: bank + pcValue + animalValue,
+          animalCount: animalCount,
+          pc: pcValue
         });
       });
 
@@ -446,6 +463,10 @@ const App = (() => {
   function startGame() {
     dailyCycle();
     updateAgeFromBirthday();
+    // Set global currency symbol
+    var st = Storage.load();
+    var cur = st.localCurrency || 'CAD';
+    currentCurrencySymbol = FX_RATES[cur] ? FX_RATES[cur].symbol : 'CA$';
     promptBirthdayIfMissing();
     trackLogin();
     Wallet.processInterest();

@@ -2,6 +2,15 @@
 // data.js — Constants, default state, Animal class
 // ============================================================
 
+var FX_RATES = {
+  USD: { rate: 1,    symbol: 'US$' },
+  CAD: { rate: 1.35, symbol: 'CA$' },
+  HKD: { rate: 7.80, symbol: 'HK$' },
+  CNY: { rate: 7.25, symbol: '¥'   }
+};
+
+var currentCurrencySymbol = 'CA$';
+
 var ANIMAL_TYPES = ['pig', 'sheep', 'cat', 'dog', 'dragon', 'axolotl', 'hedgehog', 'platypus', 'panda'];
 
 var ANIMAL_NAMES = {
@@ -23,13 +32,13 @@ var HEARTS = {
   maxPerDayBred: 5
 };
 
-var DEATH = {
-  daysWithoutWater: 2,
-  daysWithoutFood: 3
+var RUNAWAY = {
+  daysNeglected: 2,    // 2 days with ZERO feeding (no water AND no food) → runs away
+  heartPenalty: 3       // hearts lost when sent home
 };
 
-var DEPOSIT_CATEGORIES = ['Red Pocket', 'Birthday', 'Holiday', 'Allowance', 'Task Reward', 'Quiz Reward', 'Sell Animal', 'Interest Income', 'Gift', 'Other Earnings'];
-var WITHDRAW_CATEGORIES = ['Snack', 'Toys', 'Stationery', 'Books', 'Buy Animal', 'Donation', 'Others'];
+var DEPOSIT_CATEGORIES = ['Red Pocket', 'Birthday', 'Holiday', 'Allowance', 'Task Reward', 'Quiz Reward', 'Transfer from Piggy Coin', 'Interest Income', 'Gift', 'Other Earnings'];
+var WITHDRAW_CATEGORIES = ['Snack', 'Toys', 'Stationery', 'Books', 'Transfer to Piggy Coin', 'Donation', 'Others'];
 
 var DEFAULT_CHORES = [
   'Make your bed',
@@ -40,11 +49,10 @@ var DEFAULT_CHORES = [
 
 function createDefaultState() {
   return {
+    piggyCoins: 1000, // 10 PC welcome bonus (stored in cents)
     wallet: {
-      balance: 1000, // $10.00 in cents
-      transactions: [
-        { type: 'deposit', amount: 1000, desc: 'Welcome bonus!', date: todayString(), category: 'Gift' }
-      ]
+      balance: 0,    // Cash in cents (real money, only from PC transfers + deposits)
+      transactions: []
     },
     animals: [],
     dailyState: {
@@ -76,7 +84,9 @@ function createDefaultState() {
       totalAnimalsRaised: 0,
       totalMoneyEarned: 0,
       totalQuizzesTaken: 0,
-      daysPlayed: 1
+      daysPlayed: 1,
+      totalPCSpentOnAnimals: 0,
+      totalPCEarnedFromAnimals: 0
     },
     inventory: {
       food: 2,
@@ -91,10 +101,12 @@ function createDefaultState() {
       tasksPerReward: 3,     // every N tasks = 1 unlock (water first, then food)
       chatTimeLimitSeconds: 120, // daily chat time limit in seconds
       questionsPerQuiz: 5,
+      exchangeRate: 1,   // PC per $1 cash (1 = 1:1)
       customDepositCategories: [],
       customWithdrawCategories: []
     },
-    lastInterestDate: todayString()
+    lastInterestDate: todayString(),
+    localCurrency: 'CAD'
   };
 }
 
@@ -296,8 +308,20 @@ function todayString() {
     String(d.getDate()).padStart(2, '0');
 }
 
-function formatMoney(cents) {
-  return '$' + (cents / 100).toFixed(2);
+function formatMoney(cents, currency) {
+  var sym = currency ? FX_RATES[currency].symbol : currentCurrencySymbol;
+  return sym + (cents / 100).toFixed(2);
+}
+
+function convertCurrency(cents, fromCurrency, toCurrency) {
+  if (fromCurrency === toCurrency) return cents;
+  var fromRate = FX_RATES[fromCurrency] ? FX_RATES[fromCurrency].rate : 1;
+  var toRate = FX_RATES[toCurrency] ? FX_RATES[toCurrency].rate : 1;
+  return Math.round(cents / fromRate * toRate);
+}
+
+function formatPC(cents) {
+  return (cents / 100).toFixed(2) + ' PC';
 }
 
 function getMonthYear(dateStr) {

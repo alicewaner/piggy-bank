@@ -45,6 +45,13 @@
           <input type="text" id="register-name" placeholder="Enter your name" maxlength="20">
           <label for="register-birthday">Your Birthday</label>
           <input type="date" id="register-birthday">
+          <label for="register-currency">Currency</label>
+          <select id="register-currency">
+            <option value="CAD" selected>CA$ - Canadian Dollar</option>
+            <option value="USD">US$ - US Dollar</option>
+            <option value="HKD">HK$ - Hong Kong Dollar</option>
+            <option value="CNY">¥ - Chinese Yuan</option>
+          </select>
           <label for="register-email">Email</label>
           <input type="email" id="register-email" placeholder="Enter your email">
           <label for="register-password">Password</label>
@@ -61,6 +68,7 @@
       <div class="screen-header">
         <h2>My Barn</h2>
         <div class="resource-bar">
+          <span class="resource pc-balance" id="pc-balance">0.00 PC</span>
           <span class="resource" id="food-count">Food: 0</span>
           <span class="resource" id="water-count">Water: 0</span>
         </div>
@@ -78,7 +86,7 @@
       <div class="screen-header">
         <h2>Market</h2>
         <div class="market-header-stats">
-          <div class="balance-display" id="market-balance">$0.00</div>
+          <div class="balance-display" id="market-balance">0.00 PC</div>
         </div>
       </div>
       <div class="market-section">
@@ -230,6 +238,15 @@
             <input type="number" id="setting-chat-time-limit" class="setting-input" min="1" max="60">
             <label>Questions per Quiz:</label>
             <input type="number" id="setting-questions-per-quiz" class="setting-input" min="1" max="20">
+            <label>Piggy Coin Exchange Rate (PC per $1):</label>
+            <input type="number" id="setting-exchange-rate" class="setting-input" min="0.1" max="100" step="0.1">
+            <label>Local Currency:</label>
+            <select id="setting-currency" class="setting-input">
+              <option value="CAD">CA$ - Canadian Dollar</option>
+              <option value="USD">US$ - US Dollar</option>
+              <option value="HKD">HK$ - Hong Kong Dollar</option>
+              <option value="CNY">¥ - Chinese Yuan</option>
+            </select>
             <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
           </div>
         </div>
@@ -337,9 +354,9 @@
         </div>
         <div class="htp-section">
           <h3>The Market</h3>
-          <p>The Market is where you can buy and sell animals!</p>
-          <p><strong>Buy a Baby Animal:</strong> Spend money from your bank to bring home an adorable new baby!</p>
-          <p><strong>Sell an Adult Animal:</strong> Once your animal grows up, you can sell it to earn money back.</p>
+          <p>The Market is where you can buy and sell animals using <strong>Piggy Coins (PC)</strong>!</p>
+          <p><strong>Buy a Baby Animal:</strong> Spend Piggy Coins to bring home an adorable new baby!</p>
+          <p><strong>Sell an Adult Animal:</strong> Once your animal grows up, you can sell it to earn Piggy Coins.</p>
         </div>
         <div class="htp-section">
           <h3>Your Barn</h3>
@@ -354,8 +371,9 @@
           <p>Every time you feed your animal, it gets hearts. Once a baby collects <strong>15 hearts</strong>, it grows into an adult &mdash; how cool is that? You'll see a shiny golden border around grown-up animals in your barn.</p>
         </div>
         <div class="htp-section">
-          <h3>Your Bank</h3>
-          <p>The Bank keeps your money safe! You can <strong>deposit</strong> money you earn or receive, and <strong>withdraw</strong> it when you want to buy something. The best part? Your savings earn <strong>interest</strong> over time, so the longer you save, the more your money grows!</p>
+          <h3>Piggy Coins &amp; Your Bank</h3>
+          <p>You earn <strong>Piggy Coins (PC)</strong> from selling animals and get them as welcome bonus. Tap the PC balance in your barn to see your Piggy Coin wallet and <strong>transfer PC to cash</strong> in your bank at the exchange rate your parent sets.</p>
+          <p>The Bank keeps your real <strong>cash</strong> safe! You can deposit and withdraw cash, and your savings earn <strong>interest</strong> over time.</p>
         </div>
         <div class="htp-section">
           <h3>Friends &amp; Chat</h3>
