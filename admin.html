@@ -192,6 +192,7 @@
 
       <div class="admin-back">
         <button id="btn-admin-refresh" class="btn btn-accent" style="margin-right:8px;">Refresh</button>
+        <button id="btn-admin-logout" class="btn btn-danger" style="margin-right:8px;">Log Out</button>
         <a href="index.html" class="btn btn-secondary">Back to Game</a>
       </div>
     </div>
@@ -390,6 +391,14 @@
       if (e.target && e.target.id === 'btn-admin-refresh') {
         renderDashboard();
         showToast('Refreshed!');
+      }
+      if (e.target && e.target.id === 'btn-admin-logout') {
+        authInstance.signOut().then(function() {
+          document.getElementById('admin-dashboard').style.display = 'none';
+          document.getElementById('admin-login').style.display = '';
+          document.getElementById('btn-google-login').style.display = '';
+          showToast('Logged out.');
+        });
       }
     });
   </script>
