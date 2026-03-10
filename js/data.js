@@ -11,6 +11,8 @@ var FX_RATES = {
 
 var currentCurrencySymbol = 'CA$';
 
+var ADMIN_UIDS = ['yTVdAZRdzrYyaXqVdxpyUO33kQh1'];
+
 var ANIMAL_TYPES = ['pig', 'sheep', 'cat', 'dog', 'dragon', 'axolotl', 'hedgehog', 'platypus', 'panda'];
 
 var ANIMAL_NAMES = {

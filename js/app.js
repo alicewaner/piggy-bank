@@ -355,8 +355,10 @@ const App = (() => {
     var myCurrency = (myState && myState.localCurrency) || 'CAD';
 
     CloudSync.loadAllUsers().then(function(users) {
+      var HIDDEN_UIDS = ['yTVdAZRdzrYyaXqVdxpyUO33kQh1'];
       var entries = [];
       users.forEach(function(u) {
+        if (HIDDEN_UIDS.indexOf(u.uid) !== -1) return;
         var state = u.state;
         var theirCurrency = (state.localCurrency) || 'CAD';
         var rate = (state.settings && state.settings.exchangeRate) || 1;

@@ -128,14 +128,24 @@ const Friends = (() => {
     var me = getCurrentUser();
     if (!me) return;
 
-    // Check for existing request
-    db.collection('friendRequests')
+    // Check both directions for existing request or friendship
+    var q1 = db.collection('friendRequests')
       .where('fromUid', '==', me.uid)
       .where('toUid', '==', toUid)
-      .get()
-      .then(function(snap) {
-        if (!snap.empty) {
-          App.showToast('Request already sent!');
+      .get();
+    var q2 = db.collection('friendRequests')
+      .where('fromUid', '==', toUid)
+      .where('toUid', '==', me.uid)
+      .get();
+
+    Promise.all([q1, q2])
+      .then(function(snaps) {
+        var existing = false;
+        snaps.forEach(function(snap) {
+          if (!snap.empty) existing = true;
+        });
+        if (existing) {
+          App.showToast('Already friends or request pending!');
           return;
         }
         return db.collection('friendRequests').add({
