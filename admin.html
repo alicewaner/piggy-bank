@@ -188,6 +188,14 @@
         </div>
       </div>
 
+      <div class="admin-section">
+        <h3>Reset User Password</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="email" id="reset-email-input" placeholder="User's email" style="flex:1;min-width:180px;padding:8px;border:2px solid var(--slot-border-light);border-radius:6px;font-size:0.75rem;">
+          <button id="btn-send-reset" class="btn-reset-pw" style="font-size:0.7rem;padding:8px 14px;">Send Reset Email</button>
+        </div>
+      </div>
+
       <div class="admin-back">
         <button id="btn-admin-refresh" class="btn btn-accent" style="margin-right:8px;">Refresh</button>
         <a href="index.html" class="btn btn-secondary">Back to Game</a>
@@ -383,6 +391,19 @@
         document.getElementById('pin-step').style.display = '';
         document.getElementById('admin-user-info').textContent = 'Signed in as: ' + (user.email || user.displayName);
       }
+    });
+
+    // Reset password by email
+    document.getElementById('btn-send-reset').addEventListener('click', function() {
+      var email = document.getElementById('reset-email-input').value.trim();
+      if (!email) { showToast('Enter an email address.'); return; }
+      if (!confirm('Send password reset to ' + email + '?')) return;
+      authInstance.sendPasswordResetEmail(email).then(function() {
+        showToast('Password reset email sent to ' + email);
+        document.getElementById('reset-email-input').value = '';
+      }).catch(function(err) {
+        showToast('Error: ' + err.message);
+      });
     });
 
     // Refresh button
