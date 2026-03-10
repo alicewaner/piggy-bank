@@ -6,6 +6,17 @@ const App = (() => {
   let currentScreen = 'welcome';
 
   function showScreen(name) {
+    // Stop chat timer when leaving chat
+    if (currentScreen === 'chat' && name !== 'chat') {
+      Chat.stopChatTimer();
+    }
+
+    // Check chat quota before showing chat
+    if (name === 'chat' && !Chat.checkQuota()) {
+      App.showToast('Chat time is up for today!');
+      return;
+    }
+
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const screen = document.getElementById('screen-' + name);
     if (screen) {
@@ -106,9 +117,10 @@ const App = (() => {
       tasksCompleted: new Array(state.tasks.chores.length).fill(false),
       quizMathCompleted: false,
       quizEncyclopediaCompleted: false,
-      pointsEarned: 0,
-      taskRewardsEarned: 0,
-      quizRewardEarned: false,
+      totalTaskCredits: 0,
+      waterUnlocked: false,
+      foodUnlocked: false,
+      chatSecondsUsed: 0,
       parentVoteDone: false
     };
 

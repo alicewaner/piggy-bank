@@ -61,7 +61,6 @@
       <div class="screen-header">
         <h2>My Barn</h2>
         <div class="resource-bar">
-          <span class="resource" id="points-count">Points: 0</span>
           <span class="resource" id="food-count">Food: 0</span>
           <span class="resource" id="water-count">Water: 0</span>
         </div>
@@ -80,12 +79,7 @@
         <h2>Market</h2>
         <div class="market-header-stats">
           <div class="balance-display" id="market-balance">$0.00</div>
-          <span class="resource" id="market-points">Points: 0</span>
         </div>
-      </div>
-      <div class="market-section">
-        <h3>Buy Supplies</h3>
-        <div id="supply-shop" class="supply-shop"></div>
       </div>
       <div class="market-section">
         <h3 id="buy-price-label">Buy a Baby Animal - $5.00</h3>
@@ -230,10 +224,10 @@
             <input type="number" id="setting-buy-price" class="setting-input" min="0.01" step="0.01">
             <label>Sell Adult Price ($):</label>
             <input type="number" id="setting-sell-price" class="setting-input" min="0.01" step="0.01">
-            <label>Tasks per Reward Batch:</label>
+            <label>Tasks per Reward (water/food unlock):</label>
             <input type="number" id="setting-tasks-per-reward" class="setting-input" min="1" max="20">
-            <label>Daily Reward Cap (0 = unlimited):</label>
-            <input type="number" id="setting-daily-cap" class="setting-input" min="0" max="100">
+            <label>Chat Time Limit (minutes):</label>
+            <input type="number" id="setting-chat-time-limit" class="setting-input" min="1" max="60">
             <label>Questions per Quiz:</label>
             <input type="number" id="setting-questions-per-quiz" class="setting-input" min="1" max="20">
             <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
@@ -290,6 +284,7 @@
     <div id="screen-chat" class="screen">
       <div class="screen-header">
         <h2>Chat</h2>
+        <span class="chat-timer" id="chat-timer">2:00</span>
       </div>
       <div id="group-chat-banner" class="group-chat-banner" style="display:none">
         <span id="group-chat-names"></span>
@@ -334,22 +329,21 @@
         </div>
         <div class="htp-section">
           <h3>Daily Tasks</h3>
-          <p>Every day you'll have a list of tasks to do. Finish them and check them off to earn <strong>points</strong>! The more tasks you complete, the more points you get. You can use your points to buy yummy food and water for your animals.</p>
+          <p>Every day you'll have a list of tasks to do. Finish them and check them off to earn <strong>task credits</strong>! Complete enough tasks and you'll unlock <strong>water</strong> first, then <strong>food</strong> for your animals. Quiz correct answers count as credits too!</p>
         </div>
         <div class="htp-section">
           <h3>Quizzes</h3>
-          <p>Want even more points? Try taking a <strong>Math Quiz</strong> or an <strong>Encyclopedia Quiz</strong> from the Tasks screen! The questions are made just for your age, so they'll always be a fun challenge.</p>
+          <p>Want even more credits? Try taking a <strong>Math Quiz</strong> or an <strong>Encyclopedia Quiz</strong> from the Tasks screen! Every correct answer counts as a task credit toward unlocking food and water.</p>
         </div>
         <div class="htp-section">
           <h3>The Market</h3>
-          <p>The Market is where all the shopping happens!</p>
-          <p><strong>Buy Supplies:</strong> Use your points to stock up on Food and Water.</p>
+          <p>The Market is where you can buy and sell animals!</p>
           <p><strong>Buy a Baby Animal:</strong> Spend money from your bank to bring home an adorable new baby!</p>
           <p><strong>Sell an Adult Animal:</strong> Once your animal grows up, you can sell it to earn money back.</p>
         </div>
         <div class="htp-section">
           <h3>Your Barn</h3>
-          <p>This is where all your animals live! Tap on any animal to see it up close. Hit the <strong>Feed</strong> button to give it 1 Food + 1 Water &mdash; that earns your animal <strong>1 heart</strong>. You can feed each animal up to <strong>2 times a day</strong>. If your animal is happy, feeding gives a bonus heart too!</p>
+          <p>This is where all your animals live! Tap on any animal to see it up close. Hit the <strong>Feed</strong> button to give it 1 Food + 1 Water &mdash; that earns your animal <strong>1 heart</strong>. You can feed each animal <strong>once a day</strong>. If your animal is happy, feeding gives a bonus heart too!</p>
         </div>
         <div class="htp-section">
           <h3>Mood</h3>

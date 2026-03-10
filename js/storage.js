@@ -163,16 +163,25 @@ var Storage = {
     if (state.playerBirthday === undefined) state.playerBirthday = '';
     if (!state.settings) state.settings = defaults.settings;
     if (!state.lastInterestDate) state.lastInterestDate = state.dailyState.lastDate || todayString();
-    if (state.settings.tasksPerReward === undefined) state.settings.tasksPerReward = 2;
-    if (state.settings.dailyRewardCap === undefined) state.settings.dailyRewardCap = 0;
+    if (state.settings.tasksPerReward === undefined) state.settings.tasksPerReward = 3;
+    if (state.settings.chatTimeLimitSeconds === undefined) state.settings.chatTimeLimitSeconds = 120;
+    // Remove deprecated settings
+    delete state.settings.dailyRewardCap;
 
     if (state.dailyState.quizMathCompleted === undefined) {
       state.dailyState.quizMathCompleted = state.dailyState.quizCompleted || false;
       state.dailyState.quizEncyclopediaCompleted = false;
       delete state.dailyState.quizCompleted;
     }
-    if (state.dailyState.taskRewardsEarned === undefined) state.dailyState.taskRewardsEarned = 0;
-    if (state.dailyState.quizRewardEarned === undefined) state.dailyState.quizRewardEarned = false;
+    // Migrate to task credits system
+    if (state.dailyState.totalTaskCredits === undefined) state.dailyState.totalTaskCredits = 0;
+    if (state.dailyState.waterUnlocked === undefined) state.dailyState.waterUnlocked = false;
+    if (state.dailyState.foodUnlocked === undefined) state.dailyState.foodUnlocked = false;
+    if (state.dailyState.chatSecondsUsed === undefined) state.dailyState.chatSecondsUsed = 0;
+    // Remove deprecated daily fields
+    delete state.dailyState.pointsEarned;
+    delete state.dailyState.taskRewardsEarned;
+    delete state.dailyState.quizRewardEarned;
 
     // Auto-categorize old transactions missing categories
     if (state.wallet && state.wallet.transactions) {
@@ -190,9 +199,8 @@ var Storage = {
 
     if (state.settings.questionsPerQuiz === undefined) state.settings.questionsPerQuiz = 5;
 
-    // Points currency migration
-    if (state.inventory.points === undefined) state.inventory.points = 0;
-    if (state.dailyState.pointsEarned === undefined) state.dailyState.pointsEarned = 0;
+    // Remove deprecated points from inventory
+    delete state.inventory.points;
 
     // Animal feedCount + mood migration
     if (state.animals) {

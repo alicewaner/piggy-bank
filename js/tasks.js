@@ -1,5 +1,5 @@
 // ============================================================
-// tasks.js — Dynamic chores, incremental rewards (points), two quizzes
+// tasks.js — Dynamic chores, task credits unlock food/water
 // ============================================================
 
 var Tasks = (function() {
@@ -40,16 +40,19 @@ var Tasks = (function() {
     }
 
     // Update reward display
+    var n = s.tasksPerReward;
     document.getElementById('task-reward-text').textContent =
-      'Every ' + s.tasksPerReward + ' tasks = +10 Points';
+      'Every ' + n + ' tasks = Water, then Food';
 
     // Progress text
     var choresDone = ds.tasksCompleted.filter(Boolean).length;
-    var capText = s.dailyRewardCap > 0 ? ' (cap: ' + s.dailyRewardCap + ')' : '';
-    document.getElementById('tasks-progress').textContent =
-      choresDone + ' tasks done | ' + ds.taskRewardsEarned + ' rewards earned' + capText +
-      ' | Points: ' + (state.inventory.points || 0) +
-      ' | Food: ' + state.inventory.food + ' | Water: ' + state.inventory.water;
+    var credits = ds.totalTaskCredits || 0;
+    var statusParts = [choresDone + ' tasks done', credits + ' credits'];
+    if (ds.waterUnlocked) statusParts.push('Water unlocked');
+    if (ds.foodUnlocked) statusParts.push('Food unlocked');
+    statusParts.push('Food: ' + state.inventory.food);
+    statusParts.push('Water: ' + state.inventory.water);
+    document.getElementById('tasks-progress').textContent = statusParts.join(' | ');
 
     // Checkbox listeners
     list.querySelectorAll('.task-check').forEach(function(cb) {
@@ -77,32 +80,35 @@ var Tasks = (function() {
 
     state.dailyState.tasksCompleted[index] = true;
     Sound.click();
+    Storage.save(state);
 
-    // Incremental rewards: every N tasks = 1 reward batch of 10 points
-    var choresDone = state.dailyState.tasksCompleted.filter(Boolean).length;
-    var s = state.settings;
-    var expectedRewards = Math.floor(choresDone / s.tasksPerReward);
-    var newRewards = expectedRewards - state.dailyState.taskRewardsEarned;
+    addTaskCredit();
+    render();
+  }
 
-    if (newRewards > 0) {
-      // Check daily cap
-      if (s.dailyRewardCap > 0) {
-        var canEarn = s.dailyRewardCap - state.dailyState.taskRewardsEarned;
-        newRewards = Math.min(newRewards, canEarn);
-      }
-      if (newRewards > 0) {
-        var pointsGain = newRewards * 10;
-        if (!state.inventory.points) state.inventory.points = 0;
-        state.inventory.points += pointsGain;
-        state.dailyState.pointsEarned = (state.dailyState.pointsEarned || 0) + pointsGain;
-        state.dailyState.taskRewardsEarned += newRewards;
-        Sound.coin();
-        App.showToast('Reward! +' + pointsGain + ' Points!');
-      }
+  function addTaskCredit() {
+    var state = Storage.load();
+    var ds = state.dailyState;
+    var n = state.settings.tasksPerReward;
+
+    ds.totalTaskCredits = (ds.totalTaskCredits || 0) + 1;
+
+    // Check if water threshold reached (first N credits)
+    if (!ds.waterUnlocked && ds.totalTaskCredits >= n) {
+      ds.waterUnlocked = true;
+      state.inventory.water++;
+      Sound.coin();
+      App.showToast('Water unlocked! +1 Water');
+    }
+    // Check if food threshold reached (next N credits = 2*N total)
+    else if (ds.waterUnlocked && !ds.foodUnlocked && ds.totalTaskCredits >= n * 2) {
+      ds.foodUnlocked = true;
+      state.inventory.food++;
+      Sound.coin();
+      App.showToast('Food unlocked! +1 Food');
     }
 
     Storage.save(state);
-    render();
   }
 
   function awardQuizComplete(quizType) {
@@ -112,25 +118,20 @@ var Tasks = (function() {
     } else {
       state.dailyState.quizEncyclopediaCompleted = true;
     }
+    Storage.save(state);
 
-    // Award quiz reward when BOTH quizzes are completed
-    if (state.dailyState.quizMathCompleted && state.dailyState.quizEncyclopediaCompleted && !state.dailyState.quizRewardEarned) {
-      state.dailyState.quizRewardEarned = true;
-      var pointsGain = 10;
-      if (!state.inventory.points) state.inventory.points = 0;
-      state.inventory.points += pointsGain;
-      state.dailyState.pointsEarned = (state.dailyState.pointsEarned || 0) + pointsGain;
-      Storage.save(state);
-      App.showToast('Both quizzes done! +' + pointsGain + ' Points!');
+    if (quizType === 'math' && !state.dailyState.quizEncyclopediaCompleted) {
+      App.showToast('Math quiz done! Try Encyclopedia quiz too!');
+    } else if (quizType === 'encyclopedia' && !state.dailyState.quizMathCompleted) {
+      App.showToast('Encyclopedia quiz done! Try Math quiz too!');
     } else {
-      Storage.save(state);
-      if (quizType === 'math' && !state.dailyState.quizEncyclopediaCompleted) {
-        App.showToast('Math quiz done! Complete Encyclopedia quiz for bonus!');
-      } else if (quizType === 'encyclopedia' && !state.dailyState.quizMathCompleted) {
-        App.showToast('Encyclopedia quiz done! Complete Math quiz for bonus!');
-      }
+      App.showToast('Both quizzes done!');
     }
   }
 
-  return { render: render, awardQuizComplete: awardQuizComplete };
+  function addQuizCorrectAnswer() {
+    addTaskCredit();
+  }
+
+  return { render: render, awardQuizComplete: awardQuizComplete, addQuizCorrectAnswer: addQuizCorrectAnswer };
 })();

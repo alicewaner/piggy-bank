@@ -1161,6 +1161,27 @@ body {
 }
 .rank-bronze .lb-rank { color: #CD7F32; }
 
+/* ---- Chat Timer ---- */
+.chat-timer {
+  background: var(--inventory-slot);
+  color: var(--primary);
+  padding: 4px 12px;
+  border: 1px solid var(--slot-border-light);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.timer-warning {
+  color: #EF4444;
+  border-color: #EF4444;
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+@keyframes timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 /* ---- Chat ---- */
 #screen-chat {
   display: none;
@@ -1422,32 +1443,6 @@ body {
   margin: 0;
 }
 
-/* ---- Supply Shop ---- */
-.supply-shop {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.supply-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: #FFFFFF;
-  border: 1px solid var(--slot-border-light);
-  border-radius: 8px;
-}
-.supply-label {
-  flex: 1;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.supply-stock {
-  font-size: 0.8rem;
-  color: var(--stone-dark);
-  font-weight: 600;
-}
 .market-header-stats {
   display: flex;
   align-items: center;

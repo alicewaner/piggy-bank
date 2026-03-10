@@ -19,7 +19,7 @@ var ANIMAL_NAMES = {
 var HEARTS = {
   maxHearts: 15,
   adultThreshold: 15,
-  maxPerDayBought: 3,   // feed1(1) + feed2(1) + happy(1)
+  maxPerDayBought: 2,   // feed(1) + happy(1)
   maxPerDayBred: 5
 };
 
@@ -52,9 +52,10 @@ function createDefaultState() {
       tasksCompleted: [false, false, false, false],
       quizMathCompleted: false,
       quizEncyclopediaCompleted: false,
-      pointsEarned: 0,
-      taskRewardsEarned: 0,
-      quizRewardEarned: false
+      totalTaskCredits: 0,
+      waterUnlocked: false,
+      foodUnlocked: false,
+      chatSecondsUsed: 0
     },
     tasks: {
       chores: [].concat(DEFAULT_CHORES)
@@ -79,8 +80,7 @@ function createDefaultState() {
     },
     inventory: {
       food: 2,
-      water: 2,
-      points: 0
+      water: 2
     },
     nextAnimalId: 1,
     // Parent-configurable settings
@@ -88,8 +88,8 @@ function createDefaultState() {
       interestRate: 5,       // Annual interest rate (%)
       buyBabyPrice: 500,     // cents
       sellAdultPrice: 1000,  // cents
-      tasksPerReward: 2,     // every N tasks = 1 reward batch (10 points)
-      dailyRewardCap: 0,     // 0 = unlimited
+      tasksPerReward: 3,     // every N tasks = 1 unlock (water first, then food)
+      chatTimeLimitSeconds: 120, // daily chat time limit in seconds
       questionsPerQuiz: 5,
       customDepositCategories: [],
       customWithdrawCategories: []

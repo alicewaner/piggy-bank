@@ -1,5 +1,5 @@
 // ============================================================
-// market.js — Buy/sell animals + buy supplies with points
+// market.js — Buy/sell animals (supply shop removed)
 // ============================================================
 
 var Market = (function() {
@@ -8,29 +8,8 @@ var Market = (function() {
     var state = Storage.load();
     var buyPrice = state.settings.buyBabyPrice;
     var sellPrice = state.settings.sellAdultPrice;
-    var pts = state.inventory.points || 0;
 
     document.getElementById('market-balance').textContent = formatMoney(state.wallet.balance);
-    document.getElementById('market-points').textContent = 'Points: ' + pts;
-
-    // Supply shop
-    var supplySection = document.getElementById('supply-shop');
-    var canBuyFood = pts >= 10;
-    var canBuyWater = pts >= 10;
-    supplySection.innerHTML =
-      '<div class="supply-row">' +
-        '<span class="supply-label">Food (10 pts)</span>' +
-        '<span class="supply-stock">Stock: ' + state.inventory.food + '</span>' +
-        '<button class="btn btn-accent btn-small" id="btn-buy-food"' + (canBuyFood ? '' : ' disabled') + '>Buy</button>' +
-      '</div>' +
-      '<div class="supply-row">' +
-        '<span class="supply-label">Water (10 pts)</span>' +
-        '<span class="supply-stock">Stock: ' + state.inventory.water + '</span>' +
-        '<button class="btn btn-accent btn-small" id="btn-buy-water"' + (canBuyWater ? '' : ' disabled') + '>Buy</button>' +
-      '</div>';
-
-    document.getElementById('btn-buy-food').addEventListener('click', function() { buySupply('food'); });
-    document.getElementById('btn-buy-water').addEventListener('click', function() { buySupply('water'); });
 
     // Buy grid
     var buyGrid = document.getElementById('market-buy-grid');
@@ -71,21 +50,6 @@ var Market = (function() {
     // Update section headers with current prices
     document.getElementById('buy-price-label').textContent = 'Buy a Baby Animal - ' + formatMoney(buyPrice);
     document.getElementById('sell-price-label').textContent = 'Sell an Adult Animal - ' + formatMoney(sellPrice);
-  }
-
-  function buySupply(type) {
-    var state = Storage.load();
-    if (!state.inventory.points) state.inventory.points = 0;
-    if (state.inventory.points < 10) {
-      App.showToast('Not enough points!');
-      return;
-    }
-    state.inventory.points -= 10;
-    state.inventory[type]++;
-    Storage.save(state);
-    Sound.buy();
-    App.showToast('Bought 1 ' + type + '!');
-    render();
   }
 
   function buyAnimal(type) {

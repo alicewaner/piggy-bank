@@ -106,7 +106,7 @@ var Parent = (function() {
     document.getElementById('setting-buy-price').value = (s.buyBabyPrice / 100).toFixed(2);
     document.getElementById('setting-sell-price').value = (s.sellAdultPrice / 100).toFixed(2);
     document.getElementById('setting-tasks-per-reward').value = s.tasksPerReward;
-    document.getElementById('setting-daily-cap').value = s.dailyRewardCap;
+    document.getElementById('setting-chat-time-limit').value = Math.round((s.chatTimeLimitSeconds || 120) / 60);
     document.getElementById('setting-questions-per-quiz').value = s.questionsPerQuiz || 5;
 
     document.getElementById('btn-save-settings').onclick = function() {
@@ -114,8 +114,8 @@ var Parent = (function() {
       st.settings.interestRate = parseFloat(document.getElementById('setting-interest').value) || 0;
       st.settings.buyBabyPrice = Math.round(parseFloat(document.getElementById('setting-buy-price').value) * 100) || 500;
       st.settings.sellAdultPrice = Math.round(parseFloat(document.getElementById('setting-sell-price').value) * 100) || 1000;
-      st.settings.tasksPerReward = parseInt(document.getElementById('setting-tasks-per-reward').value) || 2;
-      st.settings.dailyRewardCap = parseInt(document.getElementById('setting-daily-cap').value) || 0;
+      st.settings.tasksPerReward = parseInt(document.getElementById('setting-tasks-per-reward').value) || 3;
+      st.settings.chatTimeLimitSeconds = (parseInt(document.getElementById('setting-chat-time-limit').value) || 2) * 60;
       st.settings.questionsPerQuiz = parseInt(document.getElementById('setting-questions-per-quiz').value) || 5;
       Storage.save(st);
       Sound.click();
@@ -201,7 +201,7 @@ var Parent = (function() {
       return '<div class="parent-animal-row">' +
         '<div class="pixel-art ' + a.type + '-' + a.stage + '"></div>' +
         '<span>' + name + ' (' + a.hearts + '/' + HEARTS.maxHearts + ')' +
-        ' Fed ' + fc + '/2' +
+        ' Fed ' + fc + '/1' +
         ' | Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>' +
         '<button class="btn btn-small ' + (canRemove ? 'btn-danger' : 'btn-secondary') + ' remove-happy-btn" ' +
         'data-id="' + a.id + '"' + (canRemove ? '' : ' disabled') + '>' +

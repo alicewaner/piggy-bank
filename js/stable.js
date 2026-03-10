@@ -1,7 +1,7 @@
 // ============================================================
 // stable.js — My Stable screen
-// Hearts: combined feed (1 food + 1 water = 1 heart), max 2/day
-// 3rd heart auto if mood === 'happy' after 2nd feed
+// Hearts: combined feed (1 food + 1 water = 1 heart), max 1/day
+// 2nd heart auto if mood === 'happy' after feed
 // ============================================================
 
 var Stable = (function() {
@@ -14,7 +14,6 @@ var Stable = (function() {
 
     document.getElementById('food-count').textContent = 'Food: ' + state.inventory.food;
     document.getElementById('water-count').textContent = 'Water: ' + state.inventory.water;
-    document.getElementById('points-count').textContent = 'Points: ' + (state.inventory.points || 0);
 
     if (alive.length === 0) {
       grid.innerHTML = '<div class="empty-stable">' +
@@ -29,7 +28,7 @@ var Stable = (function() {
       var fc = animal.feedCount || 0;
       var mood = animal.mood || 'happy';
       var statusIcons = '';
-      if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/2</span>';
+      if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/1</span>';
       var moodClass = mood === 'happy' ? 'mood-happy' : 'mood-sad';
       statusIcons += '<span class="mood-badge ' + moodClass + '">' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>';
       if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
@@ -76,8 +75,7 @@ var Stable = (function() {
     }
     // Show today's heart breakdown
     var todayInfo = [];
-    if (fc >= 1) todayInfo.push('Feed 1 +1');
-    if (fc >= 2) todayInfo.push('Feed 2 +1');
+    if (fc >= 1) todayInfo.push('Fed +1');
     if (animal.happyHeartToday && !animal.happyHeartRemoved) todayInfo.push('Happy +1');
     if (animal.happyHeartRemoved) todayInfo.push('Happy removed');
     heartsHTML += '<div class="hearts-today">Today: ' + (todayInfo.length ? todayInfo.join(', ') : 'none yet') + '</div>';
@@ -131,12 +129,12 @@ var Stable = (function() {
 
     var btnFeed = document.getElementById('btn-feed');
 
-    var canFeed = state.inventory.food >= 1 && state.inventory.water >= 1 && fc < 2;
+    var canFeed = state.inventory.food >= 1 && state.inventory.water >= 1 && fc < 1;
     btnFeed.disabled = !canFeed;
-    if (fc >= 2) {
-      btnFeed.textContent = 'Fed 2/2';
+    if (fc >= 1) {
+      btnFeed.textContent = 'Fed 1/1';
     } else {
-      btnFeed.textContent = 'Feed ' + fc + '/2 (1 food + 1 water)';
+      btnFeed.textContent = 'Feed (1 food + 1 water)';
     }
 
     // Status warnings
@@ -160,7 +158,7 @@ var Stable = (function() {
     var animal = state.animals.find(function(a) { return a.id === id; });
     if (!animal) return;
     var fc = animal.feedCount || 0;
-    if (fc >= 2 || state.inventory.food < 1 || state.inventory.water < 1) return;
+    if (fc >= 1 || state.inventory.food < 1 || state.inventory.water < 1) return;
 
     // Consume 1 food + 1 water
     state.inventory.food--;
@@ -176,8 +174,8 @@ var Stable = (function() {
     // Give 1 heart
     giveHeart(animal);
 
-    // After 2nd feed: check mood for auto 3rd heart
-    if (animal.feedCount >= 2) {
+    // After 1st feed: check mood for bonus heart
+    if (animal.feedCount >= 1) {
       var mood = animal.mood || 'happy';
       if (mood === 'happy' && !animal.happyHeartToday) {
         animal.happyHeartToday = true;

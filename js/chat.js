@@ -1,11 +1,12 @@
 // ============================================================
-// chat.js — Public & private chat via Firestore
+// chat.js — Public & private chat via Firestore + time quota
 // ============================================================
 
 const Chat = (() => {
   let unsubscribe = null;
   let userList = [];
   let groupFilter = null;   // { groupId, groupNames }
+  let chatTimerInterval = null;
 
 
   function escapeHtml(str) {
@@ -46,7 +47,6 @@ const Chat = (() => {
 
   function parsePrivateMessage(text) {
     if (text.charAt(0) !== '@') return null;
-    // Match @Name followed by space then message
     for (var i = 0; i < userList.length; i++) {
       var name = userList[i].name;
       if (text.substring(1, 1 + name.length).toLowerCase() === name.toLowerCase() &&
@@ -111,7 +111,6 @@ const Chat = (() => {
         snapshot.forEach(function(doc) {
           messages.push(doc.data());
         });
-        // Reverse to show oldest first
         messages.reverse();
         renderMessages(messages);
       }, function(err) {
@@ -128,11 +127,9 @@ const Chat = (() => {
 
     var html = '';
     messages.forEach(function(msg) {
-      // Group mode: only show group messages for this group
       if (groupFilter) {
         if (msg.groupId !== groupFilter.groupId) return;
       } else {
-        // Normal mode: skip group messages, filter private messages
         if (msg.groupId) return;
         if (msg.recipientUid && msg.senderUid !== me.uid && msg.recipientUid !== me.uid) {
           return;
@@ -169,7 +166,6 @@ const Chat = (() => {
     }
 
     container.innerHTML = html;
-    // Auto-scroll to bottom
     container.scrollTop = container.scrollHeight;
   }
 
@@ -191,11 +187,90 @@ const Chat = (() => {
     render();
   }
 
+  // ---- Chat Time Quota ----
+
+  function checkQuota() {
+    var state = Storage.load();
+    var limit = (state.settings && state.settings.chatTimeLimitSeconds) || 120;
+    var used = (state.dailyState && state.dailyState.chatSecondsUsed) || 0;
+    return used < limit;
+  }
+
+  function getRemainingSeconds() {
+    var state = Storage.load();
+    var limit = (state.settings && state.settings.chatTimeLimitSeconds) || 120;
+    var used = (state.dailyState && state.dailyState.chatSecondsUsed) || 0;
+    return Math.max(0, limit - used);
+  }
+
+  function updateTimerDisplay() {
+    var remaining = getRemainingSeconds();
+    var mins = Math.floor(remaining / 60);
+    var secs = remaining % 60;
+    var timerEl = document.getElementById('chat-timer');
+    if (timerEl) {
+      timerEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+      if (remaining <= 30) {
+        timerEl.classList.add('timer-warning');
+      } else {
+        timerEl.classList.remove('timer-warning');
+      }
+    }
+  }
+
+  function startChatTimer() {
+    stopChatTimer();
+    updateTimerDisplay();
+    chatTimerInterval = setInterval(function() {
+      var state = Storage.load();
+      state.dailyState.chatSecondsUsed = (state.dailyState.chatSecondsUsed || 0) + 1;
+      Storage.save(state);
+      updateTimerDisplay();
+
+      if (!checkQuota()) {
+        showQuotaExceeded();
+      }
+    }, 1000);
+  }
+
+  function stopChatTimer() {
+    if (chatTimerInterval) {
+      clearInterval(chatTimerInterval);
+      chatTimerInterval = null;
+    }
+  }
+
+  function showQuotaExceeded() {
+    stopChatTimer();
+    var input = document.getElementById('chat-input');
+    if (input) input.disabled = true;
+    var sendBtn = document.getElementById('chat-send');
+    if (sendBtn) sendBtn.disabled = true;
+    App.showToast('Chat time is up for today!');
+    setTimeout(function() {
+      App.showScreen('stable');
+    }, 2000);
+  }
+
   function render() {
     var banner = document.getElementById('group-chat-banner');
     if (banner) banner.style.display = groupFilter ? '' : 'none';
+
+    // Check quota before showing chat
+    if (!checkQuota()) {
+      showQuotaExceeded();
+      return;
+    }
+
+    // Enable input in case it was disabled
+    var input = document.getElementById('chat-input');
+    if (input) input.disabled = false;
+    var sendBtn = document.getElementById('chat-send');
+    if (sendBtn) sendBtn.disabled = false;
+
     loadUserList().then(function() {
       subscribe();
+      startChatTimer();
     });
   }
 
@@ -227,6 +302,7 @@ const Chat = (() => {
   }
 
   function cleanup() {
+    stopChatTimer();
     if (unsubscribe) {
       unsubscribe();
       unsubscribe = null;
@@ -244,6 +320,8 @@ const Chat = (() => {
     initListeners: initListeners,
     cleanup: cleanup,
     setGroupFilter: setGroupFilter,
-    clearGroupFilter: clearGroupFilter
+    clearGroupFilter: clearGroupFilter,
+    checkQuota: checkQuota,
+    stopChatTimer: stopChatTimer
   };
 })();

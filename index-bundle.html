@@ -1168,6 +1168,27 @@ body {
 }
 .rank-bronze .lb-rank { color: #CD7F32; }
 
+/* ---- Chat Timer ---- */
+.chat-timer {
+  background: var(--inventory-slot);
+  color: var(--primary);
+  padding: 4px 12px;
+  border: 1px solid var(--slot-border-light);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.timer-warning {
+  color: #EF4444;
+  border-color: #EF4444;
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+@keyframes timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 /* ---- Chat ---- */
 #screen-chat {
   display: none;
@@ -1429,32 +1450,6 @@ body {
   margin: 0;
 }
 
-/* ---- Supply Shop ---- */
-.supply-shop {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.supply-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: #FFFFFF;
-  border: 1px solid var(--slot-border-light);
-  border-radius: 8px;
-}
-.supply-label {
-  flex: 1;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.supply-stock {
-  font-size: 0.8rem;
-  color: var(--stone-dark);
-  font-weight: 600;
-}
 .market-header-stats {
   display: flex;
   align-items: center;
@@ -2008,7 +2003,6 @@ body {
       <div class="screen-header">
         <h2>My Barn</h2>
         <div class="resource-bar">
-          <span class="resource" id="points-count">Points: 0</span>
           <span class="resource" id="food-count">Food: 0</span>
           <span class="resource" id="water-count">Water: 0</span>
         </div>
@@ -2027,12 +2021,7 @@ body {
         <h2>Market</h2>
         <div class="market-header-stats">
           <div class="balance-display" id="market-balance">$0.00</div>
-          <span class="resource" id="market-points">Points: 0</span>
         </div>
-      </div>
-      <div class="market-section">
-        <h3>Buy Supplies</h3>
-        <div id="supply-shop" class="supply-shop"></div>
       </div>
       <div class="market-section">
         <h3 id="buy-price-label">Buy a Baby Animal - $5.00</h3>
@@ -2177,10 +2166,10 @@ body {
             <input type="number" id="setting-buy-price" class="setting-input" min="0.01" step="0.01">
             <label>Sell Adult Price ($):</label>
             <input type="number" id="setting-sell-price" class="setting-input" min="0.01" step="0.01">
-            <label>Tasks per Reward Batch:</label>
+            <label>Tasks per Reward (water/food unlock):</label>
             <input type="number" id="setting-tasks-per-reward" class="setting-input" min="1" max="20">
-            <label>Daily Reward Cap (0 = unlimited):</label>
-            <input type="number" id="setting-daily-cap" class="setting-input" min="0" max="100">
+            <label>Chat Time Limit (minutes):</label>
+            <input type="number" id="setting-chat-time-limit" class="setting-input" min="1" max="60">
             <label>Questions per Quiz:</label>
             <input type="number" id="setting-questions-per-quiz" class="setting-input" min="1" max="20">
             <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
@@ -2237,6 +2226,7 @@ body {
     <div id="screen-chat" class="screen">
       <div class="screen-header">
         <h2>Chat</h2>
+        <span class="chat-timer" id="chat-timer">2:00</span>
       </div>
       <div id="group-chat-banner" class="group-chat-banner" style="display:none">
         <span id="group-chat-names"></span>
@@ -2281,22 +2271,21 @@ body {
         </div>
         <div class="htp-section">
           <h3>Daily Tasks</h3>
-          <p>Every day you'll have a list of tasks to do. Finish them and check them off to earn <strong>points</strong>! The more tasks you complete, the more points you get. You can use your points to buy yummy food and water for your animals.</p>
+          <p>Every day you'll have a list of tasks to do. Finish them and check them off to earn <strong>task credits</strong>! Complete enough tasks and you'll unlock <strong>water</strong> first, then <strong>food</strong> for your animals. Quiz correct answers count as credits too!</p>
         </div>
         <div class="htp-section">
           <h3>Quizzes</h3>
-          <p>Want even more points? Try taking a <strong>Math Quiz</strong> or an <strong>Encyclopedia Quiz</strong> from the Tasks screen! The questions are made just for your age, so they'll always be a fun challenge.</p>
+          <p>Want even more credits? Try taking a <strong>Math Quiz</strong> or an <strong>Encyclopedia Quiz</strong> from the Tasks screen! Every correct answer counts as a task credit toward unlocking food and water.</p>
         </div>
         <div class="htp-section">
           <h3>The Market</h3>
-          <p>The Market is where all the shopping happens!</p>
-          <p><strong>Buy Supplies:</strong> Use your points to stock up on Food and Water.</p>
+          <p>The Market is where you can buy and sell animals!</p>
           <p><strong>Buy a Baby Animal:</strong> Spend money from your bank to bring home an adorable new baby!</p>
           <p><strong>Sell an Adult Animal:</strong> Once your animal grows up, you can sell it to earn money back.</p>
         </div>
         <div class="htp-section">
           <h3>Your Barn</h3>
-          <p>This is where all your animals live! Tap on any animal to see it up close. Hit the <strong>Feed</strong> button to give it 1 Food + 1 Water &mdash; that earns your animal <strong>1 heart</strong>. You can feed each animal up to <strong>2 times a day</strong>. If your animal is happy, feeding gives a bonus heart too!</p>
+          <p>This is where all your animals live! Tap on any animal to see it up close. Hit the <strong>Feed</strong> button to give it 1 Food + 1 Water &mdash; that earns your animal <strong>1 heart</strong>. You can feed each animal <strong>once a day</strong>. If your animal is happy, feeding gives a bonus heart too!</p>
         </div>
         <div class="htp-section">
           <h3>Mood</h3>
@@ -2451,7 +2440,7 @@ var ANIMAL_NAMES = {
 var HEARTS = {
   maxHearts: 15,
   adultThreshold: 15,
-  maxPerDayBought: 3,   // feed1(1) + feed2(1) + happy(1)
+  maxPerDayBought: 2,   // feed(1) + happy(1)
   maxPerDayBred: 5
 };
 
@@ -2484,9 +2473,10 @@ function createDefaultState() {
       tasksCompleted: [false, false, false, false],
       quizMathCompleted: false,
       quizEncyclopediaCompleted: false,
-      pointsEarned: 0,
-      taskRewardsEarned: 0,
-      quizRewardEarned: false
+      totalTaskCredits: 0,
+      waterUnlocked: false,
+      foodUnlocked: false,
+      chatSecondsUsed: 0
     },
     tasks: {
       chores: [].concat(DEFAULT_CHORES)
@@ -2511,8 +2501,7 @@ function createDefaultState() {
     },
     inventory: {
       food: 2,
-      water: 2,
-      points: 0
+      water: 2
     },
     nextAnimalId: 1,
     // Parent-configurable settings
@@ -2520,8 +2509,8 @@ function createDefaultState() {
       interestRate: 5,       // Annual interest rate (%)
       buyBabyPrice: 500,     // cents
       sellAdultPrice: 1000,  // cents
-      tasksPerReward: 2,     // every N tasks = 1 reward batch (10 points)
-      dailyRewardCap: 0,     // 0 = unlimited
+      tasksPerReward: 3,     // every N tasks = 1 unlock (water first, then food)
+      chatTimeLimitSeconds: 120, // daily chat time limit in seconds
       questionsPerQuiz: 5,
       customDepositCategories: [],
       customWithdrawCategories: []
@@ -2928,16 +2917,25 @@ var Storage = {
     if (state.playerBirthday === undefined) state.playerBirthday = '';
     if (!state.settings) state.settings = defaults.settings;
     if (!state.lastInterestDate) state.lastInterestDate = state.dailyState.lastDate || todayString();
-    if (state.settings.tasksPerReward === undefined) state.settings.tasksPerReward = 2;
-    if (state.settings.dailyRewardCap === undefined) state.settings.dailyRewardCap = 0;
+    if (state.settings.tasksPerReward === undefined) state.settings.tasksPerReward = 3;
+    if (state.settings.chatTimeLimitSeconds === undefined) state.settings.chatTimeLimitSeconds = 120;
+    // Remove deprecated settings
+    delete state.settings.dailyRewardCap;
 
     if (state.dailyState.quizMathCompleted === undefined) {
       state.dailyState.quizMathCompleted = state.dailyState.quizCompleted || false;
       state.dailyState.quizEncyclopediaCompleted = false;
       delete state.dailyState.quizCompleted;
     }
-    if (state.dailyState.taskRewardsEarned === undefined) state.dailyState.taskRewardsEarned = 0;
-    if (state.dailyState.quizRewardEarned === undefined) state.dailyState.quizRewardEarned = false;
+    // Migrate to task credits system
+    if (state.dailyState.totalTaskCredits === undefined) state.dailyState.totalTaskCredits = 0;
+    if (state.dailyState.waterUnlocked === undefined) state.dailyState.waterUnlocked = false;
+    if (state.dailyState.foodUnlocked === undefined) state.dailyState.foodUnlocked = false;
+    if (state.dailyState.chatSecondsUsed === undefined) state.dailyState.chatSecondsUsed = 0;
+    // Remove deprecated daily fields
+    delete state.dailyState.pointsEarned;
+    delete state.dailyState.taskRewardsEarned;
+    delete state.dailyState.quizRewardEarned;
 
     // Auto-categorize old transactions missing categories
     if (state.wallet && state.wallet.transactions) {
@@ -2955,9 +2953,8 @@ var Storage = {
 
     if (state.settings.questionsPerQuiz === undefined) state.settings.questionsPerQuiz = 5;
 
-    // Points currency migration
-    if (state.inventory.points === undefined) state.inventory.points = 0;
-    if (state.dailyState.pointsEarned === undefined) state.dailyState.pointsEarned = 0;
+    // Remove deprecated points from inventory
+    delete state.inventory.points;
 
     // Animal feedCount + mood migration
     if (state.animals) {
@@ -3447,8 +3444,8 @@ var Wallet = (function() {
 
 // ============================================================
 // stable.js — My Stable screen
-// Hearts: combined feed (1 food + 1 water = 1 heart), max 2/day
-// 3rd heart auto if mood === 'happy' after 2nd feed
+// Hearts: combined feed (1 food + 1 water = 1 heart), max 1/day
+// 2nd heart auto if mood === 'happy' after feed
 // ============================================================
 
 var Stable = (function() {
@@ -3461,7 +3458,6 @@ var Stable = (function() {
 
     document.getElementById('food-count').textContent = 'Food: ' + state.inventory.food;
     document.getElementById('water-count').textContent = 'Water: ' + state.inventory.water;
-    document.getElementById('points-count').textContent = 'Points: ' + (state.inventory.points || 0);
 
     if (alive.length === 0) {
       grid.innerHTML = '<div class="empty-stable">' +
@@ -3476,7 +3472,7 @@ var Stable = (function() {
       var fc = animal.feedCount || 0;
       var mood = animal.mood || 'happy';
       var statusIcons = '';
-      if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/2</span>';
+      if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/1</span>';
       var moodClass = mood === 'happy' ? 'mood-happy' : 'mood-sad';
       statusIcons += '<span class="mood-badge ' + moodClass + '">' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>';
       if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
@@ -3523,8 +3519,7 @@ var Stable = (function() {
     }
     // Show today's heart breakdown
     var todayInfo = [];
-    if (fc >= 1) todayInfo.push('Feed 1 +1');
-    if (fc >= 2) todayInfo.push('Feed 2 +1');
+    if (fc >= 1) todayInfo.push('Fed +1');
     if (animal.happyHeartToday && !animal.happyHeartRemoved) todayInfo.push('Happy +1');
     if (animal.happyHeartRemoved) todayInfo.push('Happy removed');
     heartsHTML += '<div class="hearts-today">Today: ' + (todayInfo.length ? todayInfo.join(', ') : 'none yet') + '</div>';
@@ -3578,12 +3573,12 @@ var Stable = (function() {
 
     var btnFeed = document.getElementById('btn-feed');
 
-    var canFeed = state.inventory.food >= 1 && state.inventory.water >= 1 && fc < 2;
+    var canFeed = state.inventory.food >= 1 && state.inventory.water >= 1 && fc < 1;
     btnFeed.disabled = !canFeed;
-    if (fc >= 2) {
-      btnFeed.textContent = 'Fed 2/2';
+    if (fc >= 1) {
+      btnFeed.textContent = 'Fed 1/1';
     } else {
-      btnFeed.textContent = 'Feed ' + fc + '/2 (1 food + 1 water)';
+      btnFeed.textContent = 'Feed (1 food + 1 water)';
     }
 
     // Status warnings
@@ -3607,7 +3602,7 @@ var Stable = (function() {
     var animal = state.animals.find(function(a) { return a.id === id; });
     if (!animal) return;
     var fc = animal.feedCount || 0;
-    if (fc >= 2 || state.inventory.food < 1 || state.inventory.water < 1) return;
+    if (fc >= 1 || state.inventory.food < 1 || state.inventory.water < 1) return;
 
     // Consume 1 food + 1 water
     state.inventory.food--;
@@ -3623,8 +3618,8 @@ var Stable = (function() {
     // Give 1 heart
     giveHeart(animal);
 
-    // After 2nd feed: check mood for auto 3rd heart
-    if (animal.feedCount >= 2) {
+    // After 1st feed: check mood for bonus heart
+    if (animal.feedCount >= 1) {
       var mood = animal.mood || 'happy';
       if (mood === 'happy' && !animal.happyHeartToday) {
         animal.happyHeartToday = true;
@@ -3690,7 +3685,7 @@ var Stable = (function() {
 })();
 
 // ============================================================
-// market.js — Buy/sell animals + buy supplies with points
+// market.js — Buy/sell animals (supply shop removed)
 // ============================================================
 
 var Market = (function() {
@@ -3699,29 +3694,8 @@ var Market = (function() {
     var state = Storage.load();
     var buyPrice = state.settings.buyBabyPrice;
     var sellPrice = state.settings.sellAdultPrice;
-    var pts = state.inventory.points || 0;
 
     document.getElementById('market-balance').textContent = formatMoney(state.wallet.balance);
-    document.getElementById('market-points').textContent = 'Points: ' + pts;
-
-    // Supply shop
-    var supplySection = document.getElementById('supply-shop');
-    var canBuyFood = pts >= 10;
-    var canBuyWater = pts >= 10;
-    supplySection.innerHTML =
-      '<div class="supply-row">' +
-        '<span class="supply-label">Food (10 pts)</span>' +
-        '<span class="supply-stock">Stock: ' + state.inventory.food + '</span>' +
-        '<button class="btn btn-accent btn-small" id="btn-buy-food"' + (canBuyFood ? '' : ' disabled') + '>Buy</button>' +
-      '</div>' +
-      '<div class="supply-row">' +
-        '<span class="supply-label">Water (10 pts)</span>' +
-        '<span class="supply-stock">Stock: ' + state.inventory.water + '</span>' +
-        '<button class="btn btn-accent btn-small" id="btn-buy-water"' + (canBuyWater ? '' : ' disabled') + '>Buy</button>' +
-      '</div>';
-
-    document.getElementById('btn-buy-food').addEventListener('click', function() { buySupply('food'); });
-    document.getElementById('btn-buy-water').addEventListener('click', function() { buySupply('water'); });
 
     // Buy grid
     var buyGrid = document.getElementById('market-buy-grid');
@@ -3764,21 +3738,6 @@ var Market = (function() {
     document.getElementById('sell-price-label').textContent = 'Sell an Adult Animal - ' + formatMoney(sellPrice);
   }
 
-  function buySupply(type) {
-    var state = Storage.load();
-    if (!state.inventory.points) state.inventory.points = 0;
-    if (state.inventory.points < 10) {
-      App.showToast('Not enough points!');
-      return;
-    }
-    state.inventory.points -= 10;
-    state.inventory[type]++;
-    Storage.save(state);
-    Sound.buy();
-    App.showToast('Bought 1 ' + type + '!');
-    render();
-  }
-
   function buyAnimal(type) {
     var state = Storage.load();
     var price = state.settings.buyBabyPrice;
@@ -3818,7 +3777,7 @@ var Market = (function() {
 })();
 
 // ============================================================
-// tasks.js — Dynamic chores, incremental rewards (points), two quizzes
+// tasks.js — Dynamic chores, task credits unlock food/water
 // ============================================================
 
 var Tasks = (function() {
@@ -3859,16 +3818,19 @@ var Tasks = (function() {
     }
 
     // Update reward display
+    var n = s.tasksPerReward;
     document.getElementById('task-reward-text').textContent =
-      'Every ' + s.tasksPerReward + ' tasks = +10 Points';
+      'Every ' + n + ' tasks = Water, then Food';
 
     // Progress text
     var choresDone = ds.tasksCompleted.filter(Boolean).length;
-    var capText = s.dailyRewardCap > 0 ? ' (cap: ' + s.dailyRewardCap + ')' : '';
-    document.getElementById('tasks-progress').textContent =
-      choresDone + ' tasks done | ' + ds.taskRewardsEarned + ' rewards earned' + capText +
-      ' | Points: ' + (state.inventory.points || 0) +
-      ' | Food: ' + state.inventory.food + ' | Water: ' + state.inventory.water;
+    var credits = ds.totalTaskCredits || 0;
+    var statusParts = [choresDone + ' tasks done', credits + ' credits'];
+    if (ds.waterUnlocked) statusParts.push('Water unlocked');
+    if (ds.foodUnlocked) statusParts.push('Food unlocked');
+    statusParts.push('Food: ' + state.inventory.food);
+    statusParts.push('Water: ' + state.inventory.water);
+    document.getElementById('tasks-progress').textContent = statusParts.join(' | ');
 
     // Checkbox listeners
     list.querySelectorAll('.task-check').forEach(function(cb) {
@@ -3896,32 +3858,35 @@ var Tasks = (function() {
 
     state.dailyState.tasksCompleted[index] = true;
     Sound.click();
+    Storage.save(state);
 
-    // Incremental rewards: every N tasks = 1 reward batch of 10 points
-    var choresDone = state.dailyState.tasksCompleted.filter(Boolean).length;
-    var s = state.settings;
-    var expectedRewards = Math.floor(choresDone / s.tasksPerReward);
-    var newRewards = expectedRewards - state.dailyState.taskRewardsEarned;
+    addTaskCredit();
+    render();
+  }
 
-    if (newRewards > 0) {
-      // Check daily cap
-      if (s.dailyRewardCap > 0) {
-        var canEarn = s.dailyRewardCap - state.dailyState.taskRewardsEarned;
-        newRewards = Math.min(newRewards, canEarn);
-      }
-      if (newRewards > 0) {
-        var pointsGain = newRewards * 10;
-        if (!state.inventory.points) state.inventory.points = 0;
-        state.inventory.points += pointsGain;
-        state.dailyState.pointsEarned = (state.dailyState.pointsEarned || 0) + pointsGain;
-        state.dailyState.taskRewardsEarned += newRewards;
-        Sound.coin();
-        App.showToast('Reward! +' + pointsGain + ' Points!');
-      }
+  function addTaskCredit() {
+    var state = Storage.load();
+    var ds = state.dailyState;
+    var n = state.settings.tasksPerReward;
+
+    ds.totalTaskCredits = (ds.totalTaskCredits || 0) + 1;
+
+    // Check if water threshold reached (first N credits)
+    if (!ds.waterUnlocked && ds.totalTaskCredits >= n) {
+      ds.waterUnlocked = true;
+      state.inventory.water++;
+      Sound.coin();
+      App.showToast('Water unlocked! +1 Water');
+    }
+    // Check if food threshold reached (next N credits = 2*N total)
+    else if (ds.waterUnlocked && !ds.foodUnlocked && ds.totalTaskCredits >= n * 2) {
+      ds.foodUnlocked = true;
+      state.inventory.food++;
+      Sound.coin();
+      App.showToast('Food unlocked! +1 Food');
     }
 
     Storage.save(state);
-    render();
   }
 
   function awardQuizComplete(quizType) {
@@ -3931,27 +3896,22 @@ var Tasks = (function() {
     } else {
       state.dailyState.quizEncyclopediaCompleted = true;
     }
+    Storage.save(state);
 
-    // Award quiz reward when BOTH quizzes are completed
-    if (state.dailyState.quizMathCompleted && state.dailyState.quizEncyclopediaCompleted && !state.dailyState.quizRewardEarned) {
-      state.dailyState.quizRewardEarned = true;
-      var pointsGain = 10;
-      if (!state.inventory.points) state.inventory.points = 0;
-      state.inventory.points += pointsGain;
-      state.dailyState.pointsEarned = (state.dailyState.pointsEarned || 0) + pointsGain;
-      Storage.save(state);
-      App.showToast('Both quizzes done! +' + pointsGain + ' Points!');
+    if (quizType === 'math' && !state.dailyState.quizEncyclopediaCompleted) {
+      App.showToast('Math quiz done! Try Encyclopedia quiz too!');
+    } else if (quizType === 'encyclopedia' && !state.dailyState.quizMathCompleted) {
+      App.showToast('Encyclopedia quiz done! Try Math quiz too!');
     } else {
-      Storage.save(state);
-      if (quizType === 'math' && !state.dailyState.quizEncyclopediaCompleted) {
-        App.showToast('Math quiz done! Complete Encyclopedia quiz for bonus!');
-      } else if (quizType === 'encyclopedia' && !state.dailyState.quizMathCompleted) {
-        App.showToast('Encyclopedia quiz done! Complete Math quiz for bonus!');
-      }
+      App.showToast('Both quizzes done!');
     }
   }
 
-  return { render: render, awardQuizComplete: awardQuizComplete };
+  function addQuizCorrectAnswer() {
+    addTaskCredit();
+  }
+
+  return { render: render, awardQuizComplete: awardQuizComplete, addQuizCorrectAnswer: addQuizCorrectAnswer };
 })();
 
 // ============================================================
@@ -4198,6 +4158,7 @@ const Quiz = (() => {
       feedback.textContent = 'Correct!';
       feedback.className = 'quiz-feedback feedback-correct';
       Sound.correct();
+      Tasks.addQuizCorrectAnswer();
     } else {
       streak = 0;
       feedback.textContent = `Wrong! The answer was: ${q.a[q.c]}`;
@@ -4477,7 +4438,7 @@ var Parent = (function() {
     document.getElementById('setting-buy-price').value = (s.buyBabyPrice / 100).toFixed(2);
     document.getElementById('setting-sell-price').value = (s.sellAdultPrice / 100).toFixed(2);
     document.getElementById('setting-tasks-per-reward').value = s.tasksPerReward;
-    document.getElementById('setting-daily-cap').value = s.dailyRewardCap;
+    document.getElementById('setting-chat-time-limit').value = Math.round((s.chatTimeLimitSeconds || 120) / 60);
     document.getElementById('setting-questions-per-quiz').value = s.questionsPerQuiz || 5;
 
     document.getElementById('btn-save-settings').onclick = function() {
@@ -4485,8 +4446,8 @@ var Parent = (function() {
       st.settings.interestRate = parseFloat(document.getElementById('setting-interest').value) || 0;
       st.settings.buyBabyPrice = Math.round(parseFloat(document.getElementById('setting-buy-price').value) * 100) || 500;
       st.settings.sellAdultPrice = Math.round(parseFloat(document.getElementById('setting-sell-price').value) * 100) || 1000;
-      st.settings.tasksPerReward = parseInt(document.getElementById('setting-tasks-per-reward').value) || 2;
-      st.settings.dailyRewardCap = parseInt(document.getElementById('setting-daily-cap').value) || 0;
+      st.settings.tasksPerReward = parseInt(document.getElementById('setting-tasks-per-reward').value) || 3;
+      st.settings.chatTimeLimitSeconds = (parseInt(document.getElementById('setting-chat-time-limit').value) || 2) * 60;
       st.settings.questionsPerQuiz = parseInt(document.getElementById('setting-questions-per-quiz').value) || 5;
       Storage.save(st);
       Sound.click();
@@ -4572,7 +4533,7 @@ var Parent = (function() {
       return '<div class="parent-animal-row">' +
         '<div class="pixel-art ' + a.type + '-' + a.stage + '"></div>' +
         '<span>' + name + ' (' + a.hearts + '/' + HEARTS.maxHearts + ')' +
-        ' Fed ' + fc + '/2' +
+        ' Fed ' + fc + '/1' +
         ' | Mood: ' + (mood === 'happy' ? 'Happy' : 'Sad') + '</span>' +
         '<button class="btn btn-small ' + (canRemove ? 'btn-danger' : 'btn-secondary') + ' remove-happy-btn" ' +
         'data-id="' + a.id + '"' + (canRemove ? '' : ' disabled') + '>' +
@@ -4647,13 +4608,14 @@ var Parent = (function() {
 })();
 
 // ============================================================
-// chat.js — Public & private chat via Firestore
+// chat.js — Public & private chat via Firestore + time quota
 // ============================================================
 
 const Chat = (() => {
   let unsubscribe = null;
   let userList = [];
   let groupFilter = null;   // { groupId, groupNames }
+  let chatTimerInterval = null;
 
 
   function escapeHtml(str) {
@@ -4694,7 +4656,6 @@ const Chat = (() => {
 
   function parsePrivateMessage(text) {
     if (text.charAt(0) !== '@') return null;
-    // Match @Name followed by space then message
     for (var i = 0; i < userList.length; i++) {
       var name = userList[i].name;
       if (text.substring(1, 1 + name.length).toLowerCase() === name.toLowerCase() &&
@@ -4759,7 +4720,6 @@ const Chat = (() => {
         snapshot.forEach(function(doc) {
           messages.push(doc.data());
         });
-        // Reverse to show oldest first
         messages.reverse();
         renderMessages(messages);
       }, function(err) {
@@ -4776,11 +4736,9 @@ const Chat = (() => {
 
     var html = '';
     messages.forEach(function(msg) {
-      // Group mode: only show group messages for this group
       if (groupFilter) {
         if (msg.groupId !== groupFilter.groupId) return;
       } else {
-        // Normal mode: skip group messages, filter private messages
         if (msg.groupId) return;
         if (msg.recipientUid && msg.senderUid !== me.uid && msg.recipientUid !== me.uid) {
           return;
@@ -4817,7 +4775,6 @@ const Chat = (() => {
     }
 
     container.innerHTML = html;
-    // Auto-scroll to bottom
     container.scrollTop = container.scrollHeight;
   }
 
@@ -4839,11 +4796,90 @@ const Chat = (() => {
     render();
   }
 
+  // ---- Chat Time Quota ----
+
+  function checkQuota() {
+    var state = Storage.load();
+    var limit = (state.settings && state.settings.chatTimeLimitSeconds) || 120;
+    var used = (state.dailyState && state.dailyState.chatSecondsUsed) || 0;
+    return used < limit;
+  }
+
+  function getRemainingSeconds() {
+    var state = Storage.load();
+    var limit = (state.settings && state.settings.chatTimeLimitSeconds) || 120;
+    var used = (state.dailyState && state.dailyState.chatSecondsUsed) || 0;
+    return Math.max(0, limit - used);
+  }
+
+  function updateTimerDisplay() {
+    var remaining = getRemainingSeconds();
+    var mins = Math.floor(remaining / 60);
+    var secs = remaining % 60;
+    var timerEl = document.getElementById('chat-timer');
+    if (timerEl) {
+      timerEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+      if (remaining <= 30) {
+        timerEl.classList.add('timer-warning');
+      } else {
+        timerEl.classList.remove('timer-warning');
+      }
+    }
+  }
+
+  function startChatTimer() {
+    stopChatTimer();
+    updateTimerDisplay();
+    chatTimerInterval = setInterval(function() {
+      var state = Storage.load();
+      state.dailyState.chatSecondsUsed = (state.dailyState.chatSecondsUsed || 0) + 1;
+      Storage.save(state);
+      updateTimerDisplay();
+
+      if (!checkQuota()) {
+        showQuotaExceeded();
+      }
+    }, 1000);
+  }
+
+  function stopChatTimer() {
+    if (chatTimerInterval) {
+      clearInterval(chatTimerInterval);
+      chatTimerInterval = null;
+    }
+  }
+
+  function showQuotaExceeded() {
+    stopChatTimer();
+    var input = document.getElementById('chat-input');
+    if (input) input.disabled = true;
+    var sendBtn = document.getElementById('chat-send');
+    if (sendBtn) sendBtn.disabled = true;
+    App.showToast('Chat time is up for today!');
+    setTimeout(function() {
+      App.showScreen('stable');
+    }, 2000);
+  }
+
   function render() {
     var banner = document.getElementById('group-chat-banner');
     if (banner) banner.style.display = groupFilter ? '' : 'none';
+
+    // Check quota before showing chat
+    if (!checkQuota()) {
+      showQuotaExceeded();
+      return;
+    }
+
+    // Enable input in case it was disabled
+    var input = document.getElementById('chat-input');
+    if (input) input.disabled = false;
+    var sendBtn = document.getElementById('chat-send');
+    if (sendBtn) sendBtn.disabled = false;
+
     loadUserList().then(function() {
       subscribe();
+      startChatTimer();
     });
   }
 
@@ -4875,6 +4911,7 @@ const Chat = (() => {
   }
 
   function cleanup() {
+    stopChatTimer();
     if (unsubscribe) {
       unsubscribe();
       unsubscribe = null;
@@ -4892,7 +4929,9 @@ const Chat = (() => {
     initListeners: initListeners,
     cleanup: cleanup,
     setGroupFilter: setGroupFilter,
-    clearGroupFilter: clearGroupFilter
+    clearGroupFilter: clearGroupFilter,
+    checkQuota: checkQuota,
+    stopChatTimer: stopChatTimer
   };
 })();
 
@@ -5113,13 +5152,13 @@ const Friends = (() => {
         var cssClass = animal.type + '-' + animal.stage;
         var fc = animal.feedCount || 0;
         var statusIcons = '';
-        if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/2</span>';
+        if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/1</span>';
         if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
 
-        var canFeed = myState.inventory.food >= 1 && myState.inventory.water >= 1 && fc < 2;
+        var canFeed = myState.inventory.food >= 1 && myState.inventory.water >= 1 && fc < 1;
         var feedBtn = '<button class="btn btn-accent btn-small btn-feed-friend" data-animal-id="' + animal.id + '"' +
           (canFeed ? '' : ' disabled') + '>' +
-          (fc >= 2 ? 'Full' : 'Feed') + '</button>';
+          (fc >= 1 ? 'Full' : 'Feed') + '</button>';
 
         return '<div class="animal-card ' + (animal.stage === 'adult' ? 'adult-card' : '') + '">' +
           '<div class="sprite-wrap"><div class="pixel-art ' + cssClass + ' idle-bounce"></div></div>' +
@@ -5166,7 +5205,7 @@ const Friends = (() => {
       }
 
       var fc = animal.feedCount || 0;
-      if (fc >= 2) {
+      if (fc >= 1) {
         App.showToast('This animal has been fed enough today!');
         return;
       }
@@ -5188,8 +5227,8 @@ const Friends = (() => {
         }
       }
 
-      // After 2nd feed: check mood for auto 3rd heart
-      if (animal.feedCount >= 2) {
+      // After 1st feed: check mood for bonus heart
+      if (animal.feedCount >= 1) {
         var mood = animal.mood || 'happy';
         if (mood === 'happy' && !animal.happyHeartToday) {
           animal.happyHeartToday = true;
@@ -5466,6 +5505,17 @@ const App = (() => {
   let currentScreen = 'welcome';
 
   function showScreen(name) {
+    // Stop chat timer when leaving chat
+    if (currentScreen === 'chat' && name !== 'chat') {
+      Chat.stopChatTimer();
+    }
+
+    // Check chat quota before showing chat
+    if (name === 'chat' && !Chat.checkQuota()) {
+      App.showToast('Chat time is up for today!');
+      return;
+    }
+
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const screen = document.getElementById('screen-' + name);
     if (screen) {
@@ -5566,9 +5616,10 @@ const App = (() => {
       tasksCompleted: new Array(state.tasks.chores.length).fill(false),
       quizMathCompleted: false,
       quizEncyclopediaCompleted: false,
-      pointsEarned: 0,
-      taskRewardsEarned: 0,
-      quizRewardEarned: false,
+      totalTaskCredits: 0,
+      waterUnlocked: false,
+      foodUnlocked: false,
+      chatSecondsUsed: 0,
       parentVoteDone: false
     };
 

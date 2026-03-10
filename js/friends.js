@@ -215,13 +215,13 @@ const Friends = (() => {
         var cssClass = animal.type + '-' + animal.stage;
         var fc = animal.feedCount || 0;
         var statusIcons = '';
-        if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/2</span>';
+        if (fc > 0) statusIcons += '<span class="status-fed">Fed ' + fc + '/1</span>';
         if (animal.isBred) statusIcons += '<span class="bred-badge">Bred</span>';
 
-        var canFeed = myState.inventory.food >= 1 && myState.inventory.water >= 1 && fc < 2;
+        var canFeed = myState.inventory.food >= 1 && myState.inventory.water >= 1 && fc < 1;
         var feedBtn = '<button class="btn btn-accent btn-small btn-feed-friend" data-animal-id="' + animal.id + '"' +
           (canFeed ? '' : ' disabled') + '>' +
-          (fc >= 2 ? 'Full' : 'Feed') + '</button>';
+          (fc >= 1 ? 'Full' : 'Feed') + '</button>';
 
         return '<div class="animal-card ' + (animal.stage === 'adult' ? 'adult-card' : '') + '">' +
           '<div class="sprite-wrap"><div class="pixel-art ' + cssClass + ' idle-bounce"></div></div>' +
@@ -268,7 +268,7 @@ const Friends = (() => {
       }
 
       var fc = animal.feedCount || 0;
-      if (fc >= 2) {
+      if (fc >= 1) {
         App.showToast('This animal has been fed enough today!');
         return;
       }
@@ -290,8 +290,8 @@ const Friends = (() => {
         }
       }
 
-      // After 2nd feed: check mood for auto 3rd heart
-      if (animal.feedCount >= 2) {
+      // After 1st feed: check mood for bonus heart
+      if (animal.feedCount >= 1) {
         var mood = animal.mood || 'happy';
         if (mood === 'happy' && !animal.happyHeartToday) {
           animal.happyHeartToday = true;

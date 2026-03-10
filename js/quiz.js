@@ -242,6 +242,7 @@ const Quiz = (() => {
       feedback.textContent = 'Correct!';
       feedback.className = 'quiz-feedback feedback-correct';
       Sound.correct();
+      Tasks.addQuizCorrectAnswer();
     } else {
       streak = 0;
       feedback.textContent = `Wrong! The answer was: ${q.a[q.c]}`;
