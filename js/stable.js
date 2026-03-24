@@ -602,13 +602,63 @@ var Stable = (function() {
     });
   }
 
-  // Updated render to include strays
+  // Load my lost animals (ones that ran away from me)
+  function loadMyLostAnimals(callback) {
+    var user = auth.currentUser;
+    if (!user) { callback([]); return; }
+
+    db.collection('strayAnimals')
+      .where('ownerUid', '==', user.uid)
+      .get()
+      .then(function(snap) {
+        var lost = [];
+        snap.forEach(function(doc) {
+          lost.push({ id: doc.id, data: doc.data() });
+        });
+        callback(lost);
+      })
+      .catch(function(err) {
+        console.error('Load lost animals error:', err);
+        callback([]);
+      });
+  }
+
+  function renderLostAnimals(container, lost) {
+    if (lost.length === 0) return;
+
+    var html = '<div class="lost-section">' +
+      '<h3 class="stray-section-title">Lost Animals</h3>' +
+      '<p class="stray-section-desc">Your animals ran away and are staying with someone else.</p>';
+
+    html += lost.map(function(item) {
+      var animal = item.data.animal;
+      var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
+      var cssClass = animal.type + '-' + animal.stage;
+      var targetName = item.data.targetName || 'Someone';
+
+      return '<div class="stray-card lost-card" data-lost-id="' + item.id + '">' +
+        '<div class="sprite-wrap"><div class="pixel-art ' + cssClass + ' idle-bounce"></div></div>' +
+        '<div class="animal-info">' +
+        '<div class="animal-name">' + aName + '</div>' +
+        '<div class="stray-badge" style="background:#f59e0b;color:#000;">At ' + targetName + '\'s barn</div>' +
+        maturityHTML(animal) +
+        '</div></div>';
+    }).join('');
+
+    html += '</div>';
+    container.insertAdjacentHTML('beforeend', html);
+  }
+
+  // Updated render to include strays and lost animals
   var originalRender = render;
   render = function() {
     originalRender();
     var grid = document.getElementById('stable-grid');
     loadStrays(function(strays) {
       renderStrays(grid, strays);
+    });
+    loadMyLostAnimals(function(lost) {
+      renderLostAnimals(grid, lost);
     });
   };
 
