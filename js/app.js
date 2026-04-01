@@ -71,7 +71,9 @@ const App = (() => {
         }
 
         // Runaway: ZERO feeding (no water AND no food) for 2 consecutive days
-        if (animal.daysWithoutWater >= RUNAWAY.daysNeglected &&
+        // Adults don't run away — they don't need feeding
+        if (animal.stage !== 'adult' &&
+            animal.daysWithoutWater >= RUNAWAY.daysNeglected &&
             animal.daysWithoutFood >= RUNAWAY.daysNeglected) {
           animal.alive = false;
           animal.ranAway = true;
