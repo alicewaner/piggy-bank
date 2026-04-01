@@ -642,11 +642,54 @@ var Stable = (function() {
         '<div class="animal-name">' + aName + '</div>' +
         '<div class="stray-badge" style="background:#f59e0b;color:#000;">At ' + targetName + '\'s barn</div>' +
         maturityHTML(animal) +
+        '<div class="stray-actions">' +
+        '<button class="btn btn-accent btn-small btn-recall" data-lost-id="' + item.id + '">Recall Home</button>' +
+        '</div>' +
         '</div></div>';
     }).join('');
 
     html += '</div>';
     container.insertAdjacentHTML('beforeend', html);
+
+    // Bind recall buttons
+    container.querySelectorAll('.btn-recall').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        Sound.click();
+        recallAnimal(btn.dataset.lostId);
+      });
+    });
+  }
+
+  function recallAnimal(strayDocId) {
+    db.collection('strayAnimals').doc(strayDocId).get().then(function(doc) {
+      if (!doc.exists) {
+        App.showToast('Animal not found.');
+        return;
+      }
+      var strayData = doc.data();
+      var animal = strayData.animal;
+
+      // Add animal back to my barn
+      var state = Storage.load();
+      animal.id = state.nextAnimalId++;
+      animal.alive = true;
+      animal.ranAway = false;
+      animal.daysWithoutWater = 0;
+      animal.daysWithoutFood = 0;
+      state.animals.push(animal);
+      Storage.save(state);
+
+      // Delete stray doc
+      return db.collection('strayAnimals').doc(strayDocId).delete().then(function() {
+        Sound.heart();
+        var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
+        App.showToast(aName + ' is back home!');
+        render();
+      });
+    }).catch(function(err) {
+      console.error('Recall animal error:', err);
+      App.showToast('Could not recall animal.');
+    });
   }
 
   // Updated render to include strays and lost animals
