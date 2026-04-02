@@ -643,7 +643,7 @@ var Stable = (function() {
         '<div class="stray-badge" style="background:#f59e0b;color:#000;">At ' + targetName + '\'s barn</div>' +
         maturityHTML(animal) +
         '<div class="stray-actions">' +
-        '<button class="btn btn-accent btn-small btn-recall" data-lost-id="' + item.id + '">Recall Home</button>' +
+        (animal.stage === 'adult' ? '<button class="btn btn-accent btn-small btn-recall" data-lost-id="' + item.id + '">Recall Home</button>' : '') +
         '</div>' +
         '</div></div>';
     }).join('');
@@ -669,6 +669,12 @@ var Stable = (function() {
       var strayData = doc.data();
       var animal = strayData.animal;
 
+      // Heart penalty for recall
+      animal.hearts = Math.max(0, animal.hearts - RUNAWAY.heartPenalty);
+      if (animal.hearts < HEARTS.adultThreshold) {
+        animal.stage = 'baby';
+      }
+
       // Add animal back to my barn
       var state = Storage.load();
       animal.id = state.nextAnimalId++;
@@ -683,7 +689,7 @@ var Stable = (function() {
       return db.collection('strayAnimals').doc(strayDocId).delete().then(function() {
         Sound.heart();
         var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
-        App.showToast(aName + ' is back home!');
+        App.showToast(aName + ' is back home! (Lost ' + RUNAWAY.heartPenalty + ' hearts)');
         render();
       });
     }).catch(function(err) {
