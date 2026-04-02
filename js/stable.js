@@ -669,12 +669,6 @@ var Stable = (function() {
       var strayData = doc.data();
       var animal = strayData.animal;
 
-      // Heart penalty for recall
-      animal.hearts = Math.max(0, animal.hearts - RUNAWAY.heartPenalty);
-      if (animal.hearts < HEARTS.adultThreshold) {
-        animal.stage = 'baby';
-      }
-
       // Add animal back to my barn
       var state = Storage.load();
       animal.id = state.nextAnimalId++;
@@ -689,7 +683,7 @@ var Stable = (function() {
       return db.collection('strayAnimals').doc(strayDocId).delete().then(function() {
         Sound.heart();
         var aName = animal.name || ANIMAL_NAMES[animal.type].singular;
-        App.showToast(aName + ' is back home! (Lost ' + RUNAWAY.heartPenalty + ' hearts)');
+        App.showToast(aName + ' is back home!');
         render();
       });
     }).catch(function(err) {
